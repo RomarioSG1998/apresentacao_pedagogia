@@ -1,0 +1,532 @@
+
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fontes Históricas: A Aventura do Conhecimento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0e8d8; /* Cor de pergaminho */
+            padding-bottom: 100px; /* Espaço para a barra de navegação fixa */
+        }
+        .font-lora {
+            font-family: 'Lora', serif;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn {
+            transition: all 0.2s ease;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .section-title {
+            border-bottom: 3px solid #8B4513; /* Marrom sela */
+            padding-bottom: 8px;
+            color: #4a3a2a;
+        }
+        .drop-zone {
+            border: 2px dashed #a0522d;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .drop-zone-over {
+            background-color: #fdf5e6;
+            border-color: #8B4513;
+        }
+        .draggable-item {
+            cursor: grab;
+            user-select: none;
+            transition: opacity 0.2s ease;
+        }
+        .draggable-item:active { cursor: grabbing; }
+        #drawing-canvas {
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            cursor: crosshair;
+            width: 100%;
+            height: auto;
+            touch-action: none; /* Previne rolagem ao desenhar no mobile */
+        }
+        @keyframes contentFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide {
+             animation: contentFadeIn 0.5s ease-in-out;
+        }
+
+        /* --- Animations for Game Feedback --- */
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .shake-animation {
+            animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+        }
+       
+        /* --- Styles for Feedback Popup --- */
+        #feedback-overlay {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #feedback-overlay.visible {
+            opacity: 1;
+        }
+        .feedback-popup {
+            position: relative;
+            transform: scale(0.5);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.2s ease-in-out;
+        }
+        #feedback-overlay.visible .feedback-popup {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .close-feedback-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+            font-size: 2rem;
+            line-height: 1;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-bar {
+            position: sticky;
+            top: 1rem;
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background-color: transparent; /* Fundo transparente */
+            width: fit-content;
+            margin: 1rem auto;
+        }
+        .progress-step {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 3px solid #a0522d;
+            color: #a0522d;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra para destacar */
+        }
+        .progress-step.active {
+            background-color: #8B4513;
+            color: white;
+            border-color: #8B4513;
+            transform: scale(1.1);
+        }
+        .progress-step:not(.active):hover {
+            background-color: #fdf5e6;
+        }
+        @media (min-width: 640px) {
+            .progress-bar { gap: 1rem; }
+            .progress-step { width: 2.5rem; height: 2.5rem; }
+        }
+    </style>
+</head>
+<body class="flex flex-col text-gray-800">
+    
+    <header class="bg-cover bg-center text-white p-6 md:p-12 rounded-b-3xl shadow-lg" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/e8/Chegada_de_Cabral_%C3%A0_Porto_Seguro.jpg');">
+        <div class="bg-black bg-opacity-50 p-4 sm:p-6 rounded-xl">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-lora text-center">Fontes Históricas</h1>
+            <p class="text-base sm:text-lg md:text-xl lg:text-2xl mt-4 text-center italic">Como sabemos o que aconteceu no passado se não estávamos lá para ver?</p>
+        </div>
+    </header>
+    
+    <main id="main-content" class="container mx-auto">
+        <div id="progress-bar" class="progress-bar">
+            <div class="progress-step" data-slide="0" title="Início">1</div>
+            <div class="progress-step" data-slide="1" title="Jogo">2</div>
+            <div class="progress-step" data-slide="2" title="Análise">3</div>
+            <div class="progress-step" data-slide="3" title="Atividade">4</div>
+            <div class="progress-step" data-slide="4" title="Quiz">5</div>
+        </div>
+
+        <!-- Slide 1: O que são Fontes Históricas? -->
+        <section id="o-que-sao" class="my-12 p-4 slide">
+             <div class="w-full max-w-5xl mx-auto">
+                <div class="card p-6 sm:p-8 text-center bg-amber-50">
+                     <h2 class="text-xl sm:text-2xl md:text-3xl font-bold font-lora mb-4 section-title inline-block">O que são Fontes Históricas?</h2>
+                     <p class="text-sm sm:text-base md:text-lg mt-4 max-w-3xl mx-auto">Fontes históricas são todas as <strong class="text-[#8B4513]">evidências</strong> produzidas pelos seres humanos que nos ajudam a conhecer o passado. São como as <strong class="text-[#8B4513]">"pistas"</strong> que os historiadores usam para reconstruir a História.</p>
+                     <div class="text-4xl sm:text-5xl mt-6 text-[#a0522d]">🕵️‍♂️</div>
+                </div>
+             </div>
+        </section>
+
+        <!-- Slide 2: Jogo: Classifique as Fontes -->
+        <section id="jogo" class="my-16 p-4 slide hidden">
+            <div class="card p-4 sm:p-6 md:p-8 bg-stone-100 relative w-full max-w-5xl mx-auto">
+                <h2 class="text-xl sm:text-2xl md:text-3xl font-bold font-lora mb-6 text-center section-title inline-block">Jogo: Classifique as Pistas!</h2>
+                <p class="text-center mb-6 sm:mb-8 text-sm sm:text-base">Arraste cada item para a categoria correta.</p>
+                <div id="sources-container" class="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mb-8 min-h-[50px]"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    <div id="escritas" class="drop-zone p-4 sm:p-6 rounded-lg min-h-[120px] sm:min-h-[150px] bg-white"><h3 class="font-bold text-lg sm:text-xl text-center mb-2">✍️ Escritas</h3><p class="text-xs sm:text-sm text-center text-gray-500">(Cartas, leis)</p></div>
+                    <div id="visuais" class="drop-zone p-4 sm:p-6 rounded-lg min-h-[120px] sm:min-h-[150px] bg-white"><h3 class="font-bold text-lg sm:text-xl text-center mb-2">🎨 Visuais</h3><p class="text-xs sm:text-sm text-center text-gray-500">(Pinturas, fotos)</p></div>
+                    <div id="materiais" class="drop-zone p-4 sm:p-6 rounded-lg min-h-[120px] sm:min-h-[150px] bg-white"><h3 class="font-bold text-lg sm:text-xl text-center mb-2">🏺 Materiais</h3><p class="text-xs sm:text-sm text-center text-gray-500">(Objetos, moedas)</p></div>
+                    <div id="orais" class="drop-zone p-4 sm:p-6 rounded-lg min-h-[120px] sm:min-h-[150px] bg-white"><h3 class="font-bold text-lg sm:text-xl text-center mb-2">🗣️ Orais</h3><p class="text-xs sm:text-sm text-center text-gray-500">(Histórias, canções)</p></div>
+                </div>
+                 <div id="feedback-message" class="mt-6 text-center text-base sm:text-lg font-semibold h-8"></div>
+                
+                 <!-- Visual Feedback Overlay -->
+                <div id="feedback-overlay" class="absolute inset-0 bg-black bg-opacity-25 flex justify-center items-center rounded-lg pointer-events-none">
+                    <div id="correct-feedback" class="feedback-popup hidden flex-col items-center bg-green-500 text-white p-6 sm:p-8 rounded-xl shadow-2xl">
+                        <button class="close-feedback-btn">&times;</button>
+                        <svg class="w-12 h-12 sm:w-20 sm:h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span class="text-lg sm:text-2xl font-bold mt-2 sm:mt-4">CORRETO!</span>
+                        <p id="correct-explanation" class="text-xs sm:text-base font-normal mt-2 max-w-xs text-center"></p>
+                    </div>
+                    <div id="incorrect-feedback" class="feedback-popup hidden flex-col items-center bg-red-500 text-white p-6 sm:p-8 rounded-xl shadow-2xl">
+                        <button class="close-feedback-btn">&times;</button>
+                        <svg class="w-12 h-12 sm:w-20 sm:h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <span class="text-lg sm:text-2xl font-bold mt-2 sm:mt-4">ERRADO!</span>
+                        <p id="incorrect-explanation" class="text-xs sm:text-base font-normal mt-2 max-w-xs text-center"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: Comparando Fontes -->
+        <section id="comparacao" class="my-16 p-4 slide hidden">
+            <div class="card p-4 sm:p-6 md:p-8 bg-amber-50 w-full max-w-5xl mx-auto">
+                <h2 class="text-xl sm:text-2xl md:text-3xl font-bold font-lora mb-6 text-center section-title inline-block">Analisando a Primeira Missa</h2>
+                <div class="grid md:grid-cols-2 gap-6 md:gap-8 items-center">
+                    <div class="text-center"><h3 class="text-lg sm:text-xl md:text-2xl font-semibold font-lora mb-4">A Pintura (1860)</h3><img src="https://upload.wikimedia.org/wikipedia/commons/5/5d/Meirelles-primeiramissa2.jpg" alt="Pintura 'A Primeira Missa no Brasil' por Victor Meirelles" class="mx-auto shadow-lg rounded-lg"><p class="mt-4 text-sm sm:text-base italic">Uma <strong class="text-[#8B4513]">interpretação artística</strong>, 360 anos depois.</p></div>
+                    <div class="text-center"><h3 class="text-lg sm:text-xl md:text-2xl font-semibold font-lora mb-4">A Carta (1500)</h3><div class="p-4 sm:p-6 bg-white rounded-lg shadow-inner h-full flex flex-col justify-center"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhxAvuyY0pz4vExlT55m1QR7sfh2v2xTL5Bi75dPjyz98oQ3944jpXsr9FXdB-vZDMZGUaLQZQQdLnjAN392jWkoOBr7EG4EZzHLdUZFb2MaHlGEvhUgbu1LnaNGPfi6aKl7_UP11cva887sYODkILi0qeKeA8XeYDgh7-4ldLbEP6ytNzJZJDf2NgdfrqM/s800/image_processing20210724-5162-12rqmek.jpeg" alt="Manuscrito da Carta de Pero Vaz de Caminha" class="mx-auto shadow-lg mb-4 w-full max-w-sm rounded-lg"><p class="font-lora text-sm sm:text-base md:text-lg italic">"...outros [...] <strong class=text-[#8B4513]>dançavam e bailavam</strong>... E <strong class=text-[#8B4513]>riam-se muito</strong>."</p><p class="mt-4 text-sm sm:text-base italic">Um <strong class="text-[#8B4513]">relato de testemunha ocular</strong>.</p></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Atividade Prática -->
+        <section id="atividade" class="my-16 p-4 slide hidden">
+            <div class="card p-4 sm:p-6 md:p-8 bg-stone-100 w-full max-w-5xl mx-auto">
+                <h2 class="text-xl sm:text-2xl md:text-3xl font-bold font-lora mb-6 text-center section-title inline-block">Sua Vez de Ser Historiador!</h2>
+                <p class="text-center mb-8 text-sm sm:text-base">Desenhe sua interpretação da Primeira Missa.</p>
+                <div class="bg-white p-2 sm:p-4 rounded-lg shadow-inner"><canvas id="drawing-canvas"></canvas></div>
+                <div class="flex justify-center items-center mt-4 gap-4 flex-wrap">
+                     <div class="flex items-center gap-2 text-sm sm:text-base"><label for="colorPicker">Cor:</label><input type="color" id="colorPicker" value="#000000" class="h-8 w-8 sm:h-10 sm:w-10"></div>
+                     <div class="flex items-center gap-2 text-sm sm:text-base"><label for="brushSize">Pincel:</label><input type="range" id="brushSize" min="1" max="20" value="3"></div>
+                    <button id="clear-canvas" class="btn bg-[#a0522d] text-white py-2 px-4 rounded-lg text-sm sm:text-base hover:bg-[#8B4513]">Limpar</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Slide 5: Quiz Final -->
+        <section id="quiz" class="my-16 p-4 slide hidden">
+            <div class="card p-6 sm:p-8 bg-amber-50 w-full max-w-5xl mx-auto">
+                <h2 class="text-xl sm:text-2xl md:text-3xl font-bold font-lora mb-6 text-center section-title inline-block">Quiz Rápido: O que Você Aprendeu?</h2>
+                <div id="quiz-container" class="max-w-2xl mx-auto text-sm sm:text-base"></div>
+                <div id="quiz-results" class="text-center mt-6 font-bold text-base sm:text-lg h-8"></div>
+            </div>
+        </section>
+    </main>
+    
+    <nav id="navigation-controls" class="fixed bottom-0 left-0 w-full bg-white/20 p-3 sm:p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20 flex justify-between items-center">
+        <button id="prev-btn" class="btn bg-gray-500 text-white py-2 px-4 sm:py-3 sm:px-8 rounded-lg text-sm sm:text-lg font-bold shadow-lg hover:bg-gray-600">&larr; Voltar</button>
+        <button id="next-btn" class="btn bg-[#8B4513] text-white py-2 px-4 sm:py-3 sm:px-8 rounded-lg text-sm sm:text-lg font-bold shadow-lg hover:bg-[#a0522d]">Avançar &rarr;</button>
+        <button id="restart-btn" class="btn bg-green-700 text-white py-2 px-4 sm:py-3 sm:px-8 rounded-lg text-sm sm:text-lg font-bold shadow-lg hover:bg-green-800 hidden">Reiniciar Aventura ↺</button>
+    </nav>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Global Elements ---
+            const slides = document.querySelectorAll('.slide');
+            const progressSteps = document.querySelectorAll('.progress-step');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            let currentSlide = 0;
+
+            // --- Canvas Drawing Globals ---
+            const canvas = document.getElementById('drawing-canvas');
+            const ctx = canvas.getContext('2d');
+            const colorPicker = document.getElementById('colorPicker');
+            const brushSize = document.getElementById('brushSize');
+            let isDrawing = false;
+            
+            // --- Canvas Functions ---
+            function clearAndPrepareCanvas() {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                const size = container.clientWidth;
+                canvas.width = size;
+                canvas.height = size * 0.6; // Proporção
+                clearAndPrepareCanvas(); 
+            }
+            
+            function getCanvasPosition(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
+            }
+            function startDrawing(e) { e.preventDefault(); isDrawing = true; const { x, y } = getCanvasPosition(e); ctx.beginPath(); ctx.moveTo(x, y); }
+            function draw(e) { if (!isDrawing) return; e.preventDefault(); const { x, y } = getCanvasPosition(e); ctx.lineTo(x, y); ctx.strokeStyle = colorPicker.value; ctx.lineWidth = brushSize.value; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); }
+            function stopDrawing() { isDrawing = false; ctx.closePath(); }
+
+            // --- Slide Navigation Logic ---
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.toggle('hidden', i !== index);
+                });
+
+                progressSteps.forEach((step, i) => step.classList.toggle('active', i === index));
+                currentSlide = index;
+
+                // --- Button Visibility and Text ---
+                prevBtn.classList.toggle('hidden', index === 0);
+                nextBtn.classList.toggle('hidden', index === slides.length - 1);
+                restartBtn.classList.toggle('hidden', index !== slides.length - 1);
+
+                if (index === 0) {
+                    nextBtn.innerHTML = 'Começar Investigação &rarr;';
+                } else if (index === slides.length - 2) {
+                    nextBtn.innerHTML = 'Teste Final &rarr;';
+                } else {
+                    nextBtn.innerHTML = 'Avançar &rarr;';
+                }
+
+                if (index === 3) {
+                    setTimeout(resizeCanvas, 0);
+                }
+
+                const targetElement = index === 0 ? document.querySelector('header') : slides[index];
+                if(targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+
+            function navigate(direction) {
+                const newIndex = currentSlide + direction;
+                if (newIndex >= 0 && newIndex < slides.length) showSlide(newIndex);
+            }
+            
+            progressSteps.forEach(step => {
+                step.addEventListener('click', () => showSlide(parseInt(step.dataset.slide)));
+            });
+
+            nextBtn.addEventListener('click', () => navigate(1));
+            prevBtn.addEventListener('click', () => navigate(-1));
+            
+            function resetQuiz() {
+                 renderQuiz();
+            }
+
+            restartBtn.addEventListener('click', () => {
+                showSlide(0);
+                resetQuiz();
+            });
+
+            showSlide(currentSlide);
+
+            // --- JOGO DE ARRASTAR E SOLTAR ---
+            const draggableItems = [
+                { id: 'item1', text: 'Carta', category: 'escritas' }, { id: 'item2', text: 'Pintura', category: 'visuais' },
+                { id: 'item3', text: 'Moeda', category: 'materiais' }, { id: 'item4', text: 'Lenda', category: 'orais' },
+                { id: 'item5', text: 'Foto', category: 'visuais' }, { id: 'item6', text: 'Ferramenta', category: 'materiais' },
+                { id: 'item7', text: 'Diário', category: 'escritas' }
+            ];
+            
+            const sourcesContainer = document.getElementById('sources-container');
+            const feedbackMessage = document.getElementById('feedback-message');
+            const feedbackOverlay = document.getElementById('feedback-overlay');
+            const correctFeedback = document.getElementById('correct-feedback');
+            const incorrectFeedback = document.getElementById('incorrect-feedback');
+            const correctExplanationEl = document.getElementById('correct-explanation');
+            const incorrectExplanationEl = document.getElementById('incorrect-explanation');
+            let correctCount = 0;
+            
+            document.querySelectorAll('.close-feedback-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    feedbackOverlay.classList.remove('visible');
+                    feedbackOverlay.style.pointerEvents = 'none';
+                });
+            });
+
+
+            function getReason(category) {
+                switch(category) {
+                    case 'escritas': return 'usa palavras para registrar informações.';
+                    case 'visuais': return 'usa imagens para mostrar algo.';
+                    case 'materiais': return 'é um objeto físico que podemos tocar.';
+                    case 'orais': return 'é uma história contada em voz alta.';
+                    default: return '';
+                }
+            }
+
+            function showFeedback(type, explanation = '') {
+                feedbackOverlay.style.pointerEvents = 'auto';
+                if (type === 'correct') {
+                    correctExplanationEl.textContent = explanation;
+                } else {
+                    incorrectExplanationEl.textContent = explanation;
+                }
+                
+                const elementToShow = type === 'correct' ? correctFeedback : incorrectFeedback;
+                const elementToHide = type === 'correct' ? incorrectFeedback : correctFeedback;
+
+                elementToHide.classList.add('hidden');
+                elementToShow.classList.remove('hidden');
+                
+                feedbackOverlay.classList.add('visible');
+            }
+
+            draggableItems.sort(() => Math.random() - 0.5).forEach(item => {
+                const div = document.createElement('div');
+                div.id = item.id;
+                div.textContent = item.text;
+                div.className = 'draggable-item p-2 sm:p-3 bg-[#8B4513] text-white text-sm sm:text-base rounded-md shadow-md';
+                div.dataset.category = item.category;
+                div.draggable = true;
+                sourcesContainer.appendChild(div);
+            });
+            
+            sourcesContainer.addEventListener('dragstart', e => { if (e.target.classList.contains('draggable-item')) { e.dataTransfer.setData('text/plain', e.target.id); e.target.classList.add('opacity-50'); } });
+            sourcesContainer.addEventListener('dragend', e => { if (e.target.classList.contains('draggable-item')) { e.target.classList.remove('opacity-50'); } });
+
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drop-zone-over'); });
+                zone.addEventListener('dragleave', () => zone.classList.remove('drop-zone-over'));
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('drop-zone-over');
+                    const id = e.dataTransfer.getData('text');
+                    const draggableElement = document.getElementById(id);
+                    if (!draggableElement || !zone.contains(draggableElement) && draggableElement.parentElement.id !== 'sources-container') return;
+                    
+                    if (draggableElement.dataset.category === zone.id) {
+                        const explanation = `Uma ${draggableElement.textContent.toLowerCase()} é uma fonte ${zone.id} porque ${getReason(zone.id)}`;
+                        showFeedback('correct', explanation);
+                        zone.appendChild(draggableElement);
+                        draggableElement.draggable = false;
+                        draggableElement.style.cursor = 'default';
+                        draggableElement.style.backgroundColor = '#228B22';
+                        correctCount++;
+                        if (correctCount === draggableItems.length) { 
+                            setTimeout(() => {
+                                feedbackMessage.textContent = 'Parabéns! Você classificou todas as pistas!';
+                                feedbackMessage.style.color = 'green';
+                            }, 1000);
+                        }
+                    } else {
+                        const correctCategory = draggableElement.dataset.category;
+                        const explanation = `Na verdade, uma ${draggableElement.textContent.toLowerCase()} é uma fonte ${correctCategory}, pois ${getReason(correctCategory)}`;
+                        showFeedback('incorrect', explanation);
+                        draggableElement.classList.add('shake-animation');
+                        setTimeout(() => draggableElement.classList.remove('shake-animation'), 800);
+                    }
+                });
+            });
+            
+            // --- Event Listeners Canvas ---
+            window.addEventListener('resize', resizeCanvas);
+            ['mousedown', 'touchstart'].forEach(evt => canvas.addEventListener(evt, startDrawing));
+            ['mousemove', 'touchmove'].forEach(evt => canvas.addEventListener(evt, draw));
+            ['mouseup', 'mouseout', 'touchend'].forEach(evt => canvas.addEventListener(evt, stopDrawing));
+            document.getElementById('clear-canvas').addEventListener('click', clearAndPrepareCanvas);
+
+            // --- QUIZ ---
+            const quizData = [
+                { question: "Qual o principal documento sobre a chegada dos portugueses ao Brasil?", answers: ["A pintura de V. Meirelles", "A Carta de P. V. Caminha", "Um diário indígena"], correct: "A Carta de P. V. Caminha" },
+                { question: "A pintura da Primeira Missa é um registro exato do que aconteceu?", answers: ["Sim, foi pintada no dia", "Não, é uma interpretação artística", "Sim, o pintor estava lá"], correct: "Não, é uma interpretação artística" },
+                { question: "Por que comparar diferentes fontes é importante?", answers: ["Para achar erros", "Para ter uma visão mais completa", "Para decorar datas"], correct: "Para ter uma visão mais completa" }
+            ];
+
+            const quizContainer = document.getElementById('quiz-container');
+            const quizResults = document.getElementById('quiz-results');
+            let score = 0;
+
+            function renderQuiz() {
+                quizContainer.innerHTML = '';
+                score = 0;
+                quizResults.textContent = '';
+
+                quizData.forEach((q, i) => {
+                    const questionBlock = document.createElement('div');
+                    questionBlock.className = 'mb-6';
+                    
+                    const questionText = document.createElement('p');
+                    questionText.className = 'font-semibold';
+                    questionText.textContent = `${i + 1}. ${q.question}`;
+                    questionBlock.appendChild(questionText);
+
+                    const answersContainer = document.createElement('div');
+                    answersContainer.className = 'ml-4 mt-2';
+
+                    q.answers.forEach(answer => {
+                        const label = document.createElement('label');
+                        label.className = 'block mt-2 cursor-pointer p-2 rounded-md hover:bg-amber-100 transition-colors';
+                        
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = `question${i}`;
+                        radio.value = answer;
+                        radio.className = 'mr-2';
+
+                        label.appendChild(radio);
+                        label.appendChild(document.createTextNode(answer));
+                        answersContainer.appendChild(label);
+                    });
+
+                    questionBlock.appendChild(answersContainer);
+                    quizContainer.appendChild(questionBlock);
+
+                    answersContainer.addEventListener('change', (e) => {
+                        const selectedLabel = e.target.parentElement;
+                        const radios = answersContainer.querySelectorAll('input[type="radio"]');
+                        
+                        radios.forEach(radio => {
+                            radio.disabled = true;
+                            const label = radio.parentElement;
+                            if(radio.value === q.correct) {
+                                label.classList.add('bg-green-200', 'font-bold');
+                            }
+                        });
+
+                        if (e.target.value !== q.correct) {
+                            selectedLabel.classList.add('bg-red-200');
+                            selectedLabel.classList.remove('font-bold');
+                        } else {
+                            score++;
+                        }
+                        quizResults.textContent = `Você acertou ${score} de ${quizData.length}!`;
+                    });
+                });
+            }
+
+            renderQuiz();
+        });
+    </script>
+
+</body>
+</html>
+
+
+
