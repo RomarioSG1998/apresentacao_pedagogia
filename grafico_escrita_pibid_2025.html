@@ -29,7 +29,8 @@
         </h1>
         
         <!-- O elemento canvas onde o gráfico será desenhado -->
-        <div class="w-full">
+        <!-- MUDANÇA: Aumentei a altura mínima do container para dar espaço às barras -->
+        <div class="w-full" style="min-height: 450px;">
             <canvas id="chartEscrita"></canvas>
         </div>
     </div>
@@ -77,8 +78,16 @@
             type: 'bar', // Tipo de gráfico: barras
             data: data,
             options: {
+                // MUDANÇA: 'y' torna o gráfico de barras horizontal
+                indexAxis: 'y', 
                 responsive: true, // Torna o gráfico responsivo
                 maintainAspectRatio: false,
+                // MUDANÇA: Adiciona padding à direita para os rótulos não serem cortados
+                layout: {
+                    padding: {
+                        right: 40 // Espaço para os rótulos ('77%', '69%', etc.)
+                    }
+                },
                 plugins: {
                     legend: {
                         position: 'top', // Posição da legenda
@@ -116,36 +125,42 @@
                     },
                     // NOVO: Configuração dos rótulos de dados (DataLabels)
                     datalabels: {
-                        anchor: 'end', // Posição do rótulo (no topo da barra)
-                        align: 'top', // Alinhamento do rótulo
+                        anchor: 'end', // Posição do rótulo (no final da barra)
+                        // MUDANÇA: 'right' alinha o texto à direita do ponto âncora
+                        align: 'right', 
                         color: '#4b5563', // Cor do texto (cinza escuro)
                         font: {
                             weight: 'bold'
                         },
                         // Formata o valor para incluir o símbolo '%'
                         formatter: function(value) {
+                            // Não mostra o rótulo se o valor for 0
+                            if (value === 0) {
+                                return null;
+                            }
                             return value + '%';
                         }
                     }
                 },
+                // MUDANÇA: As escalas X e Y foram trocadas
                 scales: {
-                    x: {
-                        grid: {
-                            display: false // Remove linhas de grade do eixo X
-                        }
-                    },
-                    y: {
-                        beginAtZero: true, // Eixo Y começa no zero
-                        max: 100, // Define o valor máximo do eixo Y para 100
+                    x: { // Este é agora o eixo dos valores (horizontal)
+                        beginAtZero: true, 
+                        max: 100, 
                         title: {
                             display: true,
-                            text: 'Porcentagem (%)' // Título do eixo Y
+                            text: 'Porcentagem (%)' 
                         },
                         grid: {
-                            color: '#e5e7eb' // Cor das linhas de grade do eixo Y
+                            color: '#e5e7eb' 
                         },
                         ticks: {
-                            stepSize: 20 // MUDANÇA: Voltando para 20 para melhor intuição
+                            stepSize: 20 
+                        }
+                    },
+                    y: { // Este é agora o eixo das categorias (vertical)
+                        grid: {
+                            display: false // Remove linhas de grade do eixo das categorias
                         }
                     }
                 }
@@ -160,6 +175,4 @@
     </script>
 </body>
 </html>
-
-
 
