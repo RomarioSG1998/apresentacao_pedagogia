@@ -2627,12 +2627,14 @@ Onde gostaria de ir?`;
               binId: jsonBinId
             };
             const essentialEncoded = btoa(JSON.stringify(essentialData));
-            return currentUrl + '?game=' + gameSessionId + '&data=' + essentialEncoded + (jsonBinId ? '&bin=' + jsonBinId : '');
+            // Codifica os parâmetros da URL para evitar problemas com caracteres especiais
+            return currentUrl + '?game=' + encodeURIComponent(gameSessionId) + '&data=' + encodeURIComponent(essentialEncoded) + (jsonBinId ? '&bin=' + encodeURIComponent(jsonBinId) : '');
           }
           
-          let shareUrl = currentUrl + '?game=' + gameSessionId + '&data=' + encodedData;
+          // Codifica os parâmetros da URL para evitar problemas com caracteres especiais
+          let shareUrl = currentUrl + '?game=' + encodeURIComponent(gameSessionId) + '&data=' + encodeURIComponent(encodedData);
           if (jsonBinId) {
-            shareUrl += '&bin=' + jsonBinId;
+            shareUrl += '&bin=' + encodeURIComponent(jsonBinId);
           }
           return shareUrl;
         } catch (e) {
@@ -2644,9 +2646,10 @@ Onde gostaria de ir?`;
           };
           try {
             const minimalEncoded = btoa(JSON.stringify(minimalData));
-            return currentUrl + '?game=' + gameSessionId + '&data=' + minimalEncoded;
+            // Codifica os parâmetros da URL para evitar problemas com caracteres especiais
+            return currentUrl + '?game=' + encodeURIComponent(gameSessionId) + '&data=' + encodeURIComponent(minimalEncoded);
           } catch (e2) {
-            return currentUrl + '?game=' + gameSessionId;
+            return currentUrl + '?game=' + encodeURIComponent(gameSessionId);
           }
         }
       }
@@ -2693,7 +2696,8 @@ Onde gostaria de ir?`;
           const encodedData = btoa(JSON.stringify(gameData));
           const maxUrlLength = 2000;
           if (encodedData.length <= maxUrlLength) {
-            const newUrl = currentUrl + '?game=' + gameSessionId + '&data=' + encodedData + (jsonBinId ? '&bin=' + jsonBinId : '');
+            // Codifica os parâmetros da URL para evitar problemas com caracteres especiais
+            const newUrl = currentUrl + '?game=' + encodeURIComponent(gameSessionId) + '&data=' + encodeURIComponent(encodedData) + (jsonBinId ? '&bin=' + encodeURIComponent(jsonBinId) : '');
             window.history.replaceState({}, document.title, newUrl);
           }
         } catch (e) {
@@ -2754,21 +2758,52 @@ Onde gostaria de ir?`;
        */
       async function loadInitialStateFromUrl(urlData) {
         try {
-          const gameData = JSON.parse(atob(urlData));
+          if (!urlData || urlData.trim() === '') {
+            console.error('URL data está vazio');
+            return false;
+          }
           
-          // Restaura as perguntas
-          if (gameData.perguntas && gameData.perguntas.length > 0) {
+          // Decodifica os dados da URL
+          // Nota: urlData pode já estar decodificado pelo URLSearchParams.get()
+          let gameData;
+          try {
+            // Tenta decodificar Base64 diretamente primeiro (caso já esteja decodificado do URI)
+            gameData = JSON.parse(atob(urlData));
+          } catch (decodeError) {
+            // Se falhar, tenta decodificar URI primeiro (caso ainda esteja codificado)
+            try {
+              const decodedData = decodeURIComponent(urlData);
+              gameData = JSON.parse(atob(decodedData));
+            } catch (e2) {
+              console.error('Erro ao decodificar URL:', decodeError, e2);
+              return false;
+            }
+          }
+          
+          if (!gameData || typeof gameData !== 'object') {
+            console.error('Dados decodificados inválidos');
+            return false;
+          }
+          
+          let loaded = false;
+          
+          // Restaura as perguntas (obrigatório para o jogo funcionar)
+          if (gameData.perguntas && Array.isArray(gameData.perguntas) && gameData.perguntas.length > 0) {
             perguntas = gameData.perguntas.map((p, i) => ({ num: i + 1, pergunta: p }));
             textoPerguntas = gameData.textoPerguntas || gameData.perguntas.join('\n');
-            questionsTextarea.value = textoPerguntas;
+            if (questionsTextarea) {
+              questionsTextarea.value = textoPerguntas;
+            }
             updateQuestionsCount();
             renderWheel();
             updateUI();
+            loaded = true;
           }
           
           // Restaura configurações do jogo
           if (gameData.currentGame) {
             currentGame = gameData.currentGame;
+            loaded = true;
           }
           
           if (gameData.battleModeEnabled !== undefined) {
@@ -2776,36 +2811,44 @@ Onde gostaria de ir?`;
             if (battleModeToggle) {
               battleModeToggle.checked = battleModeEnabled;
             }
+            loaded = true;
           }
           
           // Restaura estado dos jogos se disponível
-          if (gameData.raceScoreCount !== undefined) raceScoreCount = gameData.raceScoreCount;
-          if (gameData.raceProgressPercent !== undefined) raceProgressPercent = gameData.raceProgressPercent;
-          if (gameData.totalPerguntasIniciais !== undefined) totalPerguntasIniciais = gameData.totalPerguntasIniciais;
-          if (gameData.forceErrorCount !== undefined) forceErrorCount = gameData.forceErrorCount;
-          if (gameData.forceErrorCount1 !== undefined) forceErrorCount1 = gameData.forceErrorCount1;
-          if (gameData.forceErrorCount2 !== undefined) forceErrorCount2 = gameData.forceErrorCount2;
-          if (gameData.raceScoreCount1 !== undefined) raceScoreCount1 = gameData.raceScoreCount1;
-          if (gameData.raceScoreCount2 !== undefined) raceScoreCount2 = gameData.raceScoreCount2;
-          if (gameData.raceErrosCount1 !== undefined) raceErrosCount1 = gameData.raceErrosCount1;
-          if (gameData.raceErrosCount2 !== undefined) raceErrosCount2 = gameData.raceErrosCount2;
-          if (gameData.raceProgressPercent1 !== undefined) raceProgressPercent1 = gameData.raceProgressPercent1;
-          if (gameData.raceProgressPercent2 !== undefined) raceProgressPercent2 = gameData.raceProgressPercent2;
-          if (gameData.currentPlayer !== undefined) currentPlayer = gameData.currentPlayer;
-          if (gameData.perguntasJogador1) perguntasJogador1 = gameData.perguntasJogador1.map((p, i) => ({ num: i + 1, pergunta: p }));
-          if (gameData.perguntasJogador2) perguntasJogador2 = gameData.perguntasJogador2.map((p, i) => ({ num: i + 1, pergunta: p }));
-          if (gameData.wordSecret) wordSecret = gameData.wordSecret;
-          if (gameData.wordDiscovered) wordDiscovered = gameData.wordDiscovered;
-          if (gameData.wordTriedLetters) wordTriedLetters = gameData.wordTriedLetters;
-          if (gameData.wordScore !== undefined) wordScore = gameData.wordScore;
-          if (gameData.wordScore1 !== undefined) wordScore1 = gameData.wordScore1;
-          if (gameData.wordScore2 !== undefined) wordScore2 = gameData.wordScore2;
-          if (gameData.wordList) wordList = gameData.wordList;
-          if (gameData.wordListIndex !== undefined) wordListIndex = gameData.wordListIndex;
+          if (gameData.raceScoreCount !== undefined) { raceScoreCount = gameData.raceScoreCount; loaded = true; }
+          if (gameData.raceProgressPercent !== undefined) { raceProgressPercent = gameData.raceProgressPercent; loaded = true; }
+          if (gameData.totalPerguntasIniciais !== undefined) { totalPerguntasIniciais = gameData.totalPerguntasIniciais; loaded = true; }
+          if (gameData.forceErrorCount !== undefined) { forceErrorCount = gameData.forceErrorCount; loaded = true; }
+          if (gameData.forceErrorCount1 !== undefined) { forceErrorCount1 = gameData.forceErrorCount1; loaded = true; }
+          if (gameData.forceErrorCount2 !== undefined) { forceErrorCount2 = gameData.forceErrorCount2; loaded = true; }
+          if (gameData.raceScoreCount1 !== undefined) { raceScoreCount1 = gameData.raceScoreCount1; loaded = true; }
+          if (gameData.raceScoreCount2 !== undefined) { raceScoreCount2 = gameData.raceScoreCount2; loaded = true; }
+          if (gameData.raceErrosCount1 !== undefined) { raceErrosCount1 = gameData.raceErrosCount1; loaded = true; }
+          if (gameData.raceErrosCount2 !== undefined) { raceErrosCount2 = gameData.raceErrosCount2; loaded = true; }
+          if (gameData.raceProgressPercent1 !== undefined) { raceProgressPercent1 = gameData.raceProgressPercent1; loaded = true; }
+          if (gameData.raceProgressPercent2 !== undefined) { raceProgressPercent2 = gameData.raceProgressPercent2; loaded = true; }
+          if (gameData.currentPlayer !== undefined) { currentPlayer = gameData.currentPlayer; loaded = true; }
+          if (gameData.perguntasJogador1 && Array.isArray(gameData.perguntasJogador1)) {
+            perguntasJogador1 = gameData.perguntasJogador1.map((p, i) => ({ num: i + 1, pergunta: p }));
+            loaded = true;
+          }
+          if (gameData.perguntasJogador2 && Array.isArray(gameData.perguntasJogador2)) {
+            perguntasJogador2 = gameData.perguntasJogador2.map((p, i) => ({ num: i + 1, pergunta: p }));
+            loaded = true;
+          }
+          if (gameData.wordSecret) { wordSecret = gameData.wordSecret; loaded = true; }
+          if (gameData.wordDiscovered) { wordDiscovered = gameData.wordDiscovered; loaded = true; }
+          if (gameData.wordTriedLetters) { wordTriedLetters = gameData.wordTriedLetters; loaded = true; }
+          if (gameData.wordScore !== undefined) { wordScore = gameData.wordScore; loaded = true; }
+          if (gameData.wordScore1 !== undefined) { wordScore1 = gameData.wordScore1; loaded = true; }
+          if (gameData.wordScore2 !== undefined) { wordScore2 = gameData.wordScore2; loaded = true; }
+          if (gameData.wordList) { wordList = gameData.wordList; loaded = true; }
+          if (gameData.wordListIndex !== undefined) { wordListIndex = gameData.wordListIndex; loaded = true; }
           
           // Se há binId na URL, usa para sincronização online (opcional)
           if (gameData.binId) {
             jsonBinId = gameData.binId;
+            loaded = true;
           }
           
           // Atualiza UI dos jogos se necessário
@@ -2817,12 +2860,16 @@ Onde gostaria de ir?`;
             }
           }
           
-          // Salva o estado inicial no localStorage para sincronização
-          await saveGameState();
+          // Se carregou algum dado, salva no localStorage para sincronização
+          if (loaded) {
+            await saveGameState();
+            return true;
+          }
           
-          return true;
+          // Se não carregou nada, retorna false
+          return false;
         } catch (e) {
-          console.error('Erro ao decodificar dados da URL:', e);
+          console.error('Erro ao carregar dados da URL:', e);
           return false;
         }
       }
@@ -2831,40 +2878,68 @@ Onde gostaria de ir?`;
        * Verifica se há um parâmetro de jogo na URL e carrega o estado
        */
       async function checkUrlForGame() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const gameId = urlParams.get('game');
-        const urlData = urlParams.get('data');
-        const binId = urlParams.get('bin');
-        
-        if (gameId) {
-          gameSessionId = gameId;
-          isHost = false; // Quem entra pelo link não é o host
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          const gameId = urlParams.get('game');
+          let urlData = urlParams.get('data');
+          const binId = urlParams.get('bin');
           
-          // Se há binId na URL, usa para sincronização online
-          if (binId) {
-            jsonBinId = binId;
-          }
-          
-          // Tenta carregar do localStorage primeiro (se já acessou antes)
-          if (await loadGameState()) {
-            customAlert('Você entrou no jogo compartilhado! O estado será sincronizado automaticamente.', 'Jogo Compartilhado');
-            startGameSync();
-          } else if (urlData) {
-            // Se não encontrou no localStorage, carrega da URL (funciona entre diferentes computadores/redes)
-            if (await loadInitialStateFromUrl(urlData)) {
+          if (gameId) {
+            gameSessionId = gameId;
+            isHost = false; // Quem entra pelo link não é o host
+            
+            // Se há binId na URL, usa para sincronização online
+            if (binId) {
+              jsonBinId = binId;
+            }
+            
+            // Se não há urlData na query string, tenta pegar diretamente da URL
+            // Nota: URLSearchParams.get() já decodifica automaticamente
+            if (!urlData) {
+              const fullUrl = window.location.href;
+              const dataMatch = fullUrl.match(/[?&]data=([^&]+)/);
+              if (dataMatch) {
+                try {
+                  // Se pegamos via regex, precisamos decodificar manualmente
+                  urlData = decodeURIComponent(dataMatch[1]);
+                } catch (e) {
+                  // Se falhar, usa o valor original
+                  urlData = dataMatch[1];
+                }
+              }
+            }
+            
+            // Tenta carregar do localStorage primeiro (se já acessou antes no mesmo navegador)
+            const loadedFromStorage = await loadGameState();
+            
+            if (loadedFromStorage) {
               customAlert('Você entrou no jogo compartilhado! O estado será sincronizado automaticamente.', 'Jogo Compartilhado');
               startGameSync();
-            } else {
-              customAlert('Não foi possível carregar o jogo compartilhado. Verifique se o link está correto.', 'Erro');
-              window.history.replaceState({}, document.title, window.location.pathname);
-              gameSessionId = null;
+              return;
             }
-          } else {
-            // Não encontrou nem no localStorage nem na URL
-            customAlert('Não foi possível carregar o jogo compartilhado. O link pode estar incompleto ou o jogo pode ter expirado.', 'Erro');
+            
+            // Se não encontrou no localStorage, carrega da URL (funciona entre diferentes computadores/redes)
+            if (urlData) {
+              const loadedFromUrl = await loadInitialStateFromUrl(urlData);
+              
+              if (loadedFromUrl) {
+                customAlert('Você entrou no jogo compartilhado! O estado será sincronizado automaticamente.', 'Jogo Compartilhado');
+                startGameSync();
+                return;
+              } else {
+                console.error('Falha ao carregar dados da URL. urlData:', urlData ? urlData.substring(0, 100) + '...' : 'vazio');
+              }
+            }
+            
+            // Se chegou aqui, não conseguiu carregar
+            customAlert('Não foi possível carregar o jogo compartilhado. Verifique se o link está correto e completo.', 'Erro');
             window.history.replaceState({}, document.title, window.location.pathname);
             gameSessionId = null;
+            isHost = null;
           }
+        } catch (e) {
+          console.error('Erro ao verificar URL do jogo:', e);
+          customAlert('Erro ao carregar o jogo compartilhado. Tente novamente.', 'Erro');
         }
       }
       
