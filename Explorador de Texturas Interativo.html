@@ -266,17 +266,17 @@
             return;
           }
 
-          // Throttle: processa no máximo a cada 200ms (5 vezes por segundo)
+          // Throttle mais agressivo: processa no máximo a cada 500ms (2 vezes por segundo)
           const now = Date.now();
-          if (now - lastProcessTime < 200) {
+          if (now - lastProcessTime < 500) {
             requestRef.current = requestAnimationFrame(tick);
             return;
           }
           lastProcessTime = now;
 
-          // Processa apenas a cada 10 frames para melhor performance
+          // Processa apenas a cada 30 frames para melhor performance (muito mais leve)
           frameCount++;
-          if (frameCount % 10 !== 0) {
+          if (frameCount % 30 !== 0) {
             requestRef.current = requestAnimationFrame(tick);
             return;
           }
@@ -287,32 +287,24 @@
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
             if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
-              // Reduz a resolução para melhor performance (escala 1.5x em vez de 3x)
-              const scale = 1.5;
-              canvas.height = video.videoHeight * scale;
-              canvas.width = video.videoWidth * scale;
+              // Usa resolução nativa (sem escala) para máxima performance
+              canvas.height = video.videoHeight;
+              canvas.width = video.videoWidth;
               
               // Melhora a qualidade da renderização
               ctx.imageSmoothingEnabled = false;
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
               
-              // Processa APENAS a região central (mais eficiente)
+              // Processa APENAS uma pequena região central (muito mais eficiente)
               const centerRegion = {
-                x: canvas.width * 0.25,
-                y: canvas.height * 0.25,
-                width: canvas.width * 0.5,
-                height: canvas.height * 0.5
+                x: Math.floor(canvas.width * 0.3),
+                y: Math.floor(canvas.height * 0.3),
+                width: Math.floor(canvas.width * 0.4),
+                height: Math.floor(canvas.height * 0.4)
               };
               
+              // Pula processamento de imagem - usa imagem direta (muito mais rápido)
               let imageData = ctx.getImageData(centerRegion.x, centerRegion.y, centerRegion.width, centerRegion.height);
-              
-              // Processamento de imagem mais leve (apenas contraste básico)
-              const data = imageData.data;
-              for (let i = 0; i < data.length; i += 4) {
-                const gray = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
-                const enhanced = Math.min(255, Math.max(0, ((gray - 128) * 1.5) + 128));
-                data[i] = data[i + 1] = data[i + 2] = enhanced;
-              }
               
               if (window.jsQR) {
                 // Tenta apenas uma configuração (mais rápida)
@@ -440,17 +432,17 @@
         const tick = () => {
           if (!isScanning) return;
 
-          // Throttle: processa no máximo a cada 200ms (5 vezes por segundo)
+          // Throttle mais agressivo: processa no máximo a cada 500ms (2 vezes por segundo)
           const now = Date.now();
-          if (now - lastProcessTime < 200) {
+          if (now - lastProcessTime < 500) {
             requestRef.current = requestAnimationFrame(tick);
             return;
           }
           lastProcessTime = now;
 
-          // Processa apenas a cada 10 frames para melhor performance
+          // Processa apenas a cada 30 frames para melhor performance (muito mais leve)
           frameCount++;
-          if (frameCount % 10 !== 0) {
+          if (frameCount % 30 !== 0) {
             requestRef.current = requestAnimationFrame(tick);
             return;
           }
@@ -461,32 +453,24 @@
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
             if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
-              // Reduz a resolução para melhor performance (escala 1.5x em vez de 3x)
-              const scale = 1.5;
-              canvas.height = video.videoHeight * scale;
-              canvas.width = video.videoWidth * scale;
+              // Usa resolução nativa (sem escala) para máxima performance
+              canvas.height = video.videoHeight;
+              canvas.width = video.videoWidth;
               
               // Melhora a qualidade da renderização
               ctx.imageSmoothingEnabled = false;
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
               
-              // Processa APENAS a região central (mais eficiente)
+              // Processa APENAS uma pequena região central (muito mais eficiente)
               const centerRegion = {
-                x: canvas.width * 0.25,
-                y: canvas.height * 0.25,
-                width: canvas.width * 0.5,
-                height: canvas.height * 0.5
+                x: Math.floor(canvas.width * 0.3),
+                y: Math.floor(canvas.height * 0.3),
+                width: Math.floor(canvas.width * 0.4),
+                height: Math.floor(canvas.height * 0.4)
               };
               
+              // Pula processamento de imagem - usa imagem direta (muito mais rápido)
               let imageData = ctx.getImageData(centerRegion.x, centerRegion.y, centerRegion.width, centerRegion.height);
-              
-              // Processamento de imagem mais leve (apenas contraste básico)
-              const data = imageData.data;
-              for (let i = 0; i < data.length; i += 4) {
-                const gray = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
-                const enhanced = Math.min(255, Math.max(0, ((gray - 128) * 1.5) + 128));
-                data[i] = data[i + 1] = data[i + 2] = enhanced;
-              }
               
               // Use global jsQR from CDN
               if (window.jsQR) {
@@ -519,9 +503,8 @@
             try {
               stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { 
-                  facingMode: 'environment',
-                  width: { ideal: 1920 },
-                  height: { ideal: 1080 }
+                  facingMode: 'environment'
+                  // Removido width/height ideal para melhor performance
                 } 
               });
               
@@ -748,6 +731,8 @@
                       src={material.imageUrl} 
                       alt={material.name}
                       className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 z-10"
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => {
                         // Se a imagem falhar ao carregar, mostra o ícone
                         e.target.style.display = 'none';
@@ -772,7 +757,15 @@
               </h2>
 
               <button
-                onClick={() => { playMaterialSound(); speakDescription(false); }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Debounce para evitar múltiplos cliques
+                  if (Date.now() - (e.target.lastClickTime || 0) < 300) return;
+                  e.target.lastClickTime = Date.now();
+                  playMaterialSound();
+                  speakDescription(false);
+                }}
                 className={`mt-12 px-10 py-5 rounded-2xl font-bold text-2xl shadow-lg transform active:scale-95 transition-transform flex items-center gap-3 ${material.colorTheme.accent} ${material.colorTheme.bg === 'bg-yellow-400' || material.colorTheme.bg === 'bg-orange-500' ? 'text-white' : material.colorTheme.bg.replace('bg-', 'text-')}`}
               >
                 <div className="w-8 h-8"><Icons.Scan /></div>
@@ -982,14 +975,11 @@
             {mode === AppMode.HOME && <HomeScreen />}
             
             {mode === AppMode.SCANNING && (
-              <>
-                <Scanner 
-                  onScan={handleScan} 
-                  onClose={() => setMode(AppMode.HOME)} 
-                />
-                {/* Mini scanner também na tela de scanner principal */}
-                <MiniScanner onScan={handleNewMaterialScanned} />
-              </>
+              <Scanner 
+                onScan={handleScan} 
+                onClose={() => setMode(AppMode.HOME)} 
+              />
+              // Mini scanner removido da tela de scanner para evitar duplicação
             )}
 
             {mode === AppMode.RESULT && activeMaterial && (
