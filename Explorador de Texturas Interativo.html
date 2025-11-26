@@ -255,39 +255,8 @@
         const lastScannedRef = useRef(null);
         const scanCooldownRef = useRef(0);
 
-        // Função para converter para escala de cinza e melhorar contraste
-        const enhanceImage = (imageData) => {
-          const data = imageData.data;
-          const length = data.length;
-          
-          // Converte para escala de cinza e aplica threshold adaptativo
-          for (let i = 0; i < length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            
-            // Converte para escala de cinza (luminância)
-            const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-            
-            // Aumenta o contraste drasticamente
-            let enhanced = gray;
-            enhanced = ((enhanced - 128) * 2.5) + 128;
-            
-            // Aplica threshold para criar imagem binária (preto e branco)
-            const threshold = 128;
-            const binary = enhanced > threshold ? 255 : 0;
-            
-            // Aplica valores binários aos canais RGB
-            data[i] = binary;
-            data[i + 1] = binary;
-            data[i + 2] = binary;
-            // Alpha permanece o mesmo
-          }
-          
-          return imageData;
-        };
-
         let frameCount = 0;
+        let lastProcessTime = 0;
         const tick = () => {
           if (!isScanning) return;
 
@@ -297,9 +266,17 @@
             return;
           }
 
-          // Processa apenas a cada 2 frames para melhor performance
+          // Throttle: processa no máximo a cada 200ms (5 vezes por segundo)
+          const now = Date.now();
+          if (now - lastProcessTime < 200) {
+            requestRef.current = requestAnimationFrame(tick);
+            return;
+          }
+          lastProcessTime = now;
+
+          // Processa apenas a cada 10 frames para melhor performance
           frameCount++;
-          if (frameCount % 2 !== 0) {
+          if (frameCount % 10 !== 0) {
             requestRef.current = requestAnimationFrame(tick);
             return;
           }
@@ -310,55 +287,52 @@
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
             if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
-              // Aumenta a resolução do canvas para melhor detecção
-              const scale = 3; // Triplica a resolução para melhor detecção
+              // Reduz a resolução para melhor performance (escala 1.5x em vez de 3x)
+              const scale = 1.5;
               canvas.height = video.videoHeight * scale;
               canvas.width = video.videoWidth * scale;
               
               // Melhora a qualidade da renderização
-              ctx.imageSmoothingEnabled = false; // Desabilita suavização para QR codes
+              ctx.imageSmoothingEnabled = false;
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
               
-              // Processa múltiplas regiões: toda a imagem e região central
-              const regions = [
-                { x: 0, y: 0, width: canvas.width, height: canvas.height }, // Toda a imagem
-                { x: canvas.width * 0.2, y: canvas.height * 0.2, width: canvas.width * 0.6, height: canvas.height * 0.6 }, // Região central
-                { x: canvas.width * 0.1, y: canvas.height * 0.1, width: canvas.width * 0.8, height: canvas.height * 0.8 } // Região central ampliada
-              ];
+              // Processa APENAS a região central (mais eficiente)
+              const centerRegion = {
+                x: canvas.width * 0.25,
+                y: canvas.height * 0.25,
+                width: canvas.width * 0.5,
+                height: canvas.height * 0.5
+              };
               
-              for (const region of regions) {
-                let imageData = ctx.getImageData(region.x, region.y, region.width, region.height);
-                
-                // Melhora o contraste da imagem
-                imageData = enhanceImage(imageData);
-                
-                if (window.jsQR) {
-                  // Tenta múltiplas configurações para melhor detecção
-                  const options = [
-                    { inversionAttempts: "attemptBoth" }, // Tenta normal e invertido
-                    { inversionAttempts: "dontInvert" },
-                    { inversionAttempts: "invertFirst" }
-                  ];
-                  
-                  for (const option of options) {
-                    const code = window.jsQR(imageData.data, imageData.width, imageData.height, option);
+              let imageData = ctx.getImageData(centerRegion.x, centerRegion.y, centerRegion.width, centerRegion.height);
+              
+              // Processamento de imagem mais leve (apenas contraste básico)
+              const data = imageData.data;
+              for (let i = 0; i < data.length; i += 4) {
+                const gray = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+                const enhanced = Math.min(255, Math.max(0, ((gray - 128) * 1.5) + 128));
+                data[i] = data[i + 1] = data[i + 2] = enhanced;
+              }
+              
+              if (window.jsQR) {
+                // Tenta apenas uma configuração (mais rápida)
+                const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+                  inversionAttempts: "attemptBoth"
+                });
 
-                    if (code && code.data) {
-                      const foundMaterial = TEXTURE_MATERIALS.find(mat => mat.id === code.data);
-                      
-                      if (foundMaterial) {
-                        // Permite escanear o mesmo material novamente após 3 segundos
-                        const timeSinceLastScan = Date.now() - scanCooldownRef.current;
-                        const isSameMaterial = foundMaterial.id === lastScannedRef.current;
-                        
-                        if (!isSameMaterial || timeSinceLastScan > 3000) {
-                          console.log("MiniScanner found material:", foundMaterial.name);
-                          lastScannedRef.current = foundMaterial.id;
-                          scanCooldownRef.current = Date.now();
-                          onScan(foundMaterial);
-                          return;
-                        }
-                      }
+                if (code && code.data) {
+                  const foundMaterial = TEXTURE_MATERIALS.find(mat => mat.id === code.data);
+                  
+                  if (foundMaterial) {
+                    const timeSinceLastScan = Date.now() - scanCooldownRef.current;
+                    const isSameMaterial = foundMaterial.id === lastScannedRef.current;
+                    
+                    if (!isSameMaterial || timeSinceLastScan > 3000) {
+                      console.log("MiniScanner found material:", foundMaterial.name);
+                      lastScannedRef.current = foundMaterial.id;
+                      scanCooldownRef.current = Date.now();
+                      onScan(foundMaterial);
+                      return;
                     }
                   }
                 }
@@ -462,12 +436,21 @@
         };
 
         let frameCount = 0;
+        let lastProcessTime = 0;
         const tick = () => {
           if (!isScanning) return;
 
-          // Processa apenas a cada 2 frames para melhor performance
+          // Throttle: processa no máximo a cada 200ms (5 vezes por segundo)
+          const now = Date.now();
+          if (now - lastProcessTime < 200) {
+            requestRef.current = requestAnimationFrame(tick);
+            return;
+          }
+          lastProcessTime = now;
+
+          // Processa apenas a cada 10 frames para melhor performance
           frameCount++;
-          if (frameCount % 2 !== 0) {
+          if (frameCount % 10 !== 0) {
             requestRef.current = requestAnimationFrame(tick);
             return;
           }
@@ -478,50 +461,48 @@
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
             if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
-              // Aumenta a resolução do canvas para melhor detecção
-              const scale = 3; // Triplica a resolução para melhor detecção
+              // Reduz a resolução para melhor performance (escala 1.5x em vez de 3x)
+              const scale = 1.5;
               canvas.height = video.videoHeight * scale;
               canvas.width = video.videoWidth * scale;
               
               // Melhora a qualidade da renderização
-              ctx.imageSmoothingEnabled = false; // Desabilita suavização para QR codes
+              ctx.imageSmoothingEnabled = false;
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
               
-              // Processa múltiplas regiões: toda a imagem e região central
-              const regions = [
-                { x: 0, y: 0, width: canvas.width, height: canvas.height }, // Toda a imagem
-                { x: canvas.width * 0.2, y: canvas.height * 0.2, width: canvas.width * 0.6, height: canvas.height * 0.6 }, // Região central
-                { x: canvas.width * 0.1, y: canvas.height * 0.1, width: canvas.width * 0.8, height: canvas.height * 0.8 } // Região central ampliada
-              ];
+              // Processa APENAS a região central (mais eficiente)
+              const centerRegion = {
+                x: canvas.width * 0.25,
+                y: canvas.height * 0.25,
+                width: canvas.width * 0.5,
+                height: canvas.height * 0.5
+              };
               
-              for (const region of regions) {
-                let imageData = ctx.getImageData(region.x, region.y, region.width, region.height);
-                
-                // Melhora o contraste da imagem
-                imageData = enhanceImage(imageData);
-                
-                // Use global jsQR from CDN
-                if (window.jsQR) {
-                  // Tenta múltiplas configurações para melhor detecção
-                  const options = [
-                    { inversionAttempts: "attemptBoth" }, // Tenta normal e invertido
-                    { inversionAttempts: "dontInvert" },
-                    { inversionAttempts: "invertFirst" }
-                  ];
-                  
-                  for (const option of options) {
-                    const code = window.jsQR(imageData.data, imageData.width, imageData.height, option);
+              let imageData = ctx.getImageData(centerRegion.x, centerRegion.y, centerRegion.width, centerRegion.height);
+              
+              // Processamento de imagem mais leve (apenas contraste básico)
+              const data = imageData.data;
+              for (let i = 0; i < data.length; i += 4) {
+                const gray = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+                const enhanced = Math.min(255, Math.max(0, ((gray - 128) * 1.5) + 128));
+                data[i] = data[i + 1] = data[i + 2] = enhanced;
+              }
+              
+              // Use global jsQR from CDN
+              if (window.jsQR) {
+                // Tenta apenas uma configuração (mais rápida)
+                const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+                  inversionAttempts: "attemptBoth"
+                });
 
-                    if (code && code.data) {
-                      const foundMaterial = TEXTURE_MATERIALS.find(mat => mat.id === code.data);
-                      
-                      if (foundMaterial) {
-                        console.log("Found material:", foundMaterial.name);
-                        setIsScanning(false);
-                        onScan(foundMaterial);
-                        return;
-                      }
-                    }
+                if (code && code.data) {
+                  const foundMaterial = TEXTURE_MATERIALS.find(mat => mat.id === code.data);
+                  
+                  if (foundMaterial) {
+                    console.log("Found material:", foundMaterial.name);
+                    setIsScanning(false);
+                    onScan(foundMaterial);
+                    return;
                   }
                 }
               }
