@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha Neon + Quiz Customizável</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;500;700&display=swap');
+
+        :root {
+            --color-bg: #0f172a;
+            --color-x: #22d3ee; /* Ciano */
+            --color-o: #f472b6; /* Rosa */
+            --glow-x: 0 0 15px #22d3ee;
+            --glow-o: 0 0 15px #f472b6;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--color-bg);
+            color: white;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .font-game {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .cell {
+            transition: all 0.2s ease;
+        }
+        
+        .cell:active {
+            transform: scale(0.95);
+        }
+
+        .mark-x { color: var(--color-x); text-shadow: var(--glow-x); }
+        .mark-o { color: var(--color-o); text-shadow: var(--glow-o); }
+
+        .winning-cell {
+            background-color: rgba(255, 255, 255, 0.1);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Estilo do Slider */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: #22d3ee; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px #22d3ee;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: #475569; border-radius: 2px;
+        }
+
+        #confetti-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40;
+        }
+
+        /* Animação do Quiz */
+        .quiz-option {
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        .quiz-option:active { transform: scale(0.98); }
+
+        /* Estilo para botão selecionado no cadastro */
+        .selected-true { background-color: rgba(22, 163, 74, 0.5) !important; border-color: #22c55e !important; }
+        .selected-false { background-color: rgba(220, 38, 38, 0.5) !important; border-color: #ef4444 !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 py-8">
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Cabeçalho -->
+    <header class="text-center mb-6 z-10">
+        <h1 class="font-game text-3xl md:text-5xl font-bold mb-2 tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400">
+            JOGO DA VELHA
+        </h1>
+        <p class="text-gray-400 text-xs md:text-sm uppercase tracking-widest">+ Desafio de Quiz</p>
+    </header>
+
+    <!-- Placar -->
+    <div class="flex gap-4 md:gap-8 mb-6 z-10 w-full max-w-md justify-center">
+        <div class="flex flex-col items-center p-3 rounded-lg bg-slate-800/50 border border-cyan-500/30 w-28 md:w-32 shadow-[0_0_10px_rgba(34,211,238,0.2)] transition-all duration-300" id="score-x-container">
+            <span class="text-2xl font-game text-cyan-400">X</span>
+            <span class="text-[10px] text-gray-400 uppercase mt-1">Jogador 1</span>
+            <span id="score-x" class="text-3xl font-bold mt-1">0</span>
+        </div>
+        <div class="flex flex-col items-center p-3 rounded-lg bg-slate-800/50 border border-pink-500/30 w-28 md:w-32 shadow-[0_0_10px_rgba(244,114,182,0.2)] transition-all duration-300" id="score-o-container">
+            <span class="text-2xl font-game text-pink-400">O</span>
+            <span class="text-[10px] text-gray-400 uppercase mt-1">Jogador 2</span>
+            <span id="score-o" class="text-3xl font-bold mt-1">0</span>
+        </div>
+    </div>
+
+    <!-- Indicador de Turno -->
+    <div class="mb-6 z-10">
+        <div class="bg-slate-800 px-6 py-2 rounded-full border border-gray-700 flex items-center gap-3 shadow-lg">
+            <span class="text-gray-300 text-sm">Vez de:</span>
+            <span id="turn-indicator" class="font-game text-xl font-bold text-cyan-400">X</span>
+        </div>
+    </div>
+
+    <!-- Tabuleiro -->
+    <div class="grid grid-cols-3 gap-3 p-3 bg-slate-800 rounded-2xl shadow-2xl z-10 relative">
+        <button class="cell w-20 h-20 md:w-24 md:h-24 bg-slate-900 rounded-lg flex items-center justify-center text-5xl font-game hover:bg-slate-700 focus:outline-none" data-index="0"></button>
+        <button class="cell w-20 h-20 md:w-24 md:h-24 bg-slate-900 rounded-lg flex items-center justify-center text-5xl font-game hover:bg-slate-700 focus:outline-none" data-index="1"></button>
+        <button class="cell w-20 h-20 md:w-24 md:h-24 bg-slate-900 rounded-lg flex items-center justify-center text-5xl font-game hover:bg-slate-700 focus:outline-none" data-index="2"></button>
+        
+        <button class="cell w-20 h-20 md:w-24 md:h-24 bg-slate-900 rounded-lg flex items-center justify-center text-5xl font-game hover:bg-slate-700 focus:outline-none" data-index="3"></button>
+        <button class="cell w-20 h-20 md:w-24 md:h-24 bg-slate-900 rounded-lg flex items-center justify-center text-5xl font-game hover:bg-slate-700 focus:outline-none" data-index="4"></button>
+        <button class="cell w-20 h-20 md:w-24 md:h-24 bg-slate-900 rounded-lg flex items-center justify-center text-5xl font-game hover:bg-slate-700 focus:outline-none" data-index="5"></button>
+        
+        <button class="cell w-20 h-20 md:w-24 md:h-24 bg-slate-900 rounded-lg flex items-center justify-center text-5xl font-game hover:bg-slate-700 focus:outline-none" data-index="6"></button>
+        <button class="cell w-20 h-20 md:w-24 md:h-24 bg-slate-900 rounded-lg flex items-center justify-center text-5xl font-game hover:bg-slate-700 focus:outline-none" data-index="7"></button>
+        <button class="cell w-20 h-20 md:w-24 md:h-24 bg-slate-900 rounded-lg flex items-center justify-center text-5xl font-game hover:bg-slate-700 focus:outline-none" data-index="8"></button>
+    </div>
+
+    <!-- Painel de Controles -->
+    <div class="mt-8 z-10 flex flex-col items-center gap-3 bg-slate-800/80 p-4 rounded-2xl border border-gray-700 backdrop-blur-sm shadow-xl w-full max-w-[300px]">
+        
+        <!-- Botão Criar Pergunta -->
+        <button onclick="openQuestionModal()" class="w-full px-6 py-2 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl transition-all text-sm font-medium tracking-wide flex items-center justify-center gap-2 shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Criar Pergunta
+        </button>
+
+        <!-- Botão Reiniciar -->
+        <button onclick="resetGame()" class="w-full px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors text-sm font-medium tracking-wide flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Reiniciar Jogo Total
+        </button>
+
+        <!-- Slider de Tamanho -->
+        <div class="flex items-center gap-3 w-full mt-2">
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Tamanho</span>
+            <input type="range" id="size-slider" min="10" max="24" value="16" step="1" class="flex-grow h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer">
+            <span id="size-value" class="text-xs text-cyan-400 font-mono w-10 text-right">100%</span>
+        </div>
+    </div>
+
+    <!-- Modal Universal (Resultado, Quiz e Cadastro) -->
+    <div id="result-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-800 p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-700 text-center max-w-sm w-full mx-4 transform scale-90 transition-transform duration-300 relative overflow-hidden" id="modal-content">
+            <!-- Conteúdo Dinâmico -->
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Banco de Perguntas e Persistência ---
+        const defaultQuestions = [
+            { q: "O Sol é uma estrela.", a: true },
+            { q: "A baleia azul é um peixe.", a: false },
+            { q: "A água ferve a 100°C ao nível do mar.", a: true },
+            { q: "O Brasil tem 27 estados.", a: false }, // 26 + DF
+            { q: "O morcego é um mamífero.", a: true },
+            { q: "A Grande Muralha da China é visível da Lua a olho nu.", a: false },
+            { q: "O oxigênio é o gás mais abundante na atmosfera.", a: false },
+            { q: "Aranhas são insetos.", a: false },
+            { q: "A capital da Austrália é Sydney.", a: false },
+            { q: "O número Pi é aproximadamente 3,14.", a: true },
+            { q: "O Monte Everest é a montanha mais alta do mundo.", a: true },
+            { q: "Tomates são frutas.", a: true },
+            { q: "A luz viaja mais rápido que o som.", a: true },
+            { q: "O corpo humano adulto tem 206 ossos.", a: true },
+            { q: "Napoleão Bonaparte era italiano.", a: false }
+        ];
+
+        // Lógica: Se houver perguntas no LocalStorage, usa SÓ elas.
+        // Se não, usa as padrão, mas marca isUsingDefaults = true para limpar na primeira adição.
+        let storedQuestions = JSON.parse(localStorage.getItem('ticTacToeQuestions'));
+        let questions;
+        let isUsingDefaults = false;
+
+        if (storedQuestions && storedQuestions.length > 0) {
+            questions = storedQuestions; // Nota: isso é uma cópia na memória. Modificações aqui não afetam o localStorage até salvarmos.
+        } else {
+            questions = [...defaultQuestions];
+            isUsingDefaults = true;
+        }
+
+        // --- Variável temporária para nova pergunta ---
+        let newQuestionAnswer = null;
+
+        // --- Controle de Tamanho ---
+        const sizeSlider = document.getElementById('size-slider');
+        const sizeValue = document.getElementById('size-value');
+        document.documentElement.style.fontSize = `${sizeSlider.value}px`;
+        sizeSlider.addEventListener('input', (e) => {
+            document.documentElement.style.fontSize = `${e.target.value}px`;
+            sizeValue.innerText = `${Math.round((e.target.value / 16) * 100)}%`;
+        });
+
+        // --- Estado do Jogo ---
+        const state = {
+            board: Array(9).fill(null),
+            currentPlayer: 'X',
+            gameActive: true,
+            scores: { X: 0, O: 0 },
+            currentQuiz: null
+        };
+
+        const winConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        // --- Elementos DOM ---
+        const cells = document.querySelectorAll('.cell');
+        const turnIndicator = document.getElementById('turn-indicator');
+        const scoreXEl = document.getElementById('score-x');
+        const scoreOEl = document.getElementById('score-o');
+        const modal = document.getElementById('result-modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalBody = document.getElementById('modal-body');
+        const containerX = document.getElementById('score-x-container');
+        const containerO = document.getElementById('score-o-container');
+
+        // --- Áudio ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            
+            if (type === 'move') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(state.currentPlayer === 'X' ? 440 : 330, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(); osc.stop(now + 0.1);
+            } else if (type === 'win') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523, now);
+                osc.frequency.linearRampToValueAtTime(1046, now + 0.3);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(); osc.stop(now + 0.5);
+            } else if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.linearRampToValueAtTime(1760, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(); osc.stop(now + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(); osc.stop(now + 0.3);
+            } else if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(); osc.stop(now + 0.1);
+            }
+        }
+
+        // --- Lógica Principal ---
+
+        function init() {
+            cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+            updateTurnIndicator();
+        }
+
+        function handleCellClick(e) {
+            const cell = e.target;
+            const index = parseInt(cell.getAttribute('data-index'));
+
+            if (state.board[index] !== null || !state.gameActive) return;
+
+            state.board[index] = state.currentPlayer;
+            cell.innerText = state.currentPlayer;
+            cell.classList.add(state.currentPlayer === 'X' ? 'mark-x' : 'mark-o');
+            playSound('move');
+
+            if (checkWin()) {
+                handleWin();
+            } else if (checkDraw()) {
+                handleDraw();
+            } else {
+                swapTurn();
+            }
+        }
+
+        function swapTurn() {
+            state.currentPlayer = state.currentPlayer === 'X' ? 'O' : 'X';
+            updateTurnIndicator();
+        }
+
+        function updateTurnIndicator() {
+            turnIndicator.innerText = state.currentPlayer;
+            turnIndicator.className = `font-game text-xl font-bold ${state.currentPlayer === 'X' ? 'text-cyan-400' : 'text-pink-400'}`;
+            if (state.currentPlayer === 'X') {
+                containerX.classList.add('bg-slate-700', 'scale-105');
+                containerO.classList.remove('bg-slate-700', 'scale-105');
+            } else {
+                containerO.classList.add('bg-slate-700', 'scale-105');
+                containerX.classList.remove('bg-slate-700', 'scale-105');
+            }
+        }
+
+        function checkWin() {
+            for (let condition of winConditions) {
+                const [a, b, c] = condition;
+                if (state.board[a] && state.board[a] === state.board[b] && state.board[a] === state.board[c]) {
+                    highlightWinningCells([a, b, c]);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function checkDraw() { return !state.board.includes(null); }
+
+        function highlightWinningCells(indices) {
+            indices.forEach(index => cells[index].classList.add('winning-cell'));
+        }
+
+        // --- Lógica de Vitória, Quiz e Cadastro ---
+
+        function handleWin() {
+            state.gameActive = false;
+            playSound('win');
+            
+            state.scores[state.currentPlayer]++;
+            updateScoreboard();
+            startConfetti();
+            prepareQuiz();
+        }
+
+        function handleDraw() {
+            state.gameActive = false;
+            playSound('draw'); // Tocar som de empate, se houver
+            renderModalContent(`
+                <h2 class="font-game text-3xl font-bold mb-2 text-white">Empate!</h2>
+                <p class="text-gray-300 mb-6">Ninguém venceu esta rodada.</p>
+                <button onclick="nextRound()" class="w-full py-3 bg-slate-600 hover:bg-slate-500 rounded-xl font-bold text-white shadow-lg transition-all">
+                    Próxima Rodada
+                </button>
+            `);
+            showModal();
+        }
+
+        function prepareQuiz() {
+            // Verificação: Se as perguntas acabaram
+            if (questions.length === 0) {
+                 renderModalContent(`
+                    <h2 class="font-game text-2xl font-bold mb-2 text-white">Vitória!</h2>
+                    <p class="text-xs text-gray-400 uppercase tracking-widest mb-4">Sem Perguntas</p>
+                    <p class="text-gray-300 mb-6">Você zerou o banco de perguntas! Apenas o ponto da vitória foi computado.</p>
+                    <button onclick="nextRound()" class="w-full py-3 bg-slate-600 hover:bg-slate-500 rounded-xl font-bold text-white shadow-lg transition-all">
+                        Próxima Rodada
+                    </button>
+                `);
+                showModal();
+                return;
+            }
+
+            const randomQ = questions[Math.floor(Math.random() * questions.length)];
+            state.currentQuiz = randomQ;
+            const playerColor = state.currentPlayer === 'X' ? 'text-cyan-400' : 'text-pink-400';
+            
+            renderModalContent(`
+                <h2 class="font-game text-2xl font-bold mb-2 ${playerColor}">Vitória do ${state.currentPlayer}!</h2>
+                <p class="text-xs text-gray-400 uppercase tracking-widest mb-4">Pergunta Bônus</p>
+                
+                <div class="bg-slate-900/50 p-4 rounded-lg border border-gray-600 mb-6 min-h-[80px] flex items-center justify-center">
+                    <p class="text-white text-lg font-medium leading-tight">"${randomQ.q}"</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <button onclick="answerQuiz(true)" class="quiz-option py-3 bg-green-600/80 hover:bg-green-500 text-white rounded-xl font-bold shadow-lg border-b-4 border-green-800 active:border-b-0 active:mt-1">
+                        Verdadeiro
+                    </button>
+                    <button onclick="answerQuiz(false)" class="quiz-option py-3 bg-red-600/80 hover:bg-red-500 text-white rounded-xl font-bold shadow-lg border-b-4 border-red-800 active:border-b-0 active:mt-1">
+                        Falso
+                    </button>
+                </div>
+                
+                <p class="text-[10px] text-gray-500">Acertar: +1 Ponto Extra | Errar: -1 Ponto (Penalidade)</p>
+            `);
+            
+            showModal();
+        }
+
+        function answerQuiz(playerAnswer) {
+            const isCorrect = playerAnswer === state.currentQuiz.a;
+
+            // --- LÓGICA NOVA: Remove a pergunta usada do array em memória ---
+            const qIndex = questions.indexOf(state.currentQuiz);
+            if (qIndex > -1) {
+                questions.splice(qIndex, 1);
+            }
+            // -------------------------------------------------------------
+            
+            if (isCorrect) {
+                playSound('correct');
+                state.scores[state.currentPlayer]++; 
+                renderModalContent(`
+                    <div class="mb-4">
+                        <div class="inline-block p-3 bg-green-500/20 rounded-full mb-2">
+                            <svg class="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <h2 class="font-game text-3xl font-bold text-green-400">Correto!</h2>
+                        <p class="text-white mt-2">+1 Ponto Extra!</p>
+                    </div>
+                    <button onclick="nextRound()" class="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl font-bold text-white shadow-lg transition-all">
+                        Continuar
+                    </button>
+                `);
+            } else {
+                playSound('wrong');
+                state.scores[state.currentPlayer]--; 
+                
+                renderModalContent(`
+                    <div class="mb-4">
+                        <div class="inline-block p-3 bg-red-500/20 rounded-full mb-2">
+                            <svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </div>
+                        <h2 class="font-game text-3xl font-bold text-red-400">Errou!</h2>
+                        <p class="text-white mt-2">Você perdeu o ponto da vitória.</p>
+                    </div>
+                    <button onclick="nextRound()" class="w-full py-3 bg-slate-600 hover:bg-slate-500 rounded-xl font-bold text-white shadow-lg transition-all">
+                        Continuar
+                    </button>
+                `);
+            }
+            updateScoreboard();
+        }
+
+        // --- Funções de Cadastro de Pergunta ---
+
+        function openQuestionModal() {
+            newQuestionAnswer = null; // Resetar
+            
+            // Texto de aviso se estiver usando os defaults
+            const helperText = isUsingDefaults 
+                ? '<p class="text-[10px] text-yellow-400 mb-4 bg-yellow-500/10 p-2 rounded border border-yellow-500/20">Nota: Ao criar sua primeira pergunta, as perguntas padrão serão removidas para usar apenas as suas.</p>'
+                : '<p class="text-xs text-gray-400 mb-4">Adicione ao banco de perguntas do jogo</p>';
+
+            renderModalContent(`
+                <h2 class="font-game text-2xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Nova Pergunta</h2>
+                ${helperText}
+
+                <div class="mb-4 text-left">
+                    <label class="text-[10px] uppercase text-gray-500 font-bold mb-1 block">Sua Pergunta</label>
+                    <textarea id="new-q-text" rows="3" placeholder="Ex: O céu é azul?" class="w-full p-3 rounded-lg bg-slate-900 border border-slate-600 text-white text-sm focus:border-cyan-400 outline-none resize-none transition-colors"></textarea>
+                </div>
+                
+                <div class="mb-6 text-left">
+                    <label class="text-[10px] uppercase text-gray-500 font-bold mb-2 block">Resposta Correta</label>
+                    <div class="flex gap-3">
+                        <button id="btn-true" onclick="selectNewAnswer(true)" class="flex-1 py-2 rounded-lg bg-slate-700 border border-slate-600 text-gray-300 hover:bg-slate-600 transition-all font-medium text-sm">Verdadeiro</button>
+                        <button id="btn-false" onclick="selectNewAnswer(false)" class="flex-1 py-2 rounded-lg bg-slate-700 border border-slate-600 text-gray-300 hover:bg-slate-600 transition-all font-medium text-sm">Falso</button>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col gap-2">
+                    <button onclick="saveQuestion()" class="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-xl font-bold text-white shadow-lg transition-all">
+                        Salvar Pergunta
+                    </button>
+                    <button onclick="closeModal()" class="text-gray-400 text-xs hover:text-white py-2">
+                        Cancelar
+                    </button>
+                </div>
+            `);
+            showModal();
+        }
+
+        function selectNewAnswer(val) {
+            playSound('click');
+            newQuestionAnswer = val;
+            const btnTrue = document.getElementById('btn-true');
+            const btnFalse = document.getElementById('btn-false');
+
+            // Reset classes
+            btnTrue.classList.remove('selected-true', 'text-white');
+            btnFalse.classList.remove('selected-false', 'text-white');
+            btnTrue.classList.add('text-gray-300');
+            btnFalse.classList.add('text-gray-300');
+
+            if (val === true) {
+                btnTrue.classList.add('selected-true', 'text-white');
+                btnTrue.classList.remove('text-gray-300');
+            } else {
+                btnFalse.classList.add('selected-false', 'text-white');
+                btnFalse.classList.remove('text-gray-300');
+            }
+        }
+
+        function saveQuestion() {
+            const text = document.getElementById('new-q-text').value.trim();
+            
+            if (!text) {
+                alert("Por favor, digite uma pergunta.");
+                return;
+            }
+            if (newQuestionAnswer === null) {
+                alert("Por favor, selecione se a resposta é Verdadeira ou Falsa.");
+                return;
+            }
+
+            // LÓGICA NOVA: Se for a primeira pergunta customizada, limpa os defaults
+            if (isUsingDefaults) {
+                questions = []; // Esvazia o array padrão
+                isUsingDefaults = false; // Desmarca a flag
+            }
+
+            // Salvar
+            const newQ = { q: text, a: newQuestionAnswer };
+            questions.push(newQ);
+            localStorage.setItem('ticTacToeQuestions', JSON.stringify(questions));
+
+            playSound('correct'); // Som de sucesso
+            
+            // Feedback visual COM OPÇÃO DE CONTINUAR
+            renderModalContent(`
+                <div class="py-4">
+                    <div class="inline-block p-3 bg-purple-500/20 rounded-full mb-3">
+                        <svg class="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <h2 class="font-game text-xl font-bold text-white mb-1">Pergunta Salva!</h2>
+                    <p class="text-gray-400 text-sm mb-6">Sua pergunta foi adicionada ao banco.</p>
+                    
+                    <div class="flex flex-col gap-3">
+                        <button onclick="openQuestionModal()" class="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                            Adicionar Outra
+                        </button>
+                        <button onclick="closeModal()" class="text-gray-400 text-sm hover:text-white py-2">
+                            Fechar e Jogar
+                        </button>
+                    </div>
+                </div>
+            `);
+            
+            // Removi o setTimeout para o usuário decidir o que fazer
+        }
+
+        // --- Helpers ---
+
+        function renderModalContent(html) {
+            modalBody.innerHTML = html;
+        }
+
+        function updateScoreboard() {
+            scoreXEl.innerText = state.scores.X;
+            scoreOEl.innerText = state.scores.O;
+        }
+
+        function showModal() {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-90');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-90');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                // Limpa o conteúdo para não piscar na próxima abertura
+                modalBody.innerHTML = '';
+            }, 300);
+            stopConfetti();
+        }
+
+        function nextRound() {
+            closeModal();
+            state.board = Array(9).fill(null);
+            state.gameActive = true;
+            cells.forEach(cell => {
+                cell.innerText = '';
+                cell.classList.remove('mark-x', 'mark-o', 'winning-cell');
+            });
+            swapTurn(); 
+        }
+
+        function resetGame() {
+            state.scores = { X: 0, O: 0 };
+            updateScoreboard();
+            state.currentPlayer = 'O'; 
+            nextRound();
+        }
+
+        // --- Confetti ---
+        let confettiInterval;
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function createParticle() {
+            return {
+                x: Math.random() * canvas.width,
+                y: -10,
+                size: Math.random() * 5 + 2,
+                color: [state.currentPlayer === 'X' ? '#22d3ee' : '#f472b6', '#ffffff', '#fbbf24'][Math.floor(Math.random() * 3)],
+                speedY: Math.random() * 3 + 2,
+                speedX: Math.random() * 2 - 1
+            };
+        }
+
+        function updateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, index) => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                if (p.y > canvas.height) particles.splice(index, 1);
+            });
+            if (particles.length > 0) requestAnimationFrame(updateConfetti);
+        }
+
+        function startConfetti() {
+            for(let i=0; i<100; i++) particles.push(createParticle());
+            updateConfetti();
+            confettiInterval = setInterval(() => {
+                if(particles.length < 200) particles.push(createParticle());
+            }, 50);
+        }
+
+        function stopConfetti() {
+            clearInterval(confettiInterval);
+            particles = [];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        init();
+
+    </script>
+
+    <!-- Marca d'água -->
+    <div class="fixed bottom-2 w-full text-center text-[10px] md:text-xs text-slate-500/50 pointer-events-none z-[5] font-sans tracking-[0.2em] uppercase select-none">
+        Design by Marcos & developed by Romário Galdino
+    </div>
+    <!-- Botão Voltar ao Início -->
+    <a href="index.html" style="position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; background: linear-gradient(to right, #2563eb, #9333ea); color: white; padding: 0.75rem 1.5rem; border-radius: 9999px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.875rem; text-decoration: none; transition: all 0.3s;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        MyApps
+    </a>
+</body>
+</html>

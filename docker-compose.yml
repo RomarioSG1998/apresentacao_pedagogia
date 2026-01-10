@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  sintax-java-app:
+    image: python:3.9-slim
+    container_name: sintax-java-server
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "8000:8000"
+    command: python3 -m http.server 8000
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    labels:
+      - "description=SintaxJavaApp - Servidor HTTP para aplicação de aprendizado Java"

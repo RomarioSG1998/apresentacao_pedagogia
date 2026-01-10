@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Explorador de Texturas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+      
+      body {
+        font-family: 'Comic Neue', 'Comic Sans MS', sans-serif;
+        overscroll-behavior: none;
+      }
+
+      /* Animation for the scanning line */
+      @keyframes scan-line {
+        0% { top: 0; }
+        50% { top: 100%; }
+        100% { top: 0; }
+      }
+      .animate-scan {
+        animation: scan-line 2.5s linear infinite;
+      }
+      
+      .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out;
+      }
+      
+      .animate-slide-up {
+        animation: slideUp 0.3s ease-out;
+      }
+
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+
+      @media print {
+        @page {
+          margin: 0.5cm;
+          size: portrait;
+        }
+        body {
+          background: white;
+          height: auto;
+          overflow: visible;
+        }
+        #root {
+          height: auto;
+          overflow: visible;
+        }
+        /* Ensure background colors print */
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        /* Hide unnecessary elements during print */
+        .no-print {
+          display: none !important;
+        }
+      }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "jsqr": "https://aistudiocdn.com/jsqr@^1.4.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-100 h-screen w-screen overflow-hidden">
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel" data-type="module">
+      import React, { useState, useEffect, useRef } from 'react';
+      import { createRoot } from 'react-dom/client';
+      import { GoogleGenAI } from '@google/genai';
+
+      // --- CONSTANTS & TYPES ---
+      
+      const AppMode = {
+        HOME: 'HOME',
+        SCANNING: 'SCANNING',
+        RESULT: 'RESULT',
+        TEACHER_INFO: 'TEACHER_INFO',
+        QR_GENERATOR: 'QR_GENERATOR'
+      };
+
+      const Icons = {
+        Feather: () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>
+        ),
+        Triangle: () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg>
+        ),
+        Snowflake: () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>
+        ),
+        Grid: () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+        ),
+        Circle: () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+        ),
+        Scan: () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+        ),
+        Sparkles: () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 3v4"/><path d="M3 5h4"/><path d="M3 9h4"/></svg>
+        ),
+        ArrowLeft: () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        )
+      };
+
+      // NOTA: Substitua as URLs abaixo por URLs de imagens reais de cada material
+      // Você pode usar imagens locais (ex: './imagens/algodao.jpg') ou URLs do Unsplash
+      const TEXTURE_MATERIALS = [
+        {
+          id: 'algodao',
+          name: 'Algodão',
+          property: 'Macio',
+          description: 'Olha só, isso é algodão! Ele é super macio e fofinho. Passe a mão nele e sinta como é gostoso, parece uma nuvem fofinha ou o pelo macio de um carneirinho!',
+          colorTheme: { bg: 'bg-yellow-400', text: 'text-black', accent: 'bg-black' },
+          iconName: 'Feather',
+          soundFrequency: 300,
+          soundType: 'sine',
+          imageUrl: 'https://tse2.mm.bing.net/th/id/OIP.MLLZvuOON4q6wavlbgYlSAHaE6?rs=1&pid=ImgDetMain&o=7&rm=3'
+        },
+        {
+          id: 'lixa',
+          name: 'Lixa',
+          property: 'Áspero',
+          description: 'Essa aqui é uma lixa! Ela é bem áspera, viu? Passe os dedos com cuidado e sinta como ela é diferente - parece areia bem fininha colada no papel!',
+          colorTheme: { bg: 'bg-red-600', text: 'text-white', accent: 'bg-white' },
+          iconName: 'Triangle',
+          soundFrequency: 100,
+          soundType: 'sawtooth',
+          imageUrl: 'https://blog.lojastander.com.br/wp-content/uploads/2019/04/Lixa-Parede-768x768.jpg'
+        },
+        {
+          id: 'aluminio',
+          name: 'Alumínio',
+          property: 'Frio e Metálico',
+          description: 'Que legal, isso é papel alumínio! Ele é bem friozinho e faz um barulhinho gostoso quando a gente aperta. É um metal bem fininho e brilhante!',
+          colorTheme: { bg: 'bg-blue-600', text: 'text-white', accent: 'bg-white' },
+          iconName: 'Snowflake',
+          soundFrequency: 800,
+          soundType: 'square',
+          imageUrl: 'https://th.bing.com/th/id/R.f090957e9132f912177470b6a813cb37?rik=bk5u1IRcNRzWsQ&pid=ImgRaw&r=0'
+        },
+        {
+          id: 'esponja',
+          name: 'Esponja',
+          property: 'Poroso',
+          description: 'Essa é uma esponja! Ela tem um monte de buraquinhos pequeninos. Aperte ela bem devagar e veja que legal - ela volta para o lugar sozinha!',
+          colorTheme: { bg: 'bg-green-600', text: 'text-white', accent: 'bg-white' },
+          iconName: 'Grid',
+          soundFrequency: 200,
+          soundType: 'triangle',
+          imageUrl: 'https://istoedinheiro.com.br/wp-content/uploads/sites/17/2022/02/sponge-g5e5f611aa-1280.jpg'
+        },
+        {
+          id: 'plastico',
+          name: 'Plástico',
+          property: 'Liso',
+          description: 'Olha, isso é plástico! Ele é bem lisinho e suave. Passe o dedo e veja como ele escorrega fácil - é bem gostoso de tocar!',
+          colorTheme: { bg: 'bg-orange-500', text: 'text-black', accent: 'bg-black' },
+          iconName: 'Circle',
+          soundFrequency: 600,
+          soundType: 'sine',
+          imageUrl: 'https://serveiestacio.com/blog/wp-content/uploads/bfi_thumb/rollo-plastico-transparente-puabswsr8z6vpayskbxltz5bitp0q5oiryvle02kqw.jpg'
+        }
+      ];
+
+      const getIconComponent = (name) => {
+        return Icons[name] || Icons.Circle;
+      };
+
+      // --- GEMINI SERVICE ---
+
+      const getGenAI = () => {
+        // Safe check for process.env in browser environment
+        const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : null;
+        
+        if (!apiKey) {
+          console.warn("Gemini API Key missing. Teacher features will be disabled.");
+          return null;
+        }
+        return new GoogleGenAI({ apiKey });
+      };
+
+      const fetchTeacherInsight = async (materialName, materialProperty) => {
+        const ai = getGenAI();
+        if (!ai) return null;
+
+        try {
+          const prompt = `
+            Você é um assistente pedagógico para professores do 1º ano do ensino fundamental (crianças de 6-7 anos).
+            O contexto é uma aula sobre "Os Sentidos (Tato)" e "Propriedades dos Materiais".
+            
+            O aluno acabou de explorar o material: "${materialName}" que é "${materialProperty}".
+            
+            Gere um objeto JSON com:
+            1. "fact": Uma curiosidade científica simples e divertida sobre esse material (máximo 15 palavras).
+            2. "activitySuggestion": Uma ideia rápida de pergunta ou mini-desafio para o professor fazer à criança agora (máximo 20 palavras).
+            
+            Responda APENAS com o JSON.
+          `;
+
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+              responseMimeType: 'application/json'
+            }
+          });
+
+          const text = response.text;
+          if (!text) return null;
+
+          const data = JSON.parse(text);
+          return {
+            materialId: materialName,
+            fact: data.fact,
+            activitySuggestion: data.activitySuggestion
+          };
+
+        } catch (error) {
+          console.error("Error fetching Gemini insight:", error);
+          return null;
+        }
+      };
+
+      // --- COMPONENTS ---
+
+      // 1. MINI SCANNER COMPONENT (sempre ativo no canto)
+      const MiniScanner = ({ onScan }) => {
+        const videoRef = useRef(null);
+        const canvasRef = useRef(document.createElement("canvas"));
+        const requestRef = useRef(0);
+        const [isScanning, setIsScanning] = useState(true);
+        const lastScannedRef = useRef(null);
+        const scanCooldownRef = useRef(0);
+
+        let frameCount = 0;
+        let lastProcessTime = 0;
+        const tick = () => {
+          if (!isScanning) return;
+
+          // Cooldown reduzido para permitir leituras mais frequentes
+          if (Date.now() - scanCooldownRef.current < 500) {
+            requestRef.current = requestAnimationFrame(tick);
+            return;
+          }
+
+          // Throttle mais agressivo: processa no máximo a cada 500ms (2 vezes por segundo)
+          const now = Date.now();
+          if (now - lastProcessTime < 500) {
+            requestRef.current = requestAnimationFrame(tick);
+            return;
+          }
+          lastProcessTime = now;
+
+          // Processa apenas a cada 30 frames para melhor performance (muito mais leve)
+          frameCount++;
+          if (frameCount % 30 !== 0) {
+            requestRef.current = requestAnimationFrame(tick);
+            return;
+          }
+
+          if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+            const video = videoRef.current;
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+            if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
+              // Usa resolução nativa (sem escala) para máxima performance
+              canvas.height = video.videoHeight;
+              canvas.width = video.videoWidth;
+              
+              // Melhora a qualidade da renderização
+              ctx.imageSmoothingEnabled = false;
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              
+              // Processa APENAS uma pequena região central (muito mais eficiente)
+              const centerRegion = {
+                x: Math.floor(canvas.width * 0.3),
+                y: Math.floor(canvas.height * 0.3),
+                width: Math.floor(canvas.width * 0.4),
+                height: Math.floor(canvas.height * 0.4)
+              };
+              
+              // Pula processamento de imagem - usa imagem direta (muito mais rápido)
+              let imageData = ctx.getImageData(centerRegion.x, centerRegion.y, centerRegion.width, centerRegion.height);
+              
+              if (window.jsQR) {
+                // Tenta apenas uma configuração (mais rápida)
+                const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+                  inversionAttempts: "attemptBoth"
+                });
+
+                if (code && code.data) {
+                  const foundMaterial = TEXTURE_MATERIALS.find(mat => mat.id === code.data);
+                  
+                  if (foundMaterial) {
+                    const timeSinceLastScan = Date.now() - scanCooldownRef.current;
+                    const isSameMaterial = foundMaterial.id === lastScannedRef.current;
+                    
+                    if (!isSameMaterial || timeSinceLastScan > 3000) {
+                      console.log("MiniScanner found material:", foundMaterial.name);
+                      lastScannedRef.current = foundMaterial.id;
+                      scanCooldownRef.current = Date.now();
+                      onScan(foundMaterial);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+          
+          requestRef.current = requestAnimationFrame(tick);
+        };
+
+        useEffect(() => {
+          let stream = null;
+
+          const startCamera = async () => {
+            try {
+              stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment' } 
+              });
+              
+              if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.onloadedmetadata = () => {
+                  videoRef.current?.play();
+                  requestRef.current = requestAnimationFrame(tick);
+                };
+              }
+            } catch (err) {
+              console.error("Error accessing camera for mini scanner:", err);
+            }
+          };
+
+          startCamera();
+
+          return () => {
+            if (requestRef.current) {
+              cancelAnimationFrame(requestRef.current);
+            }
+            if (stream) {
+              stream.getTracks().forEach(track => track.stop());
+            }
+          };
+        }, []);
+
+        return (
+          <div className="fixed bottom-4 right-4 w-32 h-32 rounded-2xl overflow-hidden border-4 border-yellow-400 shadow-2xl z-50 bg-black">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover"
+              style={{ transform: 'scaleX(-1)' }}
+            />
+            <div className="absolute inset-0 border-2 border-yellow-400 rounded-lg pointer-events-none">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-yellow-400 animate-scan"></div>
+            </div>
+            <div className="absolute top-1 left-1 bg-yellow-400 text-black text-[8px] font-bold px-1 rounded">
+              ESCANEANDO
+            </div>
+          </div>
+        );
+      };
+
+      // 2. SCANNER COMPONENT (tela cheia)
+      const Scanner = ({ onScan, onClose }) => {
+        const videoRef = useRef(null);
+        const canvasRef = useRef(document.createElement("canvas"));
+        const requestRef = useRef(0);
+        const [permissionError, setPermissionError] = useState(false);
+        const [isScanning, setIsScanning] = useState(true);
+
+        // Função para converter para escala de cinza e melhorar contraste
+        const enhanceImage = (imageData) => {
+          const data = imageData.data;
+          const length = data.length;
+          
+          // Converte para escala de cinza e aplica threshold adaptativo
+          for (let i = 0; i < length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            
+            // Converte para escala de cinza (luminância)
+            const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+            
+            // Aumenta o contraste drasticamente
+            let enhanced = gray;
+            enhanced = ((enhanced - 128) * 2.5) + 128;
+            
+            // Aplica threshold para criar imagem binária (preto e branco)
+            const threshold = 128;
+            const binary = enhanced > threshold ? 255 : 0;
+            
+            // Aplica valores binários aos canais RGB
+            data[i] = binary;
+            data[i + 1] = binary;
+            data[i + 2] = binary;
+            // Alpha permanece o mesmo
+          }
+          
+          return imageData;
+        };
+
+        let frameCount = 0;
+        let lastProcessTime = 0;
+        const tick = () => {
+          if (!isScanning) return;
+
+          // Throttle mais agressivo: processa no máximo a cada 500ms (2 vezes por segundo)
+          const now = Date.now();
+          if (now - lastProcessTime < 500) {
+            requestRef.current = requestAnimationFrame(tick);
+            return;
+          }
+          lastProcessTime = now;
+
+          // Processa apenas a cada 30 frames para melhor performance (muito mais leve)
+          frameCount++;
+          if (frameCount % 30 !== 0) {
+            requestRef.current = requestAnimationFrame(tick);
+            return;
+          }
+
+          if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+            const video = videoRef.current;
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+            if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
+              // Usa resolução nativa (sem escala) para máxima performance
+              canvas.height = video.videoHeight;
+              canvas.width = video.videoWidth;
+              
+              // Melhora a qualidade da renderização
+              ctx.imageSmoothingEnabled = false;
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              
+              // Processa APENAS uma pequena região central (muito mais eficiente)
+              const centerRegion = {
+                x: Math.floor(canvas.width * 0.3),
+                y: Math.floor(canvas.height * 0.3),
+                width: Math.floor(canvas.width * 0.4),
+                height: Math.floor(canvas.height * 0.4)
+              };
+              
+              // Pula processamento de imagem - usa imagem direta (muito mais rápido)
+              let imageData = ctx.getImageData(centerRegion.x, centerRegion.y, centerRegion.width, centerRegion.height);
+              
+              // Use global jsQR from CDN
+              if (window.jsQR) {
+                // Tenta apenas uma configuração (mais rápida)
+                const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+                  inversionAttempts: "attemptBoth"
+                });
+
+                if (code && code.data) {
+                  const foundMaterial = TEXTURE_MATERIALS.find(mat => mat.id === code.data);
+                  
+                  if (foundMaterial) {
+                    console.log("Found material:", foundMaterial.name);
+                    setIsScanning(false);
+                    onScan(foundMaterial);
+                    return;
+                  }
+                }
+              }
+            }
+          }
+          
+          requestRef.current = requestAnimationFrame(tick);
+        };
+
+        useEffect(() => {
+          let stream = null;
+
+          const startCamera = async () => {
+            try {
+              stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                  facingMode: 'environment'
+                  // Removido width/height ideal para melhor performance
+                } 
+              });
+              
+              if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.onloadedmetadata = () => {
+                  videoRef.current?.play();
+                  requestRef.current = requestAnimationFrame(tick);
+                };
+              }
+            } catch (err) {
+              console.error("Error accessing camera:", err);
+              setPermissionError(true);
+            }
+          };
+
+          startCamera();
+
+          return () => {
+            if (requestRef.current) {
+              cancelAnimationFrame(requestRef.current);
+            }
+            if (stream) {
+              stream.getTracks().forEach(track => track.stop());
+            }
+          };
+        }, []);
+
+        return (
+          <div className="relative h-full w-full bg-black flex flex-col items-center justify-center">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="absolute inset-0 h-full w-full object-cover opacity-70"
+            />
+
+            <button 
+              onClick={onClose}
+              className="absolute top-6 left-6 bg-white/20 backdrop-blur-md p-3 rounded-full text-white z-50 border-2 border-white/50"
+            >
+              <Icons.ArrowLeft />
+            </button>
+
+            <div className="relative z-10 w-64 h-64 border-4 border-yellow-400 rounded-2xl shadow-[0_0_100px_rgba(250,204,21,0.5)] overflow-hidden">
+              <div className="absolute w-full h-1 bg-yellow-400 animate-scan shadow-[0_0_10px_#FACC15]"></div>
+              <div className="absolute top-0 left-0 p-2 bg-yellow-400 text-black font-bold text-xs rounded-br-lg">
+                PROCURANDO CARTÃO
+              </div>
+            </div>
+
+            <div className="absolute bottom-10 z-20 text-center px-4 w-full pointer-events-none">
+              <h3 className="text-white text-xl font-bold mb-2 shadow-black drop-shadow-md">Aponte a câmera para o cartão!</h3>
+              {permissionError && (
+                <p className="text-red-400 bg-black/80 p-2 rounded pointer-events-auto">
+                  Ops! A câmera está bloqueada. Peça ajuda para um adulto liberar as permissões.
+                </p>
+              )}
+            </div>
+
+            {/* Simulação para testes rápidos */}
+            <div className="absolute bottom-24 w-full overflow-x-auto pb-4 px-4 z-30 flex gap-2 no-scrollbar pointer-events-auto">
+              <div className="flex space-x-2 mx-auto bg-black/60 p-2 rounded-xl backdrop-blur-sm">
+                {TEXTURE_MATERIALS.map((mat) => (
+                  <button
+                    key={mat.id}
+                    onClick={() => { setIsScanning(false); onScan(mat); }}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap border-2 ${
+                      mat.id === 'algodao' ? 'bg-yellow-400 text-black border-yellow-200' :
+                      mat.id === 'lixa' ? 'bg-red-600 text-white border-red-400' :
+                      mat.id === 'aluminio' ? 'bg-blue-600 text-white border-blue-400' :
+                      mat.id === 'esponja' ? 'bg-green-600 text-white border-green-400' :
+                      'bg-orange-500 text-black border-orange-300'
+                    }`}
+                  >
+                    Testar {mat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // 3. TEXTURE VIEW COMPONENT
+      const TextureView = ({ material, onBack, onNewMaterialScanned }) => {
+        const [insight, setInsight] = useState(null);
+        const [loadingInsight, setLoadingInsight] = useState(false);
+        const [showTeacherPanel, setShowTeacherPanel] = useState(false);
+        const [isSpeaking, setIsSpeaking] = useState(false);
+        const [showImage, setShowImage] = useState(false);
+        const [hasShownImage, setHasShownImage] = useState(false);
+        
+        const audioContextRef = useRef(null);
+
+        const playMaterialSound = () => {
+          if (!audioContextRef.current) {
+            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          const ctx = audioContextRef.current;
+          if (ctx.state === 'suspended') {
+            ctx.resume();
+          }
+
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = material.soundType;
+          osc.frequency.setValueAtTime(material.soundFrequency, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(material.soundFrequency / 2, ctx.currentTime + 1.5);
+          
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 1.5);
+        };
+
+        const speakDescription = (showImageDuringSpeech = false) => {
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(material.description);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            
+            setIsSpeaking(true);
+            
+            // Mostra a imagem apenas se solicitado e ainda não foi mostrada antes
+            if (showImageDuringSpeech && !hasShownImage) {
+              setShowImage(true);
+              setHasShownImage(true);
+            }
+            // Se a imagem já foi mostrada antes, mantém ela visível (não esconde)
+            
+            utterance.onend = () => {
+              setIsSpeaking(false);
+              // A imagem permanece visível - não esconde mais após terminar de falar
+            };
+            
+            utterance.onerror = () => {
+              setIsSpeaking(false);
+              // Não esconde a imagem
+            };
+            
+            window.speechSynthesis.speak(utterance);
+          }
+        };
+
+        useEffect(() => {
+          // Reset states when material changes - IMPORTANTE: resetar para permitir nova imagem
+          setHasShownImage(false);
+          setShowImage(false);
+          setIsSpeaking(false);
+          
+          // Cancela qualquer narração anterior
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+          }
+          
+          // Fecha o contexto de áudio anterior se existir
+          if (audioContextRef.current) {
+            audioContextRef.current.close().catch(() => {});
+            audioContextRef.current = null;
+          }
+          
+          // Pequeno delay para garantir que os estados foram resetados
+          const timer = setTimeout(() => {
+            playMaterialSound();
+            speakDescription(true); // Mostra a imagem na primeira vez
+          }, 200);
+
+          return () => {
+            clearTimeout(timer);
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+            }
+            setIsSpeaking(false);
+            if (audioContextRef.current) {
+              audioContextRef.current.close().catch(() => {});
+              audioContextRef.current = null;
+            }
+          };
+        }, [material.id]); // Usa material.id para garantir que detecta mudanças
+
+        const handleTeacherRequest = async () => {
+          if (insight) {
+            setShowTeacherPanel(true);
+            return;
+          }
+          
+          setLoadingInsight(true);
+          setShowTeacherPanel(true);
+          const data = await fetchTeacherInsight(material.name, material.property);
+          setInsight(data);
+          setLoadingInsight(false);
+        };
+
+        const IconComp = getIconComponent(material.iconName);
+
+        return (
+          <div className={`h-full w-full flex flex-col relative transition-colors duration-500 ${material.colorTheme.bg}`}>
+            {/* Mini Scanner sempre ativo no canto */}
+            <MiniScanner onScan={onNewMaterialScanned} />
+            
+            <button 
+              onClick={onBack}
+              className={`absolute top-6 left-6 p-4 rounded-full border-4 shadow-xl z-50 ${material.colorTheme.accent} ${material.colorTheme.bg === 'bg-yellow-400' ? 'text-white' : material.colorTheme.text}`}
+            >
+              <Icons.ArrowLeft />
+            </button>
+
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fade-in-up">
+              
+              <div 
+                className={`w-64 h-64 mb-8 rounded-3xl flex items-center justify-center shadow-2xl border-8 ${material.colorTheme.accent} ${material.colorTheme.text} overflow-hidden relative`}
+                onClick={() => { playMaterialSound(); speakDescription(false); }}
+              >
+                {hasShownImage && material.imageUrl ? (
+                  <>
+                    <img 
+                      src={material.imageUrl} 
+                      alt={material.name}
+                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 z-10"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        // Se a imagem falhar ao carregar, mostra o ícone
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                    <div className="w-40 h-40 opacity-0 pointer-events-none">
+                      <IconComp />
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-40 h-40">
+                    <IconComp />
+                  </div>
+                )}
+              </div>
+
+              <h1 className={`text-6xl font-extrabold mb-4 tracking-wider ${material.colorTheme.text}`}>
+                {material.name}
+              </h1>
+              <h2 className={`text-3xl font-bold opacity-80 uppercase tracking-widest ${material.colorTheme.text}`}>
+                {material.property}
+              </h2>
+
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Debounce para evitar múltiplos cliques
+                  if (Date.now() - (e.target.lastClickTime || 0) < 300) return;
+                  e.target.lastClickTime = Date.now();
+                  playMaterialSound();
+                  speakDescription(false);
+                }}
+                className={`mt-12 px-10 py-5 rounded-2xl font-bold text-2xl shadow-lg transform active:scale-95 transition-transform flex items-center gap-3 ${material.colorTheme.accent} ${material.colorTheme.bg === 'bg-yellow-400' || material.colorTheme.bg === 'bg-orange-500' ? 'text-white' : material.colorTheme.bg.replace('bg-', 'text-')}`}
+              >
+                <div className="w-8 h-8"><Icons.Scan /></div>
+                Quero Ouvir de Novo!
+              </button>
+
+            </div>
+
+            <div className="absolute top-6 right-6 z-50">
+              <button
+                onClick={handleTeacherRequest}
+                className="bg-white text-indigo-600 px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2 hover:bg-indigo-50 transition-colors"
+              >
+                <div className="w-5 h-5"><Icons.Sparkles /></div>
+                Dicas para o Professor
+              </button>
+            </div>
+
+            {showTeacherPanel && (
+              <div className="absolute inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] p-6 z-40 animate-slide-up max-h-[50vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <span className="text-indigo-500"><Icons.Sparkles /></span>
+                    Dicas Especiais para o Professor
+                  </h3>
+                  <button onClick={() => setShowTeacherPanel(false)} className="text-gray-400 font-bold p-2 hover:text-gray-600">Fechar</button>
+                </div>
+
+                {loadingInsight ? (
+                  <div className="space-y-3 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                ) : insight ? (
+                  <div className="space-y-4">
+                    <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                      <p className="text-xs font-bold text-indigo-400 uppercase mb-1">Que Curiosidade Legal!</p>
+                      <p className="text-indigo-900 font-medium leading-relaxed">{insight.fact}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-xl border border-green-100">
+                      <p className="text-xs font-bold text-green-500 uppercase mb-1">Ideia de Atividade</p>
+                      <p className="text-green-900 font-medium leading-relaxed">{insight.activitySuggestion}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-red-500">Ops! Não conseguimos carregar a dica agora. Tente novamente em alguns instantes.</p>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      // 4. QR GENERATOR COMPONENT
+      const QrGenerator = ({ onBack }) => {
+        const handlePrint = () => {
+          window.print();
+        };
+
+        return (
+          <div className="h-full w-full bg-white overflow-y-auto">
+            <div className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-200 p-4 flex justify-between items-center print:hidden">
+              <button 
+                onClick={onBack}
+                className="flex items-center gap-2 text-gray-600 font-bold hover:text-black"
+              >
+                <div className="w-6 h-6"><Icons.ArrowLeft /></div>
+                Voltar
+              </button>
+              <h2 className="text-xl font-bold text-gray-800">Cartões para Imprimir</h2>
+              <button 
+                onClick={handlePrint}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Imprimir
+              </button>
+            </div>
+
+            <div className="p-6 bg-blue-50 border-b border-blue-100 print:hidden">
+              <h3 className="font-bold text-blue-800 mb-2">Como usar os cartões:</h3>
+              <ol className="list-decimal list-inside text-sm text-blue-700 space-y-1">
+                <li>Clique no botão "Imprimir" ali em cima.</li>
+                <li>Recorte os cartões nas linhas pontilhadas.</li>
+                <li>Cole o material de verdade (como algodão, lixa, etc.) no espaço indicado de cada cartão.</li>
+                <li>Pronto! Agora é só espalhar pela sala e deixar as crianças explorarem!</li>
+              </ol>
+            </div>
+
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 print:block print:p-0">
+              {TEXTURE_MATERIALS.map((material) => {
+                const Icon = getIconComponent(material.iconName);
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${material.id}&color=000000&bgcolor=FFFFFF`;
+
+                return (
+                  <div 
+                    key={material.id} 
+                    className="border-4 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center break-inside-avoid page-break-inside-avoid mb-8 print:border-gray-800 print:mb-4 print:w-[45%] print:inline-block print:mx-2 print:align-top"
+                  >
+                    <div className="flex items-center gap-3 mb-4 w-full border-b pb-2">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${
+                          material.id === 'algodao' ? 'bg-yellow-400' :
+                          material.id === 'lixa' ? 'bg-red-600' :
+                          material.id === 'aluminio' ? 'bg-blue-600' :
+                          material.id === 'esponja' ? 'bg-green-600' :
+                          'bg-orange-500'
+                      } print:bg-black print:text-white`}>
+                        <div className="w-6 h-6"><Icon /></div>
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-bold text-2xl text-black">{material.name}</h3>
+                        <p className="text-sm text-gray-500 uppercase font-bold">{material.property}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-row w-full gap-4 h-40">
+                      <div className="w-1/2 flex flex-col items-center justify-center bg-gray-100 rounded-lg p-2 print:bg-white print:border print:border-gray-200">
+                         <img src={qrUrl} alt={`QR Code para ${material.name}`} className="w-full h-full object-contain mix-blend-multiply" />
+                         <span className="text-[10px] text-gray-400 mt-1 print:hidden">ID: {material.id}</span>
+                      </div>
+
+                      <div className="w-1/2 border-2 border-gray-300 bg-gray-50 rounded-lg flex flex-col items-center justify-center text-center p-2 print:border-black">
+                        <span className="text-gray-400 font-bold text-xs uppercase mb-2">Cole o material aqui!</span>
+                        <div className="w-8 h-8 text-gray-300"><Icon /></div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 text-xs text-gray-400 w-full text-center border-t pt-2">
+                      Explorador de Texturas - Recorte aqui nas linhas pontilhadas
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      };
+
+      // --- MAIN APP ---
+      
+      const App = () => {
+        const [mode, setMode] = useState(AppMode.HOME);
+        const [activeMaterial, setActiveMaterial] = useState(null);
+
+        const handleScan = (material) => {
+          setActiveMaterial(material);
+          setMode(AppMode.RESULT);
+        };
+
+        const handleNewMaterialScanned = (material) => {
+          // Quando um novo material é escaneado, automaticamente troca para ele
+          // Cancela qualquer narração em andamento
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+          }
+          // Força a atualização do material para garantir que o useEffect seja executado
+          setActiveMaterial(null);
+          // Pequeno delay para garantir que o estado foi resetado
+          setTimeout(() => {
+            setActiveMaterial(material);
+            setMode(AppMode.RESULT);
+          }, 50);
+        };
+
+        const reset = () => {
+          setMode(AppMode.HOME);
+          setActiveMaterial(null);
+        };
+
+        const HomeScreen = () => (
+          <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-b from-blue-300 to-blue-500 p-6 relative overflow-hidden">
+            <div className="absolute top-10 left-10 w-20 h-20 bg-white/20 rounded-full blur-xl"></div>
+            <div className="absolute bottom-10 right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+
+            <div className="bg-white p-4 rounded-3xl shadow-2xl mb-10 transform rotate-2">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-blue-600 text-center leading-tight">
+                Explorador de<br />Texturas
+              </h1>
+            </div>
+
+            <button
+              onClick={() => setMode(AppMode.SCANNING)}
+              className="group relative bg-yellow-400 hover:bg-yellow-300 text-black text-2xl font-bold py-6 px-12 rounded-full shadow-[0_10px_0_rgb(180,83,9)] active:shadow-none active:translate-y-2 transition-all duration-150 flex items-center gap-4 mb-8"
+            >
+              <span className="p-2 bg-black/10 rounded-full">
+                 <div className="w-8 h-8"><Icons.Scan /></div>
+              </span>
+              Vamos Começar!
+            </button>
+
+            <button
+              onClick={() => setMode(AppMode.QR_GENERATOR)}
+              className="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-full text-sm backdrop-blur-sm transition-colors border border-white/40 flex items-center gap-2"
+            >
+              <div className="w-4 h-4"><Icons.Grid /></div>
+              Área do Professor - Imprimir Cartões
+            </button>
+
+            <p className="mt-8 text-white font-bold text-lg opacity-80 text-center max-w-xs">
+              Prepare seus cartões e vamos explorar juntos os sentidos!
+            </p>
+          </div>
+        );
+
+        return (
+          <div className="h-full w-full select-none">
+            {mode === AppMode.HOME && <HomeScreen />}
+            
+            {mode === AppMode.SCANNING && (
+              <Scanner 
+                onScan={handleScan} 
+                onClose={() => setMode(AppMode.HOME)} 
+              />
+              // Mini scanner removido da tela de scanner para evitar duplicação
+            )}
+
+            {mode === AppMode.RESULT && activeMaterial && (
+              <TextureView 
+                material={activeMaterial} 
+                onBack={() => setMode(AppMode.SCANNING)}
+                onNewMaterialScanned={handleNewMaterialScanned}
+              />
+            )}
+
+            {mode === AppMode.QR_GENERATOR && (
+              <QrGenerator onBack={() => setMode(AppMode.HOME)} />
+            )}
+          </div>
+        );
+      };
+
+      // --- RENDER ---
+      const root = createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+      <!-- Botão Voltar ao Início -->
+    <a href="index.html" style="position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; background: linear-gradient(to right, #2563eb, #9333ea); color: white; padding: 0.75rem 1.5rem; border-radius: 9999px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.875rem; text-decoration: none; transition: all 0.3s;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        MyApps
+    </a>
+</body>
+</html>

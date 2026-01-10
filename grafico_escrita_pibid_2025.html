@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparativo de Escrita</title>
+    <!-- Carrega o Tailwind CSS para estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carrega a biblioteca Chart.js para o gráfico -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- NOVO: Carrega o plugin para mostrar rótulos de dados (DataLabels) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <!-- Adiciona a fonte Inter para um visual mais moderno -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Define a fonte Inter como padrão */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+    <!-- Container principal do gráfico -->
+    <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-lg p-6 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+            Comparativo de Níveis de Escrita
+        </h1>
+        
+        <!-- O elemento canvas onde o gráfico será desenhado -->
+        <!-- MUDANÇA: Aumentei a altura mínima do container para dar espaço às barras -->
+        <div class="w-full" style="min-height: 450px;">
+            <canvas id="chartEscrita"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Dados extraídos da imagem
+        const labels = [
+            'Pré-silábico',
+            'Silábico Valor Sonoro', // Mantendo os nomes exatos da imagem
+            'Silábico c/ Valor Sonoro',
+            'Silábico-Alfabético',
+            'Alfabético',
+            'Ortográfico'
+        ];
+
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Diagnóstico Inicial (Referência)',
+                    // Dados da primeira linha: 0, 0, 4, 6, 21, 69
+                    data: [0, 0, 4, 6, 21, 69],
+                    backgroundColor: 'rgba(251, 191, 36, 0.7)', // Amarelo (cor da linha de referência na imagem)
+                    borderColor: 'rgba(251, 191, 36, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                },
+                {
+                    label: 'Romário Galdino e Elly',
+                    // Dados da segunda linha: 0, 0, 3, 3, 15, 77
+                    data: [0, 0, 3, 3, 15, 77],
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)', // Azul (cor do botão "Adicionar")
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }
+            ]
+        };
+
+        // Registra o plugin de DataLabels globalmente
+        Chart.register(ChartDataLabels);
+
+        // Configuração do gráfico
+        const config = {
+            type: 'bar', // Tipo de gráfico: barras
+            data: data,
+            options: {
+                // MUDANÇA: 'y' torna o gráfico de barras horizontal
+                indexAxis: 'y', 
+                responsive: true, // Torna o gráfico responsivo
+                maintainAspectRatio: false,
+                // MUDANÇA: Adiciona padding à direita para os rótulos não serem cortados
+                layout: {
+                    padding: {
+                        right: 40 // Espaço para os rótulos ('77%', '69%', etc.)
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top', // Posição da legenda
+                        labels: {
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribuição Percentual por Nível de Escrita',
+                        font: {
+                            size: 18,
+                            weight: '500'
+                        },
+                        padding: {
+                            bottom: 20
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            // Adiciona o '%' no tooltip
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + '%';
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    // NOVO: Configuração dos rótulos de dados (DataLabels)
+                    datalabels: {
+                        anchor: 'end', // Posição do rótulo (no final da barra)
+                        // MUDANÇA: 'right' alinha o texto à direita do ponto âncora
+                        align: 'right', 
+                        color: '#4b5563', // Cor do texto (cinza escuro)
+                        font: {
+                            weight: 'bold'
+                        },
+                        // Formata o valor para incluir o símbolo '%'
+                        formatter: function(value) {
+                            // Não mostra o rótulo se o valor for 0
+                            if (value === 0) {
+                                return null;
+                            }
+                            return value + '%';
+                        }
+                    }
+                },
+                // MUDANÇA: As escalas X e Y foram trocadas
+                scales: {
+                    x: { // Este é agora o eixo dos valores (horizontal)
+                        beginAtZero: true, 
+                        max: 100, 
+                        title: {
+                            display: true,
+                            text: 'Porcentagem (%)' 
+                        },
+                        grid: {
+                            color: '#e5e7eb' 
+                        },
+                        ticks: {
+                            stepSize: 20 
+                        }
+                    },
+                    y: { // Este é agora o eixo das categorias (vertical)
+                        grid: {
+                            display: false // Remove linhas de grade do eixo das categorias
+                        }
+                    }
+                }
+            }
+        };
+
+        // Renderiza o gráfico
+        const myChart = new Chart(
+            document.getElementById('chartEscrita'),
+            config
+        );
+    </script>
+    <!-- Botão Voltar ao Início -->
+    <a href="index.html" style="position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; background: linear-gradient(to right, #2563eb, #9333ea); color: white; padding: 0.75rem 1.5rem; border-radius: 9999px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.875rem; text-decoration: none; transition: all 0.3s;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        MyApps
+    </a>
+</body>
+</html>
+

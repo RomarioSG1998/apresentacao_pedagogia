@@ -1,0 +1,30 @@
+{
+    "name": "sintax-java-app",
+    "version": "1.0.0",
+    "description": "Aplicação interativa para aprendizado de sintaxe Java",
+    "main": "index.html",
+    "scripts": {
+        "start": "python3 -m http.server 8000",
+        "dev": "python3 -m http.server 8000",
+        "serve": "python3 -m http.server 8000",
+        "watch": "npx live-server --port=8000 --no-browser --watch=.",
+        "watch:open": "npx live-server --port=8000 --watch=.",
+        "open": "python3 -m http.server 8000 & sleep 2 && xdg-open http://localhost:8000"
+    },
+    "devDependencies": {
+        "live-server": "^1.2.2"
+    },
+    "keywords": [
+        "java",
+        "syntax",
+        "learning",
+        "education",
+        "interactive"
+    ],
+    "author": "Romario Jala",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": ""
+    }
+}

@@ -1,0 +1,4062 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estados da Água</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --body-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --sun-top: 80px;
+            --sun-opacity: 0.85;
+            --sun-core: #fff8d6;
+            --sun-ring: rgba(255, 196, 0, 0.55);
+            --mountain-left-highlight: #f8f8f8;
+            --mountain-left-shadow: #c9d6ff;
+            --mountain-right-highlight: #f9f3e4;
+            --mountain-right-shadow: #c0a382;
+            --mountain-back-highlight: rgba(150, 180, 210, 0.6);
+            --mountain-back-shadow: rgba(60, 90, 130, 0.35);
+            --hill-tone: rgba(120, 170, 110, 0.4);
+            --hill-texture: none;
+            --haze-opacity: 0.5;
+            --mist-opacity: 0.4;
+            --beam-opacity: 0.3;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--body-bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px;
+            overflow: hidden;
+            transition: background 2s ease;
+            position: relative;
+            background-attachment: fixed;
+            perspective: 1000px;
+        }
+
+        /* Fundo dinâmico da paisagem */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25) 0%, transparent 45%),
+                radial-gradient(circle at 80% 10%, rgba(255,255,255,0.12) 0%, transparent 55%),
+                linear-gradient(180deg, rgba(12, 27, 63, 0.4) 0%, rgba(255,255,255,0) 55%, rgba(0,0,0,0.2) 100%),
+                var(--body-bg);
+            transition: background 2s ease, opacity 1.5s ease;
+            z-index: -3;
+            mix-blend-mode: screen;
+            animation: skyDrift 50s ease-in-out infinite alternate;
+            opacity: 0.95;
+            pointer-events: none;
+        }
+
+        /* Sol */
+        body::after {
+            content: '';
+            position: fixed;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, var(--sun-core) 0%, rgba(255, 213, 79, 0.9) 35%, rgba(255, 111, 0, 0.4) 70%, transparent 80%);
+            border-radius: 50%;
+            top: var(--sun-top, 80px);
+            right: 110px;
+            z-index: -2;
+            box-shadow: 0 0 80px rgba(255, 235, 59, 0.6), 0 0 140px var(--sun-ring);
+            transition: all 2s ease;
+            opacity: var(--sun-opacity, 0.85);
+            animation: sunPulse 16s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes skyDrift {
+            0% {
+                background-position: 0 0, 0 0, 0 0, 0 0;
+            }
+            50% {
+                background-position: 5% 2%, 12% 4%, 0 8%, 0 0;
+            }
+            100% {
+                background-position: 10% 4%, 20% 8%, 0 16%, 0 0;
+            }
+        }
+
+        @keyframes sunPulse {
+            0% {
+                transform: scale(1) rotate(0deg);
+                box-shadow: 0 0 80px rgba(255, 235, 59, 0.6), 0 0 140px var(--sun-ring);
+                opacity: 0.85;
+            }
+            25% {
+                transform: scale(1.02) rotate(0.5deg);
+                box-shadow: 0 0 95px rgba(255, 241, 118, 0.7), 0 0 165px rgba(255, 196, 0, 0.45);
+                opacity: 0.92;
+            }
+            50% {
+                transform: scale(1.05) rotate(1deg);
+                box-shadow: 0 0 110px rgba(255, 241, 118, 0.8), 0 0 190px rgba(255, 196, 0, 0.5);
+                opacity: 0.95;
+            }
+            75% {
+                transform: scale(0.98) rotate(-0.3deg);
+                box-shadow: 0 0 85px rgba(255, 235, 59, 0.65), 0 0 150px var(--sun-ring);
+                opacity: 0.88;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                box-shadow: 0 0 80px rgba(255, 235, 59, 0.6), 0 0 140px var(--sun-ring);
+                opacity: 0.85;
+            }
+        }
+
+        @keyframes parallaxDrift {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+            100% {
+                transform: translate3d(25px, -10px, 0);
+            }
+        }
+
+        @keyframes fogDrift {
+            0% {
+                transform: translate3d(-20px, 0, 0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translate3d(15px, -10px, 0);
+                opacity: 0.45;
+            }
+            100% {
+                transform: translate3d(-10px, 5px, 0);
+                opacity: 0.55;
+            }
+        }
+
+        /* Montanhas nevadas - Ultra realista com múltiplas camadas */
+        .mountain {
+            position: fixed;
+            bottom: -30px;
+            width: var(--mountain-width, 380px);
+            height: var(--mountain-height, 320px);
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+            background: linear-gradient(140deg, var(--mountain-highlight, #f4f4f4), var(--mountain-shadow, #bcc6dd));
+            z-index: 4;
+            filter: drop-shadow(0 25px 40px rgba(0,0,0,0.35));
+            transition: transform 6s ease, background 2s ease, filter 2s ease;
+            animation: parallaxDrift 45s ease-in-out infinite alternate;
+            will-change: transform;
+            pointer-events: none;
+        }
+
+        .mountain::before {
+            content: '';
+            position: absolute;
+            top: 8%;
+            left: 50%;
+            width: 70%;
+            height: 55%;
+            transform: translateX(-50%);
+            clip-path: polygon(50% 0%, 72% 28%, 48% 38%, 64% 60%, 40% 80%, 10% 100%, 0 100%, 0 72%, 18% 58%, 32% 40%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0));
+            opacity: 0.9;
+            filter: drop-shadow(0 8px 12px rgba(255,255,255,0.3));
+            pointer-events: none;
+        }
+
+        .mountain::after {
+            content: '';
+            position: absolute;
+            bottom: 8%;
+            left: 18%;
+            width: 65%;
+            height: 35%;
+            clip-path: polygon(65% 0%, 100% 100%, 0% 100%);
+            background: linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0));
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        .mountain-left {
+            left: -60px;
+            --mountain-highlight: var(--mountain-left-highlight, #f6fbff);
+            --mountain-shadow: var(--mountain-left-shadow, #9bb3d9);
+            animation-duration: 55s;
+            width: 360px;
+            height: 310px;
+        }
+
+        .mountain-right {
+            right: -40px;
+            width: 420px;
+            height: 360px;
+            --mountain-highlight: var(--mountain-right-highlight, #f9f3e4);
+            --mountain-shadow: var(--mountain-right-shadow, #c7a787);
+            animation-duration: 40s;
+        }
+
+        /* Camada adicional de profundidade - montanhas ao fundo */
+        .mountain-back {
+            position: fixed;
+            bottom: 60px;
+            width: 420px;
+            height: 260px;
+            clip-path: polygon(50% 0%, 100% 100%, 18% 100%, 0% 55%, 0% 100%);
+            background: linear-gradient(150deg, var(--mountain-back-highlight, rgba(150, 180, 210, 0.6)), var(--mountain-back-shadow, rgba(60, 90, 130, 0.35)));
+            z-index: 0;
+            filter: blur(3px) drop-shadow(0 12px 25px rgba(0,0,0,0.25));
+            opacity: 0.5;
+            transition: opacity 2s ease, background 2s ease;
+            animation: parallaxDrift 65s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        .mountain-back::after {
+            content: '';
+            position: absolute;
+            inset: 12% 25% auto;
+            height: 45%;
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0));
+            opacity: 0.8;
+        }
+
+        .mountain-back-left {
+            left: -140px;
+            transform: scale(1.05);
+            animation-delay: -10s;
+        }
+
+        .mountain-back-right {
+            right: -140px;
+            transform: scale(1.15);
+            animation-delay: -20s;
+        }
+
+        /* Vulcão no fundo */
+        .volcano {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            height: 200px;
+            z-index: 3;
+            pointer-events: none;
+            transition: all 1.8s ease;
+            filter: drop-shadow(0 6px 20px rgba(0,0,0,0.25));
+        }
+
+        .volcano-base {
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 260px;
+            height: 170px;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, #5a4036 0%, #4a332c 45%, #2c1f1b 95%);
+            border-radius: 60% 60% 14% 14% / 45% 45% 8% 8%;
+            clip-path: polygon(8% 100%, 4% 72%, 15% 42%, 28% 22%, 45% 14%, 55% 14%, 72% 22%, 85% 42%, 96% 72%, 92% 100%);
+            overflow: hidden;
+            box-shadow: inset 0 0 25px rgba(0,0,0,0.35);
+        }
+
+        .volcano-base::before {
+            content: '';
+            position: absolute;
+            inset: 18% 15% 28% 15%;
+            background: radial-gradient(circle at 40% 0%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 45%);
+            border-radius: 60% 60% 10% 10%;
+            opacity: 0.7;
+            filter: blur(8px);
+        }
+
+        .volcano-base::after {
+            content: '';
+            position: absolute;
+            inset: 35% 22% 5% 22%;
+            background: linear-gradient(90deg, rgba(0,0,0,0.25), rgba(0,0,0,0));
+            opacity: 0.6;
+            transform: skewY(-4deg);
+        }
+
+        .volcano-crater {
+            position: absolute;
+            left: 50%;
+            bottom: 128px;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 46px;
+            border-radius: 50%;
+            overflow: visible;
+            z-index: 1;
+            background: radial-gradient(circle at 50% 60%, rgba(58,47,42,0.7) 0%, rgba(0,0,0,0));
+            box-shadow: inset 0 -6px 12px rgba(0,0,0,0.45);
+        }
+
+        .lava-pool {
+            position: absolute;
+            left: 50%;
+            top: 8px;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 24px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff176 0%, #ff7043 30%, #d32f2f 70%);
+            box-shadow: 0 0 30px rgba(255,120,60,0.6), inset 0 -8px 20px rgba(200,50,50,0.6);
+            opacity: 0;
+            transition: opacity 0.6s ease, box-shadow 0.6s ease;
+        }
+
+        /* Partículas de lava (criadas dinamicamente) */
+        .lava {
+            position: absolute;
+            width: 8px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #ffd54f 0%, #ff7043 50%, #d32f2f 100%);
+            box-shadow: 0 0 12px rgba(255,120,50,0.8);
+            animation: lavaShoot 900ms linear forwards;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes lavaShoot {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            60% { transform: translateY(-220px) scale(0.9); opacity: 0.9; }
+            100% { transform: translateY(-320px) scale(0.4); opacity: 0; }
+        }
+
+        /* Fumaça da erupção */
+        .smoke {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            border-radius: 50%;
+            background: rgba(120,120,120,0.6);
+            filter: blur(6px);
+            animation: smokeRise 4s ease-out forwards;
+            z-index: 1;
+        }
+
+        @keyframes smokeRise {
+            0% { transform: translateX(-50%) translateY(0) scale(0.8); opacity: 0.8; }
+            50% { transform: translateX(calc(-50% + 40px)) translateY(-120px) scale(1.4); opacity: 0.6; }
+            100% { transform: translateX(calc(-50% + 80px)) translateY(-260px) scale(2.2); opacity: 0; }
+        }
+
+        /* Estado congelado do vulcão */
+        .volcano.frozen .volcano-base {
+            border-bottom-color: #dff3ff;
+            filter: drop-shadow(0 6px 20px rgba(200,230,255,0.25));
+        }
+
+        .volcano.frozen .lava-pool {
+            opacity: 0 !important;
+        }
+
+        .volcano.erupting .lava-pool {
+            opacity: 1;
+        }
+
+        /* Container do canvas Three.js */
+        #three-volcano-container canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Camada de vegetação/colinas */
+        .hills {
+            position: fixed;
+            bottom: -10px;
+            left: 0;
+            right: 0;
+            height: 160px;
+            z-index: 2;
+            transition: all 2s ease;
+            background:
+                var(--hill-texture),
+                radial-gradient(ellipse at 30% 110%, rgba(0,0,0,0.2) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 120%, rgba(255,255,255,0.25) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 100%, var(--hill-tone, rgba(100, 160, 90, 0.4)) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 100%, var(--hill-tone, rgba(100, 160, 90, 0.3)) 0%, transparent 55%);
+            background-size: cover, auto, auto, auto, auto;
+            background-blend-mode: multiply, normal, normal, normal, normal;
+            filter: blur(1.2px);
+            mix-blend-mode: multiply;
+            opacity: 0.95;
+        }
+
+        .hills::before,
+        .hills::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 160%;
+            height: 140%;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, transparent 70%);
+            opacity: 0.35;
+            filter: blur(6px);
+        }
+
+        .hills::before {
+            left: -35%;
+            transform: rotate(-5deg);
+        }
+
+        .hills::after {
+            right: -35%;
+            transform: rotate(4deg);
+        }
+
+        /* Horizonte com efeito de profundidade */
+        .horizon {
+            position: fixed;
+            bottom: 130px;
+            left: -5%;
+            right: -5%;
+            height: 4px;
+            z-index: 1;
+            transition: all 2s ease;
+            box-shadow: 0 0 30px rgba(255, 200, 100, 0.3);
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 230, 180, 0.5) 20%, 
+                rgba(255, 255, 255, 0.8) 50%, 
+                rgba(255, 200, 100, 0.4) 80%,
+                transparent 100%);
+            filter: blur(0.8px);
+            opacity: 0.9;
+        }
+
+        /* Camada de névoa/bruma atmosférica */
+        .atmosphere {
+            position: fixed;
+            bottom: 80px;
+            left: -5%;
+            right: -5%;
+            height: 260px;
+            z-index: 1;
+            transition: all 2s ease;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center 0%, rgba(255,255,255,0.35) 0%, rgba(0, 0, 0, 0) 70%);
+            mix-blend-mode: screen;
+            filter: blur(12px);
+            animation: fogDrift 60s ease-in-out infinite;
+            opacity: 0.55;
+        }
+
+        .aerial-haze {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(circle at 60% 10%, rgba(255,255,255,0.2), transparent 45%),
+                        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1), transparent 55%);
+            opacity: var(--haze-opacity, 0.4);
+            transition: opacity 1.5s ease;
+            mix-blend-mode: screen;
+        }
+
+        .ground-mist {
+            position: fixed;
+            bottom: 20px;
+            left: -10%;
+            right: -10%;
+            height: 180px;
+            pointer-events: none;
+            z-index: 2;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.5), transparent 70%);
+            filter: blur(18px);
+            opacity: var(--mist-opacity, 0.3);
+            transition: opacity 1.5s ease;
+        }
+
+        .volumetric-beams {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 45%;
+            height: 65vh;
+            pointer-events: none;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            opacity: var(--beam-opacity, 0.25);
+            transition: opacity 2s ease;
+            mix-blend-mode: screen;
+        }
+
+        .volumetric-beams .beam {
+            width: 100%;
+            height: 140px;
+            background: radial-gradient(ellipse at right,
+                rgba(255,255,255,0.6) 0%,
+                rgba(255,250,220,0.4) 30%,
+                rgba(255,240,180,0.25) 60%,
+                rgba(255,220,140,0.1) 85%,
+                rgba(255,200,100,0) 100%);
+            filter: blur(15px);
+            transform-origin: right center;
+            animation: beamDrift 22s ease-in-out infinite;
+            border-radius: 50% 0 0 50%;
+        }
+
+        @keyframes beamDrift {
+            0% {
+                transform: rotate(0deg) translateX(0) scaleY(1);
+                opacity: 0.4;
+            }
+            25% {
+                transform: rotate(2deg) translateX(-4%) scaleY(1.1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: rotate(-1deg) translateX(2%) scaleY(0.95);
+                opacity: 0.8;
+            }
+            75% {
+                transform: rotate(3deg) translateX(-3%) scaleY(1.05);
+                opacity: 0.5;
+            }
+            100% {
+                transform: rotate(0deg) translateX(0) scaleY(1);
+                opacity: 0.4;
+            }
+        }
+
+        /* Nuvens dinâmicas */
+        #clouds-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70vh;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .cloud {
+            position: absolute;
+            z-index: 2;
+            transition: all 2s ease;
+            opacity: 0;
+            filter: blur(0.5px) drop-shadow(0 8px 18px rgba(0,0,0,0.2));
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+
+        .cloud-large {
+            width: 150px;
+            height: 60px;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.85) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.95) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 45%, rgba(255,255,255,0.8) 0%, transparent 55%);
+            border-radius: 50%;
+            box-shadow: inset 0 2px 10px rgba(255,255,255,0.6);
+            background-blend-mode: screen;
+        }
+
+        .cloud-medium {
+            width: 100px;
+            height: 45px;
+            background:
+                radial-gradient(ellipse at 30% 50%, rgba(255,255,255,0.8) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 55%, rgba(255,255,255,0.75) 0%, transparent 50%);
+            border-radius: 50%;
+            box-shadow: inset 0 1px 8px rgba(255,255,255,0.5);
+        }
+
+        .cloud-small {
+            width: 70px;
+            height: 35px;
+            background:
+                radial-gradient(ellipse at 40% 50%, rgba(255,255,255,0.7) 0%, transparent 50%),
+                radial-gradient(ellipse at 60% 50%, rgba(255,255,255,0.65) 0%, transparent 50%);
+            border-radius: 50%;
+            box-shadow: inset 0 1px 5px rgba(255,255,255,0.4);
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            background: inherit;
+            opacity: 0.85;
+        }
+
+        .cloud::before {
+            width: 60%;
+            height: 80%;
+            top: -25%;
+            left: 5%;
+        }
+
+        .cloud::after {
+            width: 55%;
+            height: 70%;
+            bottom: -15%;
+            right: -5%;
+        }
+
+        @keyframes cloudFloat {
+            0% {
+                transform: translate3d(-30vw, 0, 0) scale(0.9);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            50% {
+                transform: translate3d(55vw, var(--drift-y, 0), 0) scale(1.05);
+                opacity: 0.85;
+            }
+            90% {
+                opacity: 0.2;
+            }
+            100% {
+                transform: translate3d(120vw, var(--drift-y, 0), 0) scale(1.12);
+                opacity: 0;
+            }
+        }
+
+        /* Flocos de neve */
+        #snowflakes-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+
+            /* Efeito de estrelas noturnas */
+            .stars {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: -1;
+                transition: opacity 2s ease;
+                opacity: 0;
+                mix-blend-mode: screen;
+                filter: drop-shadow(0 0 6px rgba(255,255,255,0.4));
+            }
+
+            .star {
+                position: absolute;
+                width: 2px;
+                height: 2px;
+                background: white;
+                border-radius: 50%;
+                box-shadow: 0 0 6px rgba(255,255,255,0.9);
+                animation: twinkle 3s infinite;
+                opacity: 0.4;
+            }
+
+            @keyframes twinkle {
+                0%, 100% { opacity: 0.3; }
+                50% { opacity: 1; }
+            }
+
+                /* Raios de luz solar realistas */
+                .light-rays {
+                    position: fixed;
+                    top: 80px; /* Topo do sol */
+                    right: 110px; /* Lado direito do sol */
+                    width: 180px; /* Largura do sol */
+                    height: 180px; /* Altura do sol */
+                    z-index: 1;
+                    transition: all 2s ease;
+                    opacity: 0;
+                    pointer-events: none;
+                    mix-blend-mode: screen;
+                    filter: blur(0.5px);
+                    border-radius: 50%; /* Forma circular como o sol */
+                }
+
+                .light-ray {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    width: 200px;
+                    height: 2px;
+                    background: linear-gradient(to right,
+                        rgba(255, 255, 255, 0.95) 0%,
+                        rgba(255, 250, 220, 0.8) 30%,
+                        rgba(255, 240, 180, 0.6) 60%,
+                        rgba(255, 220, 140, 0.3) 80%,
+                        transparent 100%);
+                    transform-origin: 0 50%;
+                    animation: rayShine 6s ease-in-out infinite;
+                    filter: drop-shadow(0 0 8px rgba(255,255,200,0.6))
+                           drop-shadow(0 0 20px rgba(255,240,180,0.4));
+                    border-radius: 2px;
+                    margin-left: -1px; /* Compensar o transform-origin */
+                    margin-top: -1px; /* Centralizar na linha */
+                }
+
+                @keyframes rayShine {
+                    0% {
+                        opacity: 0.2;
+                        transform: scaleX(0.85);
+                    }
+                    25% {
+                        opacity: 0.5;
+                        transform: scaleX(0.95);
+                    }
+                    50% {
+                        opacity: 0.8;
+                        transform: scaleX(1.05);
+                    }
+                    75% {
+                        opacity: 0.4;
+                        transform: scaleX(0.92);
+                    }
+                    100% {
+                        opacity: 0.2;
+                        transform: scaleX(0.85);
+                    }
+                }
+
+                /* Botões de controle no topo */
+                .top-buttons {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    display: flex;
+                    gap: 10px;
+                    z-index: 10000;
+                }
+
+                .top-btn {
+                    width: 45px;
+                    height: 45px;
+                    border: none;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,249,250,0.8));
+                    backdrop-filter: blur(10px);
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 18px;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    border: 1px solid rgba(255,255,255,0.3);
+                }
+
+                .top-btn:hover {
+                    transform: scale(1.1) translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+                    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,249,250,0.9));
+                }
+
+                .top-btn:active {
+                    transform: scale(0.95) translateY(0px);
+                }
+
+                .btn-icon {
+                    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+                }
+
+                /* Modais */
+                .modal {
+                    display: none;
+                    position: fixed;
+                    z-index: 10001;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0,0,0,0.7);
+                    backdrop-filter: blur(5px);
+                    animation: modalFadeIn 0.3s ease-out;
+                }
+
+                .modal-content {
+                    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                    margin: 5% auto;
+                    padding: 0;
+                    border-radius: 20px;
+                    width: 90%;
+                    max-width: 600px;
+                    max-height: 80vh;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                    animation: modalSlideIn 0.4s ease-out;
+                    border: 2px solid rgba(255,255,255,0.2);
+                    overflow-y: auto;
+                }
+
+                .video-modal {
+                    max-width: 800px;
+                }
+
+                .close-btn {
+                    position: absolute;
+                    top: 15px;
+                    right: 20px;
+                    font-size: 28px;
+                    font-weight: bold;
+                    color: #666;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    width: 30px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.1);
+                }
+
+                .close-btn:hover {
+                    color: #333;
+                    background: rgba(255,255,255,0.2);
+                    transform: scale(1.1);
+                }
+
+                .modal-content h2 {
+                    margin: 0;
+                    padding: 25px 30px 15px;
+                    color: #2c3e50;
+                    font-size: 24px;
+                    font-weight: 600;
+                    border-bottom: 1px solid rgba(0,0,0,0.1);
+                }
+
+                .modal-body {
+                    padding: 25px 30px 35px;
+                    line-height: 1.6;
+                    color: #555;
+                }
+
+                .modal-body h3 {
+                    color: #2c3e50;
+                    margin-top: 25px;
+                    margin-bottom: 10px;
+                    font-size: 18px;
+                }
+
+                .modal-body h4 {
+                    color: #3498db;
+                    margin-top: 20px;
+                    margin-bottom: 8px;
+                    font-size: 16px;
+                }
+
+                .modal-body p {
+                    margin-bottom: 15px;
+                }
+
+                .modal-body ul {
+                    margin: 10px 0 20px 20px;
+                }
+
+                .modal-body li {
+                    margin-bottom: 5px;
+                }
+
+                .video-container {
+                    text-align: center;
+                    margin: 20px 0;
+                }
+
+                .video-wrapper {
+                    position: relative;
+                    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+                    height: 0;
+                    overflow: hidden;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+                }
+
+                .video-wrapper iframe {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    border: none;
+                    border-radius: 12px;
+                }
+
+                .creator-info {
+                    text-align: center;
+                }
+
+                .creator-avatar {
+                    font-size: 60px;
+                    margin-bottom: 15px;
+                }
+
+                .creator-title {
+                    color: #7f8c8d;
+                    font-style: italic;
+                    margin-bottom: 20px;
+                }
+
+                .creator-team {
+                    text-align: left;
+                    margin-top: 25px;
+                    padding: 20px;
+                    background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(52, 152, 219, 0.1));
+                    border-radius: 10px;
+                    border-left: 4px solid #9b59b6;
+                }
+
+                .team-members {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 15px;
+                    margin-top: 15px;
+                }
+
+                .member {
+                    background: rgba(255, 255, 255, 0.8);
+                    padding: 12px;
+                    border-radius: 8px;
+                    border: 1px solid rgba(0, 0, 0, 0.1);
+                    transition: transform 0.2s ease;
+                }
+
+                .member:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                }
+
+                .member-name {
+                    display: block;
+                    font-weight: 600;
+                    color: #2c3e50;
+                    margin-bottom: 4px;
+                }
+
+                .member-role {
+                    display: block;
+                    font-size: 0.9em;
+                    color: #7f8c8d;
+                    font-style: italic;
+                }
+
+                .creator-details {
+                    text-align: left;
+                    margin-top: 25px;
+                    padding: 20px;
+                    background: rgba(52, 152, 219, 0.1);
+                    border-radius: 10px;
+                    border-left: 4px solid #3498db;
+                }
+
+                .creator-contact {
+                    margin-top: 25px;
+                    padding: 15px;
+                    background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+                    border-radius: 10px;
+                    color: #d63031;
+                    font-weight: 500;
+                }
+
+                @keyframes modalFadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                @keyframes modalSlideIn {
+                    from {
+                        transform: scale(0.8) translateY(-50px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: scale(1) translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                /* Scrollbar customizada para o modal */
+                .modal-content::-webkit-scrollbar {
+                    width: 8px;
+                }
+
+                .modal-content::-webkit-scrollbar-track {
+                    background: rgba(0,0,0,0.1);
+                    border-radius: 10px;
+                }
+
+                .modal-content::-webkit-scrollbar-thumb {
+                    background: linear-gradient(135deg, #3498db, #2980b9);
+                    border-radius: 10px;
+                    border: 2px solid rgba(255,255,255,0.3);
+                }
+
+                .modal-content::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(135deg, #2980b9, #21618c);
+                }
+
+                /* Emoji animado reagindo à temperatura */
+                .animated-emoji {
+                    position: fixed;
+                    top: 80px; /* Ajustado para não conflitar com os botões */
+                    left: 20px;
+                    font-size: 48px;
+                    z-index: 9998; /* Logo abaixo do balão de fala */
+                    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                    cursor: pointer;
+                    user-select: none;
+                    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+                    transform-origin: center;
+                }
+
+                /* Balão de fala animado */
+                .speech-bubble {
+                    position: fixed;
+                    /* Posição controlada por JavaScript */
+                    z-index: 9999; /* Sempre no topo de tudo */
+                    opacity: 0;
+                    transform: scale(0.8) translateX(-50%);
+                    transform-origin: center bottom;
+                    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                    pointer-events: none;
+                    filter: drop-shadow(2px 2px 8px rgba(0,0,0,0.2));
+                    min-width: 180px;
+                    max-width: 250px;
+                    text-align: center;
+                }
+
+                .speech-bubble.show {
+                    opacity: 1;
+                    transform: scale(1) translateY(0) translateX(-50%);
+                    animation: speechPopIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                }
+
+                .speech-content {
+                    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                    border: 2px solid #e9ecef;
+                    border-radius: 20px;
+                    padding: 12px 16px;
+                    font-family: 'Comic Sans MS', cursive, sans-serif;
+                    font-size: 13px;
+                    font-weight: bold;
+                    color: #333;
+                    text-align: center;
+                    white-space: normal;
+                    word-wrap: break-word;
+                    line-height: 1.3;
+                    position: relative;
+                    animation: speechPulse 2s ease-in-out infinite;
+                    max-width: 220px;
+                }
+
+                .speech-content::after {
+                    content: '';
+                    position: absolute;
+                    top: -8px;
+                    left: 20px;
+                    width: 0;
+                    height: 0;
+                    border-left: 6px solid transparent;
+                    border-right: 6px solid transparent;
+                    border-bottom: 8px solid #ffffff;
+                    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+                }
+
+                .speech-content.hot {
+                    background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+                    border-color: #e17055;
+                    color: #d63031;
+                    animation: speechPulseHot 1.5s ease-in-out infinite;
+                }
+
+                .speech-content.hot::after {
+                    border-right-color: #ffeaa7;
+                }
+
+                .speech-content.cold {
+                    background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+                    border-color: #0984e3;
+                    color: #2d3436;
+                    animation: speechPulseCold 2.5s ease-in-out infinite;
+                }
+
+                .speech-content.cold::after {
+                    border-right-color: #74b9ff;
+                }
+
+                .speech-content.normal {
+                    background: linear-gradient(135deg, #55efc4 0%, #00b894 100%);
+                    border-color: #00b894;
+                    color: #2d3436;
+                    animation: speechPulseNormal 3s ease-in-out infinite;
+                }
+
+                .speech-content.normal::after {
+                    border-right-color: #55efc4;
+                }
+
+                .animated-emoji.cold {
+                    animation: freezing 2s ease-in-out infinite;
+                    color: #4a90e2;
+                    position: relative;
+                }
+
+                .animated-emoji.cold::before {
+                    content: '❄️';
+                    position: absolute;
+                    top: -8px;
+                    left: -12px;
+                    font-size: 16px;
+                    animation: iceCrystals 3s ease-in-out infinite;
+                    opacity: 0.8;
+                }
+
+                .animated-emoji.hot {
+                    animation: thirsty 2s ease-in-out infinite;
+                    color: #e74c3c;
+                    position: relative;
+                }
+
+                .animated-emoji.hot::after {
+                    content: '💧';
+                    position: absolute;
+                    top: -10px;
+                    right: -15px;
+                    font-size: 20px;
+                    animation: sweat 1.5s ease-in-out infinite;
+                    opacity: 0.7;
+                }
+
+                .animated-emoji.normal {
+                    animation: comfortable 4s ease-in-out infinite;
+                    color: #27ae60;
+                }
+
+                @keyframes freezing {
+                    0%, 100% {
+                        transform: scale(1) rotate(0deg);
+                    }
+                    10%, 30%, 50%, 70%, 90% {
+                        transform: scale(1.02) rotate(-1deg);
+                    }
+                    20%, 40%, 60%, 80% {
+                        transform: scale(0.98) rotate(1deg);
+                    }
+                }
+
+                @keyframes thirsty {
+                    0%, 100% {
+                        transform: scale(1) rotate(0deg);
+                    }
+                    25% {
+                        transform: scale(1.05) rotate(-2deg);
+                    }
+                    50% {
+                        transform: scale(0.95) rotate(2deg);
+                    }
+                    75% {
+                        transform: scale(1.03) rotate(-1deg);
+                    }
+                }
+
+                @keyframes comfortable {
+                    0%, 100% {
+                        transform: scale(1) rotate(0deg);
+                    }
+                    50% {
+                        transform: scale(1.02) rotate(0.5deg);
+                    }
+                }
+
+                @keyframes iceCrystals {
+                    0%, 100% {
+                        transform: scale(1) rotate(0deg);
+                        opacity: 0.6;
+                    }
+                    25% {
+                        transform: scale(1.1) rotate(5deg);
+                        opacity: 0.9;
+                    }
+                    50% {
+                        transform: scale(0.9) rotate(-3deg);
+                        opacity: 0.7;
+                    }
+                    75% {
+                        transform: scale(1.05) rotate(2deg);
+                        opacity: 0.8;
+                    }
+                }
+
+                @keyframes sweat {
+                    0%, 100% {
+                        transform: translateY(0) scale(1);
+                        opacity: 0.5;
+                    }
+                    50% {
+                        transform: translateY(5px) scale(1.1);
+                        opacity: 0.8;
+                    }
+                }
+
+                @keyframes speechPopIn {
+                    0% {
+                        opacity: 0;
+                        transform: scale(0.3) translateX(-50%) rotate(10deg);
+                    }
+                    50% {
+                        opacity: 0.8;
+                        transform: scale(1.1) translateX(-50%) rotate(-2deg);
+                    }
+                    70% {
+                        transform: scale(0.95) translateX(-50%) rotate(1deg);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: scale(1) translateX(-50%) rotate(0deg);
+                    }
+                }
+
+                @keyframes speechPulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                }
+
+                @keyframes speechPulseHot {
+                    0%, 100% {
+                        transform: scale(1) rotate(0deg);
+                        box-shadow: 0 0 15px rgba(231, 112, 85, 0.3);
+                    }
+                    25% {
+                        transform: scale(1.08) rotate(1deg);
+                        box-shadow: 0 0 25px rgba(231, 112, 85, 0.5);
+                    }
+                    50% {
+                        transform: scale(1.05) rotate(-0.5deg);
+                        box-shadow: 0 0 20px rgba(231, 112, 85, 0.4);
+                    }
+                    75% {
+                        transform: scale(1.06) rotate(0.5deg);
+                        box-shadow: 0 0 22px rgba(231, 112, 85, 0.45);
+                    }
+                }
+
+                @keyframes speechPulseCold {
+                    0%, 100% {
+                        transform: scale(1);
+                        box-shadow: 0 0 15px rgba(9, 132, 227, 0.3);
+                    }
+                    33% {
+                        transform: scale(1.03);
+                        box-shadow: 0 0 20px rgba(9, 132, 227, 0.4);
+                    }
+                    66% {
+                        transform: scale(0.97);
+                        box-shadow: 0 0 10px rgba(9, 132, 227, 0.2);
+                    }
+                }
+
+                @keyframes speechPulseNormal {
+                    0%, 100% {
+                        transform: scale(1);
+                        box-shadow: 0 0 15px rgba(0, 184, 148, 0.3);
+                    }
+                    50% {
+                        transform: scale(1.02);
+                        box-shadow: 0 0 20px rgba(0, 184, 148, 0.4);
+                    }
+                }
+
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            z-index: 5;
+            user-select: none;
+            cursor: default;
+            animation: snowfall linear infinite;
+            opacity: 0;
+            transition: opacity 2s ease;
+            filter: drop-shadow(0 0 6px rgba(255,255,255,0.4));
+        }
+
+        @keyframes snowfall {
+            to {
+                transform: translateY(100vh) translateX(var(--tx));
+                opacity: 0;
+            }
+        }
+
+        #birds-container,
+        #insects-container,
+        #lightning-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        .bird {
+            position: absolute;
+            width: 24px;
+            height: 12px;
+            border-radius: 50%;
+            box-shadow:
+                -6px 0 0 0 rgba(50,50,50,0.8) inset,
+                6px 0 0 0 rgba(30,30,30,0.9) inset;
+            opacity: 0;
+            animation: birdFlight 18s linear forwards;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        @keyframes birdFlight {
+            0% { transform: translate3d(-10vw, 10vh, 0) scale(0.6); opacity: 0; }
+            10% { opacity: 0.9; }
+            50% { transform: translate3d(50vw, 15vh, 0) scale(0.75); opacity: 1; }
+            90% { opacity: 0; }
+            100% { transform: translate3d(120vw, 5vh, 0) scale(0.5); }
+        }
+
+        .insect {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,0,0.9), rgba(255,140,0,0.4));
+            box-shadow: 0 0 6px rgba(255,200,0,0.8);
+            animation: insectBuzz 6s linear forwards;
+            opacity: 0;
+        }
+
+        @keyframes insectBuzz {
+            0% { transform: translate3d(0,0,0) scale(0.6); opacity: 0; }
+            10% { opacity: 1; }
+            30% { transform: translate3d(20px, -10px, 0) scale(0.8); }
+            60% { transform: translate3d(-15px, 15px, 0) scale(0.7); }
+            90% { opacity: 0.3; }
+            100% { transform: translate3d(5px, -20px, 0) scale(0.4); opacity: 0; }
+        }
+
+        .lightning-flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 60% 20%, rgba(255,255,255,0.9), rgba(255,255,255,0));
+            opacity: 0;
+            pointer-events: none;
+            z-index: 3;
+            mix-blend-mode: screen;
+            animation: lightningFlash 1s ease-out forwards;
+        }
+
+        @keyframes lightningFlash {
+            0% { opacity: 0; }
+            10% { opacity: 0.9; }
+            40% { opacity: 0.2; }
+            100% { opacity: 0; }
+        }
+
+        /* Folhas e vento */
+        #leaves-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 4;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .leaf {
+            position: absolute;
+            top: -40px;
+            width: 18px;
+            height: 12px;
+            border-radius: 60% 40% 70% 30%;
+            background: linear-gradient(135deg, rgba(222, 155, 62, 0.95), rgba(138, 93, 39, 0.9));
+            box-shadow: inset 0 0 4px rgba(0,0,0,0.2);
+            opacity: 0;
+            animation: leafFall 8s ease-in forwards;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        @keyframes leafFall {
+            0% {
+                transform: translate3d(0, -20px, 0) rotateX(0deg) rotateZ(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.9;
+            }
+            40% {
+                transform: translate3d(var(--leaf-wind, 40px), 45vh, 0) rotateZ(90deg) rotateX(50deg);
+            }
+            80% {
+                opacity: 0.8;
+                transform: translate3d(calc(var(--leaf-wind, 60px) * 1.8), 95vh, 0) rotateZ(250deg) rotateX(120deg);
+            }
+            100% {
+                transform: translate3d(calc(var(--leaf-wind, 60px) * 2.1), 110vh, 0) rotateZ(320deg) rotateX(180deg);
+                opacity: 0;
+            }
+        }
+
+        #wind-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .wind-stream {
+            position: absolute;
+            left: -20%;
+            width: 160px;
+            height: 2px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.6), rgba(255,255,255,0));
+            opacity: 0.6;
+            filter: blur(1px);
+            animation: windFlow 5s linear infinite;
+            mix-blend-mode: screen;
+        }
+
+        @keyframes windFlow {
+            0% {
+                transform: translate3d(-10vw, 0, 0) scaleX(0.5);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.4;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.1;
+            }
+            100% {
+                transform: translate3d(120vw, 0, 0) scaleX(1.2);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
+            max-width: 100%;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: none;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (min-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 0;
+                border-radius: 0;
+                height: 100%;
+                background: transparent;
+            }
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            .container {
+                padding: 0;
+                border-radius: 0;
+                height: 100%;
+                max-height: 100vh;
+                overflow: hidden;
+                background: transparent;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 100%;
+                padding: 0;
+                border-radius: 0;
+                height: 100%;
+                max-height: 100vh;
+                overflow: hidden;
+                flex-direction: row;
+                gap: 0;
+                align-items: stretch;
+                background: transparent;
+            }
+        }
+
+        .container-header {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 10px;
+        }
+
+        @media (min-width: 1024px) {
+            .container-header {
+                flex-shrink: 0;
+                width: 420px;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 25px;
+                overflow: visible;
+                padding: 20px;
+                padding-bottom: 30px;
+            }
+        }
+
+        .container-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        @media (min-width: 1024px) {
+            .container-content {
+                flex: 1;
+                justify-content: space-between;
+                padding: 20px;
+                gap: 15px;
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 2px;
+            font-size: 1.1em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            line-height: 1.1;
+        }
+
+        @media (min-width: 480px) {
+            h1 {
+                font-size: 1.4em;
+                margin-bottom: 3px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 2em;
+                margin-bottom: 8px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            h1 {
+                font-size: 1.4em;
+                margin-bottom: 2px;
+            }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 0.65em;
+            line-height: 1.2;
+        }
+
+        @media (min-width: 480px) {
+            .subtitle {
+                font-size: 0.75em;
+                margin-bottom: 10px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .subtitle {
+                font-size: 0.9em;
+                margin-bottom: 15px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .subtitle {
+                font-size: 0.7em;
+                margin-bottom: 8px;
+            }
+        }
+
+        .scene-container {
+            width: auto;
+            flex: none;
+            min-height: auto;
+            margin: 0 auto;
+            border-radius: 0;
+            position: relative;
+            overflow: visible;
+            box-shadow: none;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 20px 0 0 0;
+            background: transparent;
+            height: auto;
+        }
+
+        @media (min-width: 480px) {
+            .scene-container {
+                margin: 0 auto;
+                padding: 30px 0 0 0;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .scene-container {
+                height: auto;
+                margin: 0 auto;
+                padding: 40px 0 0 0;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .scene-container {
+                flex: none;
+                width: auto;
+                margin: 0 auto;
+                padding: 50px 0 0 0;
+            }
+        }
+
+        /* Fundo animado */
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: background 1.5s ease;
+            border-radius: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Copo de vidro realista */
+        .glass {
+            position: relative;
+            width: 110px;
+            height: 180px;
+            border: 3px solid rgba(200, 220, 240, 0.4);
+            border-top: none;
+            border-radius: 0 0 15px 15px;
+            background: linear-gradient(to right, 
+                rgba(255,255,255,0.15) 0%, 
+                rgba(255,255,255,0.05) 40%,
+                rgba(255,255,255,0.02) 50%, 
+                rgba(255,255,255,0.05) 60%,
+                rgba(255,255,255,0.15) 100%);
+            box-shadow: 
+                inset -5px 0 15px rgba(255,255,255,0.3),
+                inset 5px 0 15px rgba(255,255,255,0.2),
+                5px 5px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 480px) {
+            .glass {
+                width: 140px;
+                height: 230px;
+                bottom: 50px;
+                border: 4px solid rgba(200, 220, 240, 0.4);
+                border-radius: 0 0 20px 20px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .glass {
+                width: 220px;
+                height: 350px;
+                bottom: 75px;
+                border: 6px solid rgba(200, 220, 240, 0.4);
+                border-radius: 0 0 25px 25px;
+            }
+        }
+
+        .glass::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            width: 20%;
+            height: 100%;
+            background: linear-gradient(to right, 
+                transparent, 
+                rgba(255,255,255,0.4), 
+                transparent);
+            filter: blur(3px);
+        }
+
+        /* Bloco de gelo ultra realista */
+        .ice-block {
+            position: absolute;
+            width: 102px;
+            height: 168px;
+            bottom: 0px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: 
+                radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.9) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(230,245,255,0.8) 0%, transparent 40%),
+                linear-gradient(135deg, 
+                    rgba(179, 229, 252, 0.95) 0%, 
+                    rgba(200, 235, 255, 0.97) 25%,
+                    rgba(179, 229, 252, 0.95) 50%,
+                    rgba(220, 240, 255, 0.97) 75%,
+                    rgba(179, 229, 252, 0.95) 100%);
+            border-radius: 12px;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            box-shadow: 
+                inset 0 0 60px rgba(255,255,255,0.7),
+                inset -20px -20px 60px rgba(179, 229, 252, 0.5),
+                inset 20px 20px 60px rgba(255,255,255,0.4),
+                0 0 40px rgba(179, 229, 252, 0.7),
+                0 5px 20px rgba(0,0,0,0.2);
+            filter: blur(0.5px);
+        }
+
+        @media (min-width: 480px) {
+            .ice-block {
+                width: 130px;
+                height: 215px;
+                bottom: 8px;
+                border-radius: 15px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .ice-block {
+                width: 200px;
+                height: 330px;
+                bottom: 10px;
+                border-radius: 20px;
+            }
+        }
+
+        .ice-crystal {
+            position: absolute;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            animation: sparkle 3s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+
+        .ice-crack-realistic {
+            position: absolute;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.6) 50%, 
+                transparent);
+            box-shadow: 0 0 3px rgba(255,255,255,0.8);
+        }
+
+        /* Água líquida com reflexos e refrações */
+        .water {
+            position: absolute;
+            bottom: 0px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 102px;
+            height: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(100, 200, 255, 0.6) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 60%, rgba(50, 150, 255, 0.5) 0%, transparent 40%),
+                linear-gradient(to bottom,
+                    rgba(64, 164, 223, 0.85) 0%,
+                    rgba(33, 150, 243, 0.90) 30%,
+                    rgba(25, 118, 210, 0.95) 70%,
+                    rgba(13, 71, 161, 0.97) 100%);
+            border-radius: 0 0 12px 12px;
+            transition: height 1.5s ease;
+            overflow: visible;
+            box-shadow: 
+                inset 0 10px 30px rgba(100, 200, 255, 0.3),
+                inset 0 -10px 30px rgba(13, 71, 161, 0.4);
+            overflow: hidden;
+        }
+
+        @media (min-width: 480px) {
+            .water {
+                bottom: 8px;
+                width: 130px;
+                border-radius: 0 0 15px 15px;
+            }
+        }
+
+        .water-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        @media (min-width: 768px) {
+            .water {
+                bottom: 10px;
+                width: 200px;
+                border-radius: 0 0 20px 20px;
+            }
+        }
+
+        .water-surface {
+            position: absolute;
+            top: -3px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to bottom,
+                rgba(150, 220, 255, 0.8),
+                rgba(100, 200, 255, 0.4));
+            border-radius: 50%;
+            animation: waterWave 3s ease-in-out infinite;
+            filter: blur(1px);
+        }
+
+        @keyframes waterWave {
+            0%, 100% {
+                transform: translateY(0) scaleX(1);
+            }
+            15% {
+                transform: translateY(-2px) scaleX(1.01);
+            }
+            30% {
+                transform: translateY(-3px) scaleX(1.02);
+            }
+            45% {
+                transform: translateY(-1px) scaleX(1.01);
+            }
+            60% {
+                transform: translateY(0px) scaleX(0.99);
+            }
+            75% {
+                transform: translateY(1px) scaleX(0.98);
+            }
+            90% {
+                transform: translateY(0px) scaleX(0.99);
+            }
+        }
+
+        .water-shimmer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg,
+                transparent 30%,
+                rgba(255,255,255,0.2) 50%,
+                transparent 70%);
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        /* Bolhas ultra realistas */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at 35% 35%, 
+                    rgba(255,255,255,0.9) 0%, 
+                    rgba(255,255,255,0.4) 30%,
+                    rgba(200,230,255,0.3) 60%,
+                    rgba(150,200,255,0.2) 100%);
+            box-shadow: 
+                inset -2px -2px 5px rgba(255,255,255,0.8),
+                inset 2px 2px 5px rgba(100,150,200,0.3),
+                0 0 8px rgba(255,255,255,0.5);
+            animation: riseBubble linear forwards;
+        }
+
+        @keyframes riseBubble {
+            0% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0.9;
+                filter: blur(0px);
+            }
+            20% {
+                transform: translateY(-40px) translateX(var(--wobble-x, 0px) * 0.3) scale(1.05);
+                opacity: 0.95;
+            }
+            40% {
+                transform: translateY(-100px) translateX(var(--wobble-x, 0px) * 0.6) scale(1.08);
+                opacity: 0.9;
+            }
+            60% {
+                transform: translateY(-180px) translateX(var(--wobble-x, 0px)) scale(1.05);
+                opacity: 0.7;
+            }
+            80% {
+                transform: translateY(-270px) translateX(calc(var(--wobble-x, 0px) * 0.8)) scale(0.8);
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-350px) translateX(calc(var(--wobble-x, 0px) * 0.5)) scale(0.3);
+                opacity: 0;
+                filter: blur(2px);
+            }
+        }
+
+        /* Vapor e fumaça realista */
+        .steam {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, 
+                rgba(255,255,255,0.8) 0%, 
+                rgba(255,255,255,0.5) 30%,
+                rgba(240,248,255,0.3) 50%,
+                transparent 80%);
+            opacity: 0;
+            filter: blur(25px);
+            animation: riseAndDissipate 5s ease-out infinite;
+        }
+
+        @keyframes riseAndDissipate {
+            0% {
+                transform: translateY(0) translateX(0) scale(0.3) rotate(0deg);
+                opacity: 0;
+            }
+            5% {
+                opacity: 0;
+            }
+            10% {
+                transform: translateY(-50px) translateX(var(--drift-x, 0px) * 0.2) scale(0.5) rotate(20deg);
+                opacity: 0.6;
+            }
+            20% {
+                transform: translateY(-100px) translateX(var(--drift-x, 0px) * 0.3) scale(0.8) rotate(45deg);
+                opacity: 0.8;
+            }
+            35% {
+                transform: translateY(-180px) translateX(var(--drift-x, 0px) * 0.5) scale(1.2) rotate(100deg);
+                opacity: 0.85;
+            }
+            50% {
+                transform: translateY(-260px) translateX(var(--drift-x, 0px)) scale(1.5) rotate(180deg);
+                opacity: 0.7;
+            }
+            70% {
+                transform: translateY(-350px) translateX(var(--drift-x, 0px) * 0.8) scale(1.8) rotate(280deg);
+                opacity: 0.4;
+                filter: blur(5px);
+            }
+            100% {
+                transform: translateY(-450px) translateX(var(--drift-x, 0px) * 0.5) scale(2.5) rotate(360deg);
+                opacity: 0;
+                filter: blur(15px);
+            }
+        }
+
+        /* Condensação no vidro */
+        .condensation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 2s ease;
+            pointer-events: none;
+        }
+
+        .droplet {
+            position: absolute;
+            width: 4px;
+            height: 6px;
+            background: rgba(200, 220, 255, 0.7);
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            animation: drip 3s ease-in infinite;
+        }
+
+        @keyframes drip {
+            0% {
+                transform: translateY(0);
+                opacity: 0.8;
+            }
+            30% {
+                transform: translateY(50px);
+                opacity: 0.9;
+            }
+            60% {
+                transform: translateY(150px);
+                opacity: 0.6;
+            }
+            85% {
+                transform: translateY(240px);
+                opacity: 0.2;
+            }
+            100% {
+                transform: translateY(300px);
+                opacity: 0;
+            }
+        }
+
+        .state-info {
+            text-align: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: rgba(30, 60, 114, 0.05);
+            border-radius: 8px;
+        }
+
+        @media (min-width: 480px) {
+            .state-info {
+                margin-bottom: 12px;
+                padding: 10px;
+                border-radius: 10px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .state-info {
+                margin-bottom: 15px;
+                padding: 12px;
+                border-radius: 12px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .state-info {
+                margin-bottom: 15px;
+                padding: 10px;
+                border-radius: 12px;
+                flex-shrink: 0;
+            }
+        }
+
+        .state-name {
+            font-size: 1em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px;
+            line-height: 1.1;
+        }
+
+        @media (min-width: 480px) {
+            .state-name {
+                font-size: 1.2em;
+                margin-bottom: 5px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .state-name {
+                font-size: 1.6em;
+                margin-bottom: 6px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .state-name {
+                font-size: 2em;
+                margin-bottom: 8px;
+            }
+        }
+
+        .state-description {
+            color: #555;
+            font-size: 0.7em;
+            line-height: 1.2;
+        }
+
+        @media (min-width: 480px) {
+            .state-description {
+                font-size: 0.8em;
+                line-height: 1.3;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .state-description {
+                font-size: 0.95em;
+                line-height: 1.4;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .state-description {
+                font-size: 1.05em;
+                line-height: 1.5;
+            }
+        }
+
+        .temperature-control {
+            margin-bottom: 0;
+        }
+
+        @media (min-width: 1024px) {
+            .temperature-control {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+            }
+        }
+
+        .temp-display {
+            text-align: center;
+            font-size: 1.6em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        @media (min-width: 480px) {
+            .temp-display {
+                font-size: 2em;
+                margin-bottom: 10px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .temp-display {
+                font-size: 2.8em;
+                margin-bottom: 15px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .temp-display {
+                font-size: 2.6em;
+                margin-bottom: 10px;
+            }
+        }
+
+        .temp-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, 
+                #64b5f6 0%, 
+                #42a5f5 20%,
+                #2196f3 40%, 
+                #1976d2 50%,
+                #ff9800 70%, 
+                #ff5722 85%,
+                #d32f2f 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        @media (min-width: 768px) {
+            .temp-slider {
+                height: 10px;
+                border-radius: 5px;
+                margin-bottom: 12px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .temp-slider {
+                height: 10px;
+                border-radius: 6px;
+                margin-bottom: 8px;
+            }
+        }
+
+        .temp-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2);
+            border: 3px solid #1e3c72;
+            transition: transform 0.2s ease;
+        }
+
+        @media (min-width: 768px) {
+            .temp-slider::-webkit-slider-thumb {
+                width: 30px;
+                height: 30px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .temp-slider::-webkit-slider-thumb {
+                width: 35px;
+                height: 35px;
+            }
+        }
+
+        .temp-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .temp-slider::-moz-range-thumb {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2);
+            border: 3px solid #1e3c72;
+        }
+
+        @media (min-width: 768px) {
+            .temp-slider::-moz-range-thumb {
+                width: 30px;
+                height: 30px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .temp-slider::-moz-range-thumb {
+                width: 35px;
+                height: 35px;
+            }
+        }
+
+        .temp-labels {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.65em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        @media (min-width: 480px) {
+            .temp-labels {
+                font-size: 0.7em;
+                margin-bottom: 10px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .temp-labels {
+                font-size: 0.8em;
+                margin-bottom: 12px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .temp-labels {
+                font-size: 0.8em;
+                margin-bottom: 8px;
+            }
+        }
+
+        .temp-markers {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 8px;
+            padding: 6px;
+            background: rgba(30, 60, 114, 0.05);
+            border-radius: 6px;
+        }
+
+        @media (min-width: 480px) {
+            .temp-markers {
+                margin-bottom: 10px;
+                padding: 8px;
+                border-radius: 8px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .temp-markers {
+                margin-bottom: 15px;
+                padding: 10px;
+                border-radius: 10px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .temp-markers {
+                margin-bottom: 10px;
+                padding: 10px;
+            }
+        }
+
+        .marker {
+            text-align: center;
+        }
+
+        .marker-label {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #1e3c72;
+            margin-bottom: 2px;
+        }
+
+        @media (min-width: 480px) {
+            .marker-label {
+                font-size: 1em;
+                margin-bottom: 3px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .marker-label {
+                font-size: 1.1em;
+                margin-bottom: 4px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .marker-label {
+                font-size: 1.2em;
+                margin-bottom: 5px;
+            }
+        }
+
+        .marker-text {
+            color: #666;
+            font-size: 0.65em;
+        }
+
+        @media (min-width: 480px) {
+            .marker-text {
+                font-size: 0.7em;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .marker-text {
+                font-size: 0.8em;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .marker-text {
+                font-size: 0.85em;
+            }
+        }
+
+    </style>
+    <!-- Biblioteca de animações CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <!-- Three.js para vulcão 3D realista -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+</head>
+<body>
+    <!-- Botões de controle no topo -->
+    <div class="top-buttons">
+        <button class="top-btn" id="info-btn" title="Sobre os Estados da Água">
+            <span class="btn-icon">💧</span>
+        </button>
+        <button class="top-btn" id="video-btn" title="Vídeo Explicativo">
+            <span class="btn-icon">🎥</span>
+        </button>
+        <button class="top-btn" id="creator-btn" title="Sobre o Criador">
+            <span class="btn-icon">👨‍💻</span>
+        </button>
+    </div>
+
+    <!-- Emoji animado reagindo à temperatura -->
+    <div id="animated-emoji" class="animated-emoji">🌡️</div>
+    <div id="speech-bubble" class="speech-bubble">
+        <div class="speech-content"></div>
+    </div>
+
+    <!-- Modais -->
+    <div id="info-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-info">&times;</span>
+            <h2>Estados Físicos da Água</h2>
+            <div class="modal-body">
+                <h3>O que são os Estados da Água?</h3>
+                <p>A água pode existir em três estados físicos principais: sólido, líquido e gasoso. Cada estado tem características únicas determinadas pela temperatura.</p>
+
+                <h4>🧊 Estado Sólido (Gelo)</h4>
+                <p>Temperatura abaixo de 0°C. As moléculas de água estão organizadas em estrutura cristalina rígida.</p>
+
+                <h4>💧 Estado Líquido (Água)</h4>
+                <p>Temperatura entre 0°C e 100°C. As moléculas têm liberdade de movimento mas mantêm coesão.</p>
+
+                <h4>☁️ Estado Gasoso (Vapor)</h4>
+                <p>Temperatura acima de 100°C. As moléculas se movem livremente em todas as direções.</p>
+
+                <h3>Como Funciona Esta Simulação?</h3>
+                <p>Use o controle deslizante de temperatura para observar as mudanças de estado da água em tempo real. O emoji reagirá às mudanças de temperatura, mostrando o comportamento correspondente.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="video-modal" class="modal">
+        <div class="modal-content video-modal">
+            <span class="close-btn" id="close-video">&times;</span>
+            <h2>Vídeo Explicativo</h2>
+            <div class="modal-body">
+                <div class="video-container">
+                    <div class="video-wrapper">
+                        <iframe width="560" height="315"
+                                src="https://www.youtube.com/embed/cbnZXh4iVLA?rel=0&amp;modestbranding=1&amp;showinfo=0&amp;iv_load_policy=3&amp;fs=1&amp;cc_load_policy=1"
+                                title="Estados físicos da água - Vídeo explicativo"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen
+                                loading="lazy"
+                                onerror="handleVideoError()">
+                        </iframe>
+                    </div>
+                    <div class="video-fallback" style="display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; text-align: center;">
+                        <h4>🎥 Vídeo Indisponível</h4>
+                        <p>Se o vídeo não carregar, você pode assisti-lo diretamente no YouTube:</p>
+                        <a href="https://www.youtube.com/watch?v=cbnZXh4iVLA" target="_blank" rel="noopener noreferrer"
+                           style="display: inline-block; padding: 10px 20px; background: #ff0000; color: white; text-decoration: none; border-radius: 5px; margin-top: 10px;">
+                            ▶️ Assistir no YouTube
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="creator-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-creator">&times;</span>
+            <h2>Sobre o Projeto</h2>
+            <div class="modal-body">
+                <div class="creator-info">
+                    <div class="creator-avatar">🎓</div>
+                    <h3>Universidade Estadual de Alagoas</h3>
+                    <p class="creator-title">Projeto Educacional Interdisciplinar</p>
+                    <p>Esta simulação interativa foi desenvolvida por <strong>Romário Galdino</strong> em parceria com a Universidade Estadual de Alagoas, com o objetivo de demonstrar os conceitos fundamentais dos estados físicos da água de forma visual e envolvente.</p>
+
+                    <div class="creator-team">
+                        <h4>👥 Equipe do Projeto:</h4>
+                        <div class="team-members">
+                            <div class="member">
+                                <span class="member-name">Jessica</span>
+                                <span class="member-role">Pesquisa & Conteúdo</span>
+                            </div>
+                            <div class="member">
+                                <span class="member-name">Jessiele</span>
+                                <span class="member-role">Pesquisa & Conteúdo</span>
+                            </div>
+                            <div class="member">
+                                <span class="member-name">José Carlos</span>
+                                <span class="member-role">Design & UX</span>
+                            </div>
+                            <div class="member">
+                                <span class="member-name">Ellym Fátima</span>
+                                <span class="member-role">Coordenação Pedagógica</span>
+                            </div>
+                            <div class="member">
+                                <span class="member-name">Romário Galdino</span>
+                                <span class="member-role">Desenvolvimento & Programação</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-details">
+                        <h4>🎯 Objetivo:</h4>
+                        <p>Educar e entreter, mostrando como a ciência pode ser bonita e acessível através da tecnologia interativa.</p>
+                    </div>
+
+                    <div class="creator-contact">
+                        <p>💡 <strong>Dica:</strong> Mova o controle de temperatura para ver as reações do emoji!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camadas de profundidade da paisagem -->
+    <div class="mountain-back mountain-back-left"></div>
+    <div class="mountain-back mountain-back-right"></div>
+    <!-- Container WebGL para vulcão 3D (Three.js) -->
+    <div id="three-volcano-container" style="position:fixed;left:0;right:0;bottom:0;height:420px;pointer-events:none;z-index:3;overflow:visible;"></div>
+
+    <!-- Vulcão ao fundo (entre montanhas de fundo e colinas) -->
+    <div class="volcano" id="volcano">
+        <div class="volcano-base"></div>
+        <div class="volcano-crater">
+            <div class="lava-pool" id="lavaPool"></div>
+            <div id="eruption-container"></div>
+            <div id="smoke-container"></div>
+        </div>
+    </div>
+    <div class="hills"></div>
+    <div class="horizon"></div>
+    <div class="atmosphere"></div>
+    <div class="ground-mist" id="ground-mist"></div>
+    <div class="aerial-haze" id="aerial-haze"></div>
+    <div class="volumetric-beams" id="volumetric-beams">
+        <div class="beam"></div>
+        <div class="beam"></div>
+        <div class="beam"></div>
+    </div>
+    
+    <!-- Estrelas noturnas -->
+    <div class="stars" id="stars-container"></div>
+    
+    <!-- Raios de luz solar -->
+    <div class="light-rays" id="light-rays-container"></div>
+
+    <!-- Correntes de vento -->
+    <div id="wind-container"></div>
+    
+    <!-- Nuvens -->
+    <div id="clouds-container"></div>
+
+    <!-- Folhas caindo -->
+    <div id="leaves-container"></div>
+
+    <!-- Fauna e fenômenos -->
+    <div id="birds-container"></div>
+    <div id="insects-container"></div>
+    <div id="lightning-container"></div>
+    
+    <!-- Montanhas principais -->
+    <div class="mountain mountain-left"></div>
+    <div class="mountain mountain-right"></div>
+    
+    <!-- Flocos de neve -->
+    <div id="snowflakes-container"></div>
+    
+    <div class="container">
+        <div class="container-header">
+            <h1>Estados da Água</h1>
+            <div class="subtitle">Simulação física ultra realista - H₂O</div>
+            
+            <div class="scene-container">
+                <div class="background" id="background"></div>
+                
+                <div class="glass">
+                    <div class="condensation" id="condensation"></div>
+                    
+                    <div class="ice-block" id="iceBlock">
+                        <div class="ice-crystal" style="width: 30px; height: 30px; top: 50px; left: 60px; animation-delay: 0s;"></div>
+                        <div class="ice-crystal" style="width: 20px; height: 20px; top: 120px; left: 130px; animation-delay: 1s;"></div>
+                        <div class="ice-crystal" style="width: 25px; height: 25px; top: 200px; left: 40px; animation-delay: 0.5s;"></div>
+                        <div class="ice-crystal" style="width: 15px; height: 15px; top: 280px; left: 150px; animation-delay: 1.5s;"></div>
+                        <div class="ice-crack-realistic" style="width: 2px; height: 120px; top: 40px; left: 70px; transform: rotate(25deg);"></div>
+                        <div class="ice-crack-realistic" style="width: 2px; height: 90px; top: 150px; left: 120px; transform: rotate(-15deg);"></div>
+                        <div class="ice-crack-realistic" style="width: 2px; height: 70px; top: 220px; left: 50px; transform: rotate(35deg);"></div>
+                    </div>
+                    
+                    <div class="water" id="water">
+                        <canvas id="waterCanvas" class="water-canvas"></canvas>
+                        <div class="water-shimmer"></div>
+                        <div class="water-surface"></div>
+                    </div>
+                </div>
+
+                <div class="steam" id="steam1" style="left: 190px; bottom: 180px; --drift-x: -60px; animation-delay: 0s;"></div>
+                <div class="steam" id="steam2" style="left: 280px; bottom: 180px; --drift-x: 80px; animation-delay: 1.5s;"></div>
+                <div class="steam" id="steam3" style="left: 240px; bottom: 180px; --drift-x: -40px; animation-delay: 3s;"></div>
+                <div class="steam" id="steam4" style="left: 320px; bottom: 180px; --drift-x: 60px; animation-delay: 2.2s;"></div>
+                <div class="steam" id="steam5" style="left: 210px; bottom: 180px; --drift-x: -70px; animation-delay: 4s;"></div>
+            </div>
+        </div>
+        
+
+        <div class="container-content">
+            <div class="state-info">
+                <div class="state-name" id="stateName">LÍQUIDO</div>
+                <div class="state-description" id="stateDescription">
+                    A água flui livremente, mantendo volume constante enquanto se adapta ao formato do recipiente
+                </div>
+            </div>
+
+            <div class="temperature-control">
+                <div class="temp-display" id="tempDisplay">25°C</div>
+                <input type="range" min="-50" max="150" value="25" class="temp-slider" id="tempSlider">
+                <div class="temp-labels">
+                    <span>❄️ -50°C</span>
+                    <span>🔥 150°C</span>
+                </div>
+                <div class="temp-markers">
+                    <div class="marker">
+                        <div class="marker-label">0°C</div>
+                        <div class="marker-text">Ponto de Fusão</div>
+                    </div>
+                    <div class="marker">
+                        <div class="marker-label">100°C</div>
+                        <div class="marker-text">Ponto de Ebulição</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const tempSlider = document.getElementById('tempSlider');
+        const tempDisplay = document.getElementById('tempDisplay');
+        const background = document.getElementById('background');
+        const stateName = document.getElementById('stateName');
+        const stateDescription = document.getElementById('stateDescription');
+        const iceBlock = document.getElementById('iceBlock');
+        const water = document.getElementById('water');
+        const waterCanvas = document.getElementById('waterCanvas');
+        const condensation = document.getElementById('condensation');
+        const steams = [
+            document.getElementById('steam1'),
+            document.getElementById('steam2'),
+            document.getElementById('steam3'),
+            document.getElementById('steam4'),
+            document.getElementById('steam5')
+        ];
+        const birdsContainer = document.getElementById('birds-container');
+        const insectsContainer = document.getElementById('insects-container');
+        const lightningContainer = document.getElementById('lightning-container');
+        const groundMistLayer = document.getElementById('ground-mist');
+        const aerialHazeLayer = document.getElementById('aerial-haze');
+        const volumetricBeams = document.getElementById('volumetric-beams');
+
+        let bubbleInterval;
+        let dropletInterval;
+        let cloudInterval; // Initialize cloud interval
+        let leafInterval;
+        let birdInterval;
+        let insectInterval;
+        let lightningTimeout;
+        let waterAnimationFrame;
+
+        const terrainCanvas = document.createElement('canvas');
+        terrainCanvas.width = 512;
+        terrainCanvas.height = 256;
+        const terrainCtx = terrainCanvas.getContext('2d');
+        let terrainSeed = Math.random() * 1000;
+        const waterContext = waterCanvas ? waterCanvas.getContext('2d') : null;
+        const waterDynamics = { intensity: 0.3, hue: 200, particles: 0.1 };
+
+        function parseColorToRgb(color) {
+            if (!color) return [255, 255, 255];
+            if (color.startsWith('#')) {
+                let hex = color.replace('#', '');
+                if (hex.length === 3) {
+                    hex = hex.split('').map(char => char + char).join('');
+                }
+                const numeric = parseInt(hex, 16);
+                return [
+                    (numeric >> 16) & 255,
+                    (numeric >> 8) & 255,
+                    numeric & 255
+                ];
+            }
+            const match = color.match(/rgba?\(([^)]+)\)/);
+            if (match) {
+                return match[1]
+                    .split(',')
+                    .slice(0, 3)
+                    .map(value => parseFloat(value.trim()));
+            }
+            return [255, 255, 255];
+        }
+
+        function stripAlpha(color) {
+            if (!color) return color;
+            const match = color.match(/rgba\(([^)]+)\)/i);
+            if (!match) return color;
+            const parts = match[1].split(',').map(v => v.trim());
+            return `rgb(${parts[0]}, ${parts[1]}, ${parts[2]})`;
+        }
+
+        function tintColor(color, intensity = 0) {
+            const [r, g, b] = parseColorToRgb(color);
+            const clamp01 = (val) => Math.min(1, Math.max(0, val));
+            const amount = clamp01(Math.abs(intensity));
+            const target = intensity >= 0 ? 255 : 0;
+            const mix = (channel) => Math.round(channel + (target - channel) * amount);
+            return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
+        }
+
+        function createCloud() {
+            const container = document.getElementById('clouds-container');
+            if (!container) return;
+            
+            const cloud = document.createElement('div');
+            cloud.className = 'cloud';
+            
+            // Escolher tipo de nuvem aleatoriamente
+            const types = ['cloud-large', 'cloud-medium', 'cloud-small'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            cloud.classList.add(type);
+            
+            // Posição vertical aleatória
+            const topPosition = Math.random() * 200 + 30;
+            cloud.style.top = topPosition + 'px';
+            cloud.style.setProperty('--drift-y', (Math.random() - 0.5) * 50 + 'px');
+            
+            // Duração aleatória para cada nuvem
+            const duration = Math.random() * 15 + 25;
+            cloud.style.animationName = 'cloudFloat';
+            cloud.style.animationDuration = duration + 's';
+            cloud.style.animationFillMode = 'forwards';
+            
+            container.appendChild(cloud);
+            
+            // Remover após animação terminar
+            setTimeout(() => cloud.remove(), duration * 1000);
+        }
+
+        function pseudoNoise(x, y, seed = 0) {
+            return Math.abs(Math.sin(x * 12.9898 + y * 78.233 + seed) * 43758.5453) % 1;
+        }
+
+        function generateTerrainTexture(temp) {
+            if (!terrainCtx) return;
+            const width = terrainCanvas.width;
+            const height = terrainCanvas.height;
+            const cold = temp < 0;
+            const hot = temp > 50;
+            const baseColor = cold ? '#dfe8f2' : hot ? '#c48a4a' : '#87c07a';
+            const accentColor = cold ? '#b1c5d6' : hot ? '#86552b' : '#47693f';
+
+            const gradient = terrainCtx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, baseColor);
+            gradient.addColorStop(1, accentColor);
+            terrainCtx.fillStyle = gradient;
+            terrainCtx.fillRect(0, 0, width, height);
+
+            for (let y = 0; y < height; y += 2) {
+                for (let x = 0; x < width; x += 2) {
+                    const n = pseudoNoise(x / width * 10, y / height * 6, terrainSeed + temp * 0.15);
+                    const alpha = cold ? n * 0.08 : hot ? n * 0.16 : n * 0.12;
+                    terrainCtx.fillStyle = `rgba(0,0,0,${alpha})`;
+                    terrainCtx.fillRect(x, y, 2, 2);
+                }
+            }
+            document.documentElement.style.setProperty('--hill-texture', `url(${terrainCanvas.toDataURL('image/png')})`);
+        }
+
+        function updateVolumetricLayers(temp, sunOpacity) {
+            if (groundMistLayer) {
+                const mist = temp < 0 ? 0.7 : Math.max(0.15, 0.5 - temp / 160);
+                groundMistLayer.style.opacity = mist.toFixed(2);
+            }
+            if (aerialHazeLayer) {
+                const haze = Math.max(0.2, 0.4 + (sunOpacity - 0.5) * 0.6);
+                aerialHazeLayer.style.opacity = haze.toFixed(2);
+            }
+            if (volumetricBeams) {
+                volumetricBeams.style.opacity = (sunOpacity * 0.6).toFixed(2);
+                volumetricBeams.style.filter = `hue-rotate(${Math.max(0, 60 - temp)}deg)`;
+            }
+        }
+
+        function resizeWaterCanvas() {
+            if (!water || !waterCanvas || !waterContext) return;
+            const rect = water.getBoundingClientRect();
+            waterCanvas.width = rect.width;
+            waterCanvas.height = rect.height;
+        }
+
+        function animateWater(time = 0) {
+            if (!waterContext || !waterCanvas) return;
+            const { width, height } = waterCanvas;
+            if (!width || !height) {
+                waterAnimationFrame = requestAnimationFrame(animateWater);
+                return;
+            }
+            waterContext.clearRect(0, 0, width, height);
+
+            const gradient = waterContext.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, `hsla(${waterDynamics.hue}, 70%, ${80 - waterDynamics.intensity * 25}%, ${0.35 + waterDynamics.intensity * 0.3})`);
+            gradient.addColorStop(1, `hsla(${waterDynamics.hue + 20}, 70%, 35%, 0.95)`);
+            waterContext.fillStyle = gradient;
+            waterContext.fillRect(0, 0, width, height);
+
+            const waves = 4;
+            const t = time * 0.0008;
+            for (let i = 0; i < waves; i++) {
+                const amplitude = (i + 1) * 4 * waterDynamics.intensity;
+                const frequency = 2 + i;
+                waterContext.beginPath();
+                waterContext.moveTo(0, height);
+                for (let x = 0; x <= width; x += 6) {
+                    const y = height - 10 - amplitude * Math.sin((x / width) * frequency * Math.PI * 2 + t + i);
+                    waterContext.lineTo(x, y);
+                }
+                waterContext.lineTo(width, height);
+                waterContext.closePath();
+                waterContext.fillStyle = `hsla(${waterDynamics.hue + i * 5}, 80%, ${50 - i * 4}%, ${0.05 + waterDynamics.intensity * 0.1})`;
+                waterContext.fill();
+            }
+
+            const particleCount = Math.round(40 * waterDynamics.particles);
+            for (let p = 0; p < particleCount; p++) {
+                const px = Math.random() * width;
+                const py = Math.random() * height;
+                const size = 1 + Math.random() * 2;
+                waterContext.fillStyle = `rgba(255,255,255,${0.4 + Math.random() * 0.4})`;
+                waterContext.fillRect(px, py, size, size / 2);
+            }
+
+            waterAnimationFrame = requestAnimationFrame(animateWater);
+        }
+
+        function setWaterDynamics(temp) {
+            if (temp < 0) {
+                waterDynamics.intensity = 0.05;
+                waterDynamics.hue = 190;
+                waterDynamics.particles = 0.05;
+            } else if (temp >= 0 && temp < 100) {
+                waterDynamics.intensity = 0.15 + (temp / 100) * 0.35;
+                waterDynamics.hue = 200 - temp * 0.4;
+                waterDynamics.particles = 0.15 + temp / 150;
+            } else {
+                waterDynamics.intensity = 0.55 + Math.min(0.25, (temp - 100) / 100);
+                waterDynamics.hue = 35;
+                waterDynamics.particles = 0.6;
+            }
+        }
+
+        function spawnBird(intensity = 0.5) {
+            if (!birdsContainer) return;
+            const bird = document.createElement('div');
+            bird.className = 'bird';
+            bird.style.top = (Math.random() * 10 + 10) + 'vh';
+            bird.style.animationDuration = (16 - intensity * 5 + Math.random() * 3).toFixed(2) + 's';
+            bird.style.animationDelay = (-Math.random() * 3).toFixed(2) + 's';
+            birdsContainer.appendChild(bird);
+            setTimeout(() => bird.remove(), 18000);
+        }
+
+        function manageBirds(show, intensity = 0.5) {
+            if (!birdsContainer) return;
+            if (show) {
+                birdsContainer.style.opacity = 1;
+                if (!window.birdIntervalActive) {
+                    spawnBird(intensity);
+                    const frequency = Math.max(4000, 12000 - intensity * 6000);
+                    birdInterval = setInterval(() => spawnBird(intensity), frequency);
+                    window.birdIntervalActive = true;
+                }
+            } else {
+                birdsContainer.style.opacity = 0;
+                if (window.birdIntervalActive) {
+                    clearInterval(birdInterval);
+                    window.birdIntervalActive = false;
+                }
+            }
+        }
+
+        function spawnInsect(intensity = 0.5) {
+            if (!insectsContainer) return;
+            const insect = document.createElement('div');
+            insect.className = 'insect';
+            insect.style.left = (20 + Math.random() * 60) + 'vw';
+            insect.style.top = (50 + Math.random() * 20) + 'vh';
+            insect.style.animationDuration = (4.5 - intensity * 2 + Math.random()).toFixed(2) + 's';
+            insectsContainer.appendChild(insect);
+            setTimeout(() => insect.remove(), 6000);
+        }
+
+        function manageInsects(show, intensity = 0.4) {
+            if (!insectsContainer) return;
+            if (show) {
+                insectsContainer.style.opacity = 1;
+                if (!window.insectIntervalActive) {
+                    spawnInsect(intensity);
+                    const frequency = Math.max(1200, 4000 - intensity * 2000);
+                    insectInterval = setInterval(() => spawnInsect(intensity), frequency);
+                    window.insectIntervalActive = true;
+                }
+            } else {
+                insectsContainer.style.opacity = 0;
+                if (window.insectIntervalActive) {
+                    clearInterval(insectInterval);
+                    window.insectIntervalActive = false;
+                }
+            }
+        }
+
+        function triggerLightning(intensity = 0.5) {
+            if (!lightningContainer) return;
+            const flash = document.createElement('div');
+            flash.className = 'lightning-flash';
+            flash.style.opacity = Math.min(1, 0.6 + intensity * 0.5);
+            lightningContainer.appendChild(flash);
+            setTimeout(() => flash.remove(), 900);
+        }
+
+        function scheduleLightning(active, intensity = 0) {
+            if (!lightningContainer) return;
+            if (!active) {
+                clearTimeout(lightningTimeout);
+                lightningTimeout = null;
+                return;
+            }
+            if (lightningTimeout) return;
+            const delay = Math.max(2500, 9000 - intensity * 6000);
+            lightningTimeout = setTimeout(() => {
+                triggerLightning(intensity);
+                lightningTimeout = null;
+                scheduleLightning(true, intensity);
+            }, delay);
+        }
+
+
+        if (water && waterCanvas && waterContext) {
+            resizeWaterCanvas();
+            window.addEventListener('resize', resizeWaterCanvas);
+            if (window.ResizeObserver) {
+                const observer = new ResizeObserver(resizeWaterCanvas);
+                observer.observe(water);
+            }
+            waterAnimationFrame = requestAnimationFrame(animateWater);
+        }
+
+        function createLeaf(intensity = 0.5) {
+            const container = document.getElementById('leaves-container');
+            if (!container) return;
+            const leaf = document.createElement('div');
+            leaf.className = 'leaf';
+            
+            const size = Math.random() * 12 + 14;
+            leaf.style.width = size + 'px';
+            leaf.style.height = (size * 0.65) + 'px';
+            leaf.style.left = Math.random() * 100 + '%';
+            const hue = 25 + Math.random() * 40;
+            leaf.style.background = `linear-gradient(135deg, hsl(${hue}, 70%, 60%), hsl(${hue + 25}, 65%, 45%))`;
+            leaf.style.setProperty('--leaf-wind', `${(Math.random() - 0.2) * (90 + intensity * 80)}px`);
+            
+            const duration = Math.max(5.5, 8.5 - intensity * 2) + Math.random();
+            leaf.style.animationDuration = duration + 's';
+            leaf.style.animationDelay = (-Math.random() * 1.5) + 's';
+            
+            container.appendChild(leaf);
+            setTimeout(() => leaf.remove(), (duration + 1.5) * 1000);
+        }
+
+        function manageLeaves(show, intensity = 0.5) {
+            const container = document.getElementById('leaves-container');
+            if (!container) return;
+            
+            if (show) {
+                container.style.opacity = Math.min(1, 0.35 + intensity * 0.8);
+                const frequency = Math.max(350, 1600 - intensity * 900);
+                
+                clearInterval(leafInterval);
+                createLeaf(intensity);
+                leafInterval = setInterval(() => createLeaf(intensity), frequency);
+                window.leafIntervalActive = true;
+            } else {
+                container.style.opacity = '0';
+                if (window.leafIntervalActive) {
+                    clearInterval(leafInterval);
+                    window.leafIntervalActive = false;
+                }
+                container.querySelectorAll('.leaf').forEach(leaf => {
+                    leaf.style.opacity = '0';
+                    setTimeout(() => leaf.remove(), 800);
+                });
+            }
+        }
+
+        function updateWind(intensity = 0) {
+            const container = document.getElementById('wind-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            if (intensity <= 0) {
+                container.style.opacity = '0';
+                return;
+            }
+            
+            const streamCount = Math.max(2, Math.round(3 + intensity * 6));
+            for (let i = 0; i < streamCount; i++) {
+                const stream = document.createElement('div');
+                stream.className = 'wind-stream';
+                stream.style.top = (Math.random() * 60 + 10) + 'vh';
+                stream.style.animationDuration = (4.5 - intensity * 1.5 + Math.random()) + 's';
+                stream.style.animationDelay = (Math.random() * 2) + 's';
+                container.appendChild(stream);
+            }
+            container.style.opacity = Math.min(1, 0.25 + intensity);
+        }
+
+        function createBubble() {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            const size = Math.random() * 14 + 4;
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.style.left = (Math.random() * 170 + 15) + 'px';
+            bubble.style.bottom = '0px';
+            
+            // Movimento horizontal mais natural (mais suave)
+            const wobble = (Math.random() - 0.5) * 40 + 'px';
+            bubble.style.setProperty('--wobble-x', wobble);
+            
+            // Duração inversamente proporcional ao tamanho (bolhas menores sobem mais rápido)
+            const baseDuration = 3.5;
+            const sizeVariation = (14 - size) / 14 * 1.5;
+            const duration = baseDuration - sizeVariation;
+            bubble.style.animationDuration = duration + 's';
+            
+            water.appendChild(bubble);
+            
+            setTimeout(() => bubble.remove(), duration * 1000);
+        }
+
+        function createDroplet() {
+            const droplet = document.createElement('div');
+            droplet.className = 'droplet';
+            droplet.style.left = (Math.random() * 200 + 10) + 'px';
+            droplet.style.top = (Math.random() * 100) + 'px';
+            droplet.style.animationDelay = (Math.random() * 2) + 's';
+            
+            condensation.appendChild(droplet);
+            
+            setTimeout(() => droplet.remove(), 3000);
+        }
+
+        function positionSpeechBubble() {
+            const emoji = document.getElementById('animated-emoji');
+            const speechBubble = document.getElementById('speech-bubble');
+
+            if (!emoji || !speechBubble) return;
+
+            // Calcular posição exata do emoji
+            const emojiRect = emoji.getBoundingClientRect();
+
+            // Posicionar COMPLETAMENTE ao lado direito do emoji, não em cima
+            const bubbleX = emojiRect.right + 15; // Bem ao lado direito, espaçamento maior
+            const bubbleY = emojiRect.top + emojiRect.height - 15; // ABAIXO do emoji, mas mais próximo
+
+            // Aplicar posição precisa
+            speechBubble.style.left = bubbleX + 'px';
+            speechBubble.style.top = bubbleY + 'px';
+
+            // Verificação de emergência: se sair demais da tela, ajustar
+            const bubbleRect = speechBubble.getBoundingClientRect();
+            if (bubbleRect.right > window.innerWidth - 10) {
+                // Mover um pouco para esquerda para caber
+                speechBubble.style.left = (window.innerWidth - bubbleRect.width - 10) + 'px';
+            }
+
+            // Ajuste vertical se necessário
+            if (bubbleRect.top < 10) {
+                speechBubble.style.top = '10px';
+            } else if (bubbleRect.bottom > window.innerHeight - 10) {
+                speechBubble.style.top = (window.innerHeight - bubbleRect.height - 10) + 'px';
+            }
+        }
+
+        function updateAnimatedEmoji(temp) {
+            const emoji = document.getElementById('animated-emoji');
+            const speechBubble = document.getElementById('speech-bubble');
+            const speechContent = speechBubble.querySelector('.speech-content');
+
+            // Posicionar balão corretamente
+            positionSpeechBubble();
+
+            // Remover todas as classes de estado anteriores
+            emoji.classList.remove('cold', 'hot', 'normal', 'animate__bounceIn', 'animate__tada', 'animate__fadeInUp');
+            speechContent.classList.remove('hot', 'cold', 'normal');
+
+            // Adicionar efeito de entrada
+            emoji.classList.add('animate__animated');
+
+            const messages = {
+                hot: [
+                    "Caramba, que calor infernal! 🔥",
+                    "Tô derretendo! Preciso d'água urgente! 💧",
+                    "Quente demais pra aguentar! 🥵",
+                    "Dia de praia deu errado! 🌡️",
+                    "Tô pegando fogo! Chama os bombeiros! 🚒"
+                ],
+                cold: [
+                    "Brrr! Congelando meus circuitos! ❄️",
+                    "Nossa, que frio congelante! 🥶",
+                    "Era do gelo total? 🧊",
+                    "Meus dentes tão batendo! 🦷",
+                    "Status urso polar: ativado! 🐻‍❄️"
+                ],
+                normal: [
+                    "Ahh, temperatura perfeita! 😊",
+                    "Isso é clima de praia! 🏖️",
+                    "Na medida certa! Nem quente, nem frio! 🌤️",
+                    "Vivendo minha melhor vida! ✨",
+                    "Objetivos climáticos alcançados! 🎯"
+                ]
+            };
+
+            if (temp < 0) {
+                // Muito frio - emoji tremendo de frio
+                emoji.textContent = '🥶';
+                emoji.classList.add('cold');
+
+                // Mostrar balão de fala
+                speechContent.textContent = messages.cold[Math.floor(Math.random() * messages.cold.length)];
+                speechContent.classList.add('cold');
+                speechBubble.classList.add('show');
+
+                // Efeito visual de frio
+                emoji.style.textShadow = '0 0 10px rgba(74, 144, 226, 0.8)';
+
+            } else if (temp > 50) {
+                // Muito quente - emoji com sede, precisando beber água
+                emoji.textContent = '🥵';
+                emoji.classList.add('hot');
+
+                // Mostrar balão de fala
+                speechContent.textContent = messages.hot[Math.floor(Math.random() * messages.hot.length)];
+                speechContent.classList.add('hot');
+                speechBubble.classList.add('show');
+
+                // Efeito visual de calor
+                emoji.style.textShadow = '0 0 20px rgba(231, 76, 60, 0.9), 0 0 40px rgba(231, 76, 60, 0.6)';
+
+            } else {
+                // Temperatura normal - emoji confortável
+                emoji.textContent = '😊';
+                emoji.classList.add('normal');
+
+                // Mostrar balão de fala
+                speechContent.textContent = messages.normal[Math.floor(Math.random() * messages.normal.length)];
+                speechContent.classList.add('normal');
+                speechBubble.classList.add('show');
+
+                // Sombra normal
+                emoji.style.textShadow = '0 0 5px rgba(39, 174, 96, 0.5)';
+            }
+
+            // Adicionar interatividade - emoji responde ao clique
+            emoji.onclick = () => {
+                emoji.classList.add('animate__rubberBand');
+                setTimeout(() => emoji.classList.remove('animate__rubberBand'), 1000);
+            };
+
+            // Adicionar efeito de "fala" ao emoji
+            emoji.classList.add('animate__bounce');
+            setTimeout(() => emoji.classList.remove('animate__bounce'), 500);
+
+            // Garantir que o balão esteja sempre bem posicionado
+            setTimeout(() => positionSpeechBubble(), 50);
+
+            // Fazer o balão desaparecer depois de alguns segundos e aparecer novamente
+            clearTimeout(window.speechTimeout);
+            window.speechTimeout = setTimeout(() => {
+                speechBubble.classList.remove('show');
+                // Reaparecer com nova mensagem após alguns segundos
+                setTimeout(() => {
+                    if (speechBubble.classList.contains('show')) return; // Já está mostrando
+                    updateAnimatedEmoji(temp); // Chama novamente para nova mensagem
+                }, 3000);
+            }, 4000);
+        }
+
+        function updateState(temp) {
+            let state, description, bgColor;
+
+            // Limpar intervalos
+            clearInterval(bubbleInterval);
+            clearInterval(dropletInterval);
+
+            if (temp < 0) {
+                // ESTADO SÓLIDO - GELO
+                state = 'SÓLIDO - GELO';
+                description = 'Moléculas organizadas em estrutura cristalina rígida. A água está completamente congelada com ligações moleculares fortes.';
+                bgColor = 'linear-gradient(135deg, #e3f2fd 0%, #90caf9 50%, #bbdefb 100%)';
+                
+                // Mostrar gelo
+                const freezeProgress = Math.min(Math.abs(temp) / 50, 1);
+                iceBlock.style.opacity = '1';
+                iceBlock.style.filter = `blur(${0.5 - freezeProgress * 0.3}px)`;
+                
+                // Água congela gradualmente
+                const isMobile = window.innerWidth < 480;
+                const isTablet = window.innerWidth >= 480 && window.innerWidth < 768;
+                const maxIceHeight = isMobile ? 168 : (isTablet ? 215 : 330);
+                const iceHeight = maxIceHeight * freezeProgress;
+                const waterHeight = maxIceHeight - iceHeight;
+                water.style.height = waterHeight + 'px';
+                
+                // Sem vapor
+                steams.forEach(steam => steam.style.opacity = '0');
+                
+                // Condensação leve
+                if (temp < -10) {
+                    condensation.style.opacity = '0.3';
+                    dropletInterval = setInterval(createDroplet, 1500);
+                }
+                
+            } else if (temp >= 0 && temp < 100) {
+                // ESTADO LÍQUIDO - ÁGUA
+                state = 'LÍQUIDO - ÁGUA';
+                description = 'Moléculas móveis com ligações fracas. A água flui livremente, mantendo volume constante e adaptando-se ao recipiente.';
+                bgColor = 'linear-gradient(135deg, #81d4fa 0%, #29b6f6 50%, #0288d1 100%)';
+                
+                // Derreter gelo progressivamente
+                const meltProgress = Math.min(temp / 40, 1);
+                iceBlock.style.opacity = Math.max(0, 1 - meltProgress * 1.5);
+                
+                // Água aumenta conforme derrete
+                const isMobile = window.innerWidth < 480;
+                const isTablet = window.innerWidth >= 480 && window.innerWidth < 768;
+                const baseHeight = isMobile ? 100 : (isTablet ? 130 : 200);
+                const maxHeight = isMobile ? 168 : (isTablet ? 215 : 330);
+                const liquidHeight = baseHeight + (meltProgress * (maxHeight - baseHeight));
+                water.style.height = liquidHeight + 'px';
+                
+                // Sem vapor ainda
+                steams.forEach(steam => steam.style.opacity = '0');
+                
+                // Começar bolhas perto da ebulição
+                if (temp > 70) {
+                    const bubbleFrequency = Math.max(100, 600 - (temp - 70) * 10);
+                    bubbleInterval = setInterval(createBubble, bubbleFrequency);
+                }
+                
+                // Condensação mínima
+                condensation.style.opacity = '0.1';
+                
+            } else {
+                // ESTADO GASOSO - VAPOR
+                state = 'GASOSO - VAPOR';
+                description = 'Moléculas altamente energéticas em movimento rápido e aleatório. A água evapora ocupando todo o espaço disponível.';
+                bgColor = 'linear-gradient(135deg, #fff59d 0%, #ffb74d 50%, #ff9800 100%)';
+                
+                // Gelo não existe
+                iceBlock.style.opacity = '0';
+                
+                // Água evapora progressivamente
+                const evaporationProgress = Math.min((temp - 100) / 50, 1);
+                const isMobile = window.innerWidth < 480;
+                const isTablet = window.innerWidth >= 480 && window.innerWidth < 768;
+                const maxHeight = isMobile ? 168 : (isTablet ? 215 : 330);
+                const liquidHeight = Math.max(0, maxHeight - (evaporationProgress * maxHeight));
+                water.style.height = liquidHeight + 'px';
+                
+                // Vapor intenso
+                const steamIntensity = 0.4 + (Math.min(evaporationProgress, 0.6));
+                steams.forEach(steam => {
+                    steam.style.opacity = steamIntensity;
+                    steam.style.filter = `blur(${2 + steamIntensity * 8}px)`;
+                });
+                
+                // Muitas bolhas
+                bubbleInterval = setInterval(createBubble, 80);
+                
+                // Condensação forte no vidro
+                condensation.style.opacity = '0.7';
+                dropletInterval = setInterval(createDroplet, 600);
+            }
+
+            // Atualizar emoji animado baseado na temperatura
+            updateAnimatedEmoji(temp);
+
+            stateName.textContent = state;
+            stateDescription.textContent = description;
+            background.style.background = bgColor;
+            setWaterDynamics(temp);
+            
+            // Atualizar fundo da página com paisagem dinâmica
+            updateBackgroundLandscape(temp);
+        }
+
+        function updateBackgroundLandscape(temp) {
+                let bodyBg, sunOpacity, sunTop, mountainColor1, mountainColor2, mountainBackColor, hillsColor, showSnow, showClouds, cloudIntensity, showLeaves = false, leafIntensity = 0, windIntensity = 0;
+
+            if (temp < 0) {
+                // INVERNO - Neve
+                bodyBg = 'linear-gradient(180deg, #b3d9ff 0%, #e6f2ff 50%, #f5f5f5 100%)';
+                sunOpacity = 0.3;
+                sunTop = '40px';
+                mountainColor1 = '#ffffff';
+                mountainColor2 = '#f0f0f0';
+                    mountainBackColor = 'rgba(100, 150, 200, 0.8)';
+                    hillsColor = 'rgba(80, 140, 100, 0.2)';
+                    showClouds = true;
+                    cloudIntensity = 0.7;
+                showSnow = true;
+                showLeaves = false;
+                windIntensity = 0;
+            } else if (temp >= 0 && temp < 50) {
+                // PRIMAVERA - Transição
+                const progress = temp / 50;
+                bodyBg = `linear-gradient(180deg, 
+                    rgb(${179 + progress * 76}, ${217 + progress * 38}, ${255 - progress * 155}) 0%, 
+                    rgb(${230 + progress * 25}, ${242 + progress * 13}, ${255 - progress * 255}) 50%, 
+                    rgb(${144 + progress * 48}, ${238 - progress * 48}, ${144 + progress * 106}) 100%)`;
+                sunOpacity = 0.3 + progress * 0.4;
+                sunTop = `${40 + progress * 40}px`;
+                mountainColor1 = `rgb(${255 - progress * 100}, ${255 - progress * 100}, ${255 - progress * 155})`;
+                mountainColor2 = `rgb(${240 - progress * 40}, ${240 - progress * 40}, ${240 - progress * 140})`;
+                mountainBackColor = `rgba(${100 + progress * 20}, ${150 - progress * 30}, ${200 - progress * 50}, ${0.6 + progress * 0.2})`;
+                hillsColor = `rgba(${80 + progress * 50}, ${140 - progress * 20}, ${100 + progress * 50}, ${0.3 + progress * 0.2})`;
+                showClouds = true;
+                cloudIntensity = 0.5 - progress * 0.2;
+                showSnow = false;
+                const mildFactor = Math.max(0, 1 - Math.abs((temp - 22) / 22));
+                showLeaves = mildFactor > 0.15;
+                leafIntensity = Math.min(1, 0.4 + mildFactor * 0.7);
+                windIntensity = showLeaves ? Math.min(1, 0.25 + mildFactor * 0.5) : 0;
+            } else if (temp >= 50 && temp < 100) {
+                // VERÃO - Quente
+                const progress = (temp - 50) / 50;
+                bodyBg = `linear-gradient(180deg, 
+                    rgb(${255}, ${180 - progress * 30}, ${100 + progress * 55}) 0%, 
+                    rgb(${255}, ${200 - progress * 50}, ${100 + progress * 55}) 50%, 
+                    rgb(${144}, ${190 - progress * 40}, ${250 - progress * 50}) 100%)`;
+                sunOpacity = 0.7 + progress * 0.3;
+                sunTop = `${80 + progress * 20}px`;
+                mountainColor1 = `rgb(${155 - progress * 55}, ${190 - progress * 40}, ${250 - progress * 50})`;
+                mountainColor2 = `rgb(${200 - progress * 60}, ${200 - progress * 60}, ${100 + progress * 100})`;
+                mountainBackColor = `rgba(${120 - progress * 20}, ${120 - progress * 20}, ${150 - progress * 50}, ${0.8 - progress * 0.3})`;
+                hillsColor = `rgba(${130 + progress * 20}, ${120 - progress * 20}, ${150 - progress * 50}, ${0.5 - progress * 0.3})`;
+                showClouds = false;
+                cloudIntensity = 0;
+                showSnow = false;
+                showLeaves = false;
+                windIntensity = 0;
+            } else {
+                // MUITO QUENTE
+                bodyBg = 'linear-gradient(180deg, #ff6b45 0%, #ffcc00 50%, #87ceeb 100%)';
+                sunOpacity = 1;
+                sunTop = '100px';
+                mountainColor1 = 'rgb(100, 150, 200)';
+                mountainColor2 = 'rgb(140, 140, 140)';
+                mountainBackColor = 'rgba(80, 100, 150, 0.5)';
+                hillsColor = 'rgba(150, 100, 80, 0.3)';
+                showClouds = false;
+                cloudIntensity = 0;
+                showSnow = false;
+                showLeaves = false;
+                windIntensity = 0;
+            }
+
+            document.documentElement.style.setProperty('--body-bg', bodyBg);
+            
+            const bodyElement = document.body;
+            bodyElement.style.background = bodyBg;
+            document.documentElement.style.setProperty('--sun-top', sunTop);
+            document.documentElement.style.setProperty('--sun-opacity', `${sunOpacity}`);
+            document.documentElement.style.setProperty('--mountain-left-highlight', tintColor(mountainColor1, 0.35));
+            document.documentElement.style.setProperty('--mountain-left-shadow', tintColor(mountainColor1, -0.4));
+            document.documentElement.style.setProperty('--mountain-right-highlight', tintColor(mountainColor2, 0.25));
+            document.documentElement.style.setProperty('--mountain-right-shadow', tintColor(mountainColor2, -0.45));
+            document.documentElement.style.setProperty('--mountain-back-highlight', tintColor(mountainBackColor, 0.15));
+            document.documentElement.style.setProperty('--mountain-back-shadow', tintColor(mountainBackColor, -0.35));
+            document.documentElement.style.setProperty('--hill-tone', hillsColor);
+            generateTerrainTexture(temp);
+            updateVolumetricLayers(temp, sunOpacity);
+            
+            // Atualizar hills
+            const hills = document.querySelector('.hills');
+            if (hills) {
+                hills.style.background = `radial-gradient(ellipse at 25% 100%, ${hillsColor} 0%, transparent 50%),
+                                         radial-gradient(ellipse at 75% 100%, ${hillsColor} 0%, transparent 50%)`;
+            }
+            
+                // Atualizar horizonte e atmosfera com cores dinâmicas
+                const horizon = document.querySelector('.horizon');
+                const atmosphere = document.querySelector('.atmosphere');
+                if (horizon) {
+                    if (temp < 0) {
+                        horizon.style.boxShadow = '0 0 30px rgba(200, 220, 255, 0.3)';
+                    } else if (temp >= 0 && temp < 50) {
+                        const progress = temp / 50;
+                        const r = Math.round(255 - progress * 50);
+                        const g = Math.round(200 - progress * 50);
+                        const b = Math.round(100 + progress * 100);
+                        horizon.style.boxShadow = `0 0 30px rgba(${r}, ${g}, ${b}, 0.4)`;
+                    } else if (temp >= 50 && temp < 100) {
+                        const progress = (temp - 50) / 50;
+                        const r = Math.round(205 + progress * 50);
+                        const g = Math.round(150 + progress * 50);
+                        const b = Math.round(200 - progress * 150);
+                        horizon.style.boxShadow = `0 0 40px rgba(${r}, ${g}, ${b}, 0.6)`;
+                    } else {
+                        horizon.style.boxShadow = '0 0 50px rgba(255, 150, 50, 0.8)';
+                    }
+                }
+                if (atmosphere) {
+                    atmosphere.style.background = `radial-gradient(ellipse at center 0%, transparent 0%, rgba(0, 0, 0, ${0.05 + (Math.abs(sunOpacity - 0.5) * 0.1)}) 100%)`;
+                }
+
+                // Atualizar raios de luz conforme intensidade do sol
+                updateLightRays(sunOpacity);
+            
+            // Atualizar sol
+            // Gerenciar nuvens
+            manageClouds(showClouds, cloudIntensity);
+            
+            // Controlar flocos de neve
+            updateSnowflakes(showSnow, temp);
+            manageLeaves(showLeaves, leafIntensity);
+            updateWind(windIntensity);
+            const birdsShouldFly = temp >= 5 && temp <= 45;
+            const birdIntensity = Math.max(0, 1 - Math.abs(temp - 25) / 25);
+            manageBirds(birdsShouldFly, birdIntensity);
+            const insectIntensity = temp >= 25 && temp < 80 ? Math.min(1, (temp - 25) / 55) : 0;
+            manageInsects(insectIntensity > 0, insectIntensity);
+            scheduleLightning(temp >= 90, Math.min(1, (temp - 90) / 40));
+            if (window.updateThreeEnvironment) {
+                window.updateThreeEnvironment({
+                    groundColor: stripAlpha(hillsColor),
+                    lightColor: stripAlpha(mountainColor1),
+                    lightIntensity: Math.min(1.2, sunOpacity + 0.2),
+                    ambientIntensity: 0.3 + windIntensity * 0.2,
+                    hemiIntensity: 0.3 + sunOpacity * 0.2
+                });
+            }
+            
+            // Controle do vulcão (DOM) e do Three.js: intensidade proporcional à temperatura
+            try {
+                // Mapear temperatura para intensidade de erupção (0.0 - 1.0)
+                // Começa a erupção gradualmente a partir de 80°C e atinge o máximo em 150°C
+                const eruptionStart = 80;
+                const eruptionFull = 150;
+                let eruptionIntensity = 0;
+                if (temp > eruptionStart) {
+                    eruptionIntensity = (temp - eruptionStart) / (eruptionFull - eruptionStart);
+                    eruptionIntensity = Math.max(0, Math.min(1, eruptionIntensity));
+                }
+
+                if (eruptionIntensity > 0) {
+                    // passar intensidade para a versão DOM e Three.js
+                    startEruption(eruptionIntensity);
+                    if (window.__threeVolcanoReady) window.startThreeEruption(eruptionIntensity);
+                } else {
+                    stopEruption();
+                    if (window.__threeVolcanoReady) window.stopThreeEruption();
+                }
+
+                // Congelar quando temperatura muito baixa
+                if (temp <= 0) {
+                    freezeVolcano();
+                    if (window.__threeVolcanoReady) window.freezeThreeVolcano();
+                } else {
+                    unfreezeVolcano();
+                    if (window.__threeVolcanoReady) window.unfreezeThreeVolcano();
+                }
+            } catch (e) {
+                // silencioso: se elementos não existirem, ignora
+            }
+        }
+
+        function manageClouds(show, intensity) {
+            if (show && intensity > 0) {
+                // Iniciar geração de nuvens se não estiver rodando
+                if (!window.cloudIntervalActive) {
+                    window.cloudIntervalActive = true;
+                    const cloudFrequency = 3000 / intensity; // Quanto maior a intensidade, mais frequente
+                    
+                    // Criar nuvem inicial
+                    createCloud();
+                    
+                    // Agendar nova geração
+                    cloudInterval = setInterval(createCloud, cloudFrequency);
+                }
+                    // Mostrar estrelas em condições noturnas (inverno/nuvens)
+                    updateStars(intensity > 0.5);
+            } else {
+                // Parar geração de nuvens
+                if (window.cloudIntervalActive) {
+                    window.cloudIntervalActive = false;
+                    clearInterval(cloudInterval);
+                    
+                    // Fade out das nuvens existentes
+                    const clouds = document.querySelectorAll('.cloud');
+                    clouds.forEach(cloud => {
+                        cloud.style.opacity = '0';
+                        setTimeout(() => cloud.remove(), 2000);
+                    });
+                }
+                    // Ocultar estrelas
+                    updateStars(false);
+            }
+        }
+
+            function createStars(count) {
+                const starsContainer = document.getElementById('stars-container');
+                starsContainer.innerHTML = '';
+            
+                for (let i = 0; i < count; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 60 + '%';
+                    star.style.width = (Math.random() * 2 + 1) + 'px';
+                    star.style.height = star.style.width;
+                    star.style.animationDelay = Math.random() * 3 + 's';
+                    starsContainer.appendChild(star);
+                }
+            }
+
+            function updateStars(show) {
+                const starsContainer = document.getElementById('stars-container');
+                if (show) {
+                    starsContainer.style.opacity = '0.8';
+                    createStars(100);
+                } else {
+                    starsContainer.style.opacity = '0';
+                }
+            }
+
+            function updateLightRays(intensity) {
+                const container = document.getElementById('light-rays-container');
+                if (!container) return;
+                container.innerHTML = '';
+                if (intensity <= 0.5) {
+                    container.style.opacity = '0';
+                    return;
+                }
+
+                // Criar raios solares que saem exatamente do centro do sol
+                const rayCount = Math.round(8 + intensity * 8);
+
+                for (let i = 0; i < rayCount; i++) {
+                    const ray = document.createElement('div');
+                    ray.className = 'light-ray';
+
+                    // Largura variável para realismo
+                    const width = 1.5 + Math.random() * 2; // 1.5-3.5px
+                    ray.style.height = width + 'px';
+
+                    // Ângulo radial ao redor do sol (distribuídos uniformemente)
+                    const angleStep = 360 / rayCount;
+                    const baseAngle = i * angleStep;
+                    const angleVariation = (Math.random() - 0.5) * 10; // ±5 graus de variação
+                    const finalAngle = baseAngle + angleVariation;
+
+                    // Os raios já estão centralizados via CSS (top: 50%, left: 50%)
+                    // Apenas aplicamos a rotação
+                    ray.style.transform = `rotate(${finalAngle}deg)`;
+
+                    // Delay de animação variado para movimento natural
+                    ray.style.animationDelay = (Math.random() * 4) + 's';
+
+                    // Intensidade individual do raio
+                    const rayIntensity = 0.5 + Math.random() * 0.4;
+                    ray.style.opacity = rayIntensity;
+
+                    container.appendChild(ray);
+                }
+                container.style.opacity = Math.min(1, intensity * 1.3);
+            }
+
+            // Controle do vulcão: erupção, partículas e congelamento
+            let volcanoLavaInterval;
+            let volcanoSmokeInterval;
+
+            function startEruption(intensity = 1) {
+                const volcano = document.getElementById('volcano');
+                const eruptionContainer = document.getElementById('eruption-container');
+                const smokeContainer = document.getElementById('smoke-container');
+                const lavaPool = document.getElementById('lavaPool');
+                if (!volcano || !eruptionContainer || !smokeContainer) return;
+
+                // Marcar estado
+                volcano.classList.add('erupting');
+                volcano.classList.remove('frozen');
+
+                // Intensidade controla frequência
+                const lavaFreq = Math.max(120, 800 - intensity * 700); // ms
+                const smokeFreq = Math.max(400, 1200 - intensity * 800);
+
+                // Mostrar lava na cratera
+                lavaPool.style.opacity = '1';
+
+                // Criar partículas de lava periodicamente
+                clearInterval(volcanoLavaInterval);
+                volcanoLavaInterval = setInterval(() => {
+                    const lava = document.createElement('div');
+                    lava.className = 'lava';
+                    // posicionar aleatoriamente dentro do crater
+                    const left = 20 + Math.random() * 50; // px relative
+                    lava.style.left = left + 'px';
+                    eruptionContainer.appendChild(lava);
+                    // remover após animação
+                    setTimeout(() => lava.remove(), 1200);
+                }, lavaFreq);
+
+                // Criar fumaça de erupção
+                clearInterval(volcanoSmokeInterval);
+                volcanoSmokeInterval = setInterval(() => {
+                    const smoke = document.createElement('div');
+                    smoke.className = 'smoke';
+                    smoke.style.left = (40 + Math.random() * 30) + 'px';
+                    smokeContainer.appendChild(smoke);
+                    setTimeout(() => smoke.remove(), 4500);
+                }, smokeFreq);
+            }
+
+            function stopEruption() {
+                const volcano = document.getElementById('volcano');
+                const eruptionContainer = document.getElementById('eruption-container');
+                const smokeContainer = document.getElementById('smoke-container');
+                const lavaPool = document.getElementById('lavaPool');
+                if (!volcano) return;
+
+                volcano.classList.remove('erupting');
+                clearInterval(volcanoLavaInterval);
+                clearInterval(volcanoSmokeInterval);
+                volcanoLavaInterval = null;
+                volcanoSmokeInterval = null;
+
+                // remover partículas existentes
+                if (eruptionContainer) eruptionContainer.innerHTML = '';
+                if (smokeContainer) smokeContainer.innerHTML = '';
+                if (lavaPool) lavaPool.style.opacity = '0';
+            }
+
+            function freezeVolcano() {
+                const volcano = document.getElementById('volcano');
+                if (!volcano) return;
+                stopEruption();
+                volcano.classList.add('frozen');
+            }
+
+            function unfreezeVolcano() {
+                const volcano = document.getElementById('volcano');
+                if (!volcano) return;
+                volcano.classList.remove('frozen');
+            }
+
+        function updateSnowflakes(show, temp) {
+            const container = document.getElementById('snowflakes-container');
+            
+            if (show && temp < 0) {
+                const currentSnowflakes = container.querySelectorAll('.snowflake').length;
+                const targetSnowflakes = Math.max(10, 30 + Math.abs(temp) / 2);
+                
+                // Adicionar flocos se necessário
+                for (let i = currentSnowflakes; i < targetSnowflakes; i++) {
+                    createSnowflake();
+                }
+            } else {
+                // Remover todos os flocos
+                container.querySelectorAll('.snowflake').forEach(flake => {
+                    flake.style.opacity = '0';
+                    setTimeout(() => flake.remove(), 2000);
+                });
+            }
+        }
+
+        function createSnowflake() {
+            const container = document.getElementById('snowflakes-container');
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.textContent = '❄';
+            snowflake.style.left = Math.random() * 100 + '%';
+            snowflake.style.fontSize = Math.random() * 10 + 10 + 'px';
+            snowflake.style.setProperty('--tx', (Math.random() - 0.5) * 100 + 'px');
+            snowflake.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            snowflake.style.opacity = '1';
+            
+            container.appendChild(snowflake);
+            
+            setTimeout(() => snowflake.remove(), (Math.random() * 10 + 10) * 1000);
+        }
+
+        tempSlider.addEventListener('input', (e) => {
+            const temp = parseInt(e.target.value);
+            tempDisplay.textContent = temp + '°C';
+            updateState(temp);
+        });
+
+        // Reposicionar balão quando a janela for redimensionada
+        window.addEventListener('resize', positionSpeechBubble);
+
+        // Controle dos modais
+        const infoBtn = document.getElementById('info-btn');
+        const videoBtn = document.getElementById('video-btn');
+        const creatorBtn = document.getElementById('creator-btn');
+
+        const infoModal = document.getElementById('info-modal');
+        const videoModal = document.getElementById('video-modal');
+        const creatorModal = document.getElementById('creator-modal');
+
+        const closeInfo = document.getElementById('close-info');
+        const closeVideo = document.getElementById('close-video');
+        const closeCreator = document.getElementById('close-creator');
+
+        // Funções para abrir/fechar modais
+        function openModal(modal) {
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Impede scroll da página
+        }
+
+        function closeModal(modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restaura scroll da página
+        }
+
+        // Event listeners dos botões
+        infoBtn.addEventListener('click', () => openModal(infoModal));
+        videoBtn.addEventListener('click', () => openModal(videoModal));
+        creatorBtn.addEventListener('click', () => openModal(creatorModal));
+
+        // Event listeners dos botões de fechar
+        closeInfo.addEventListener('click', () => closeModal(infoModal));
+        closeVideo.addEventListener('click', () => closeModal(videoModal));
+        closeCreator.addEventListener('click', () => closeModal(creatorModal));
+
+        // Fechar modal ao clicar fora dele
+        window.addEventListener('click', (event) => {
+            if (event.target === infoModal) closeModal(infoModal);
+            if (event.target === videoModal) closeModal(videoModal);
+            if (event.target === creatorModal) closeModal(creatorModal);
+        });
+
+        // Função para lidar com erro do vídeo
+        function handleVideoError() {
+            const videoContainer = document.querySelector('.video-container');
+            const videoWrapper = videoContainer.querySelector('.video-wrapper');
+            const fallback = videoContainer.querySelector('.video-fallback');
+
+            if (videoWrapper && fallback) {
+                videoWrapper.style.display = 'none';
+                fallback.style.display = 'block';
+            }
+        }
+
+        // Fechar modal com tecla ESC
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeModal(infoModal);
+                closeModal(videoModal);
+                closeModal(creatorModal);
+            }
+        });
+
+        // Inicializar
+        updateState(25);
+
+        /* ----------------------
+           Three.js Volcano (init)
+           ---------------------- */
+        (function initThreeVolcano(){
+            if (!window.THREE) return; // fallback
+
+            const container = document.getElementById('three-volcano-container');
+            const width = container.clientWidth || window.innerWidth;
+            const height = container.clientHeight || 420;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(40, width/height, 0.1, 2000);
+            camera.position.set(0, 80, 260);
+            camera.lookAt(0,40,0);
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1.5, 2));
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+            dir.position.set(100,200,100);
+            scene.add(dir);
+            const amb = new THREE.AmbientLight(0x666666, 0.6);
+            scene.add(amb);
+            const hemi = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.35);
+            scene.add(hemi);
+
+            // Volcano cone (truncated - cylinder with different radii top/bottom)
+            const coneGeo = new THREE.CylinderGeometry(
+                80,    // radiusTop (wider crater - not pointy)
+                120,   // radiusBottom (wider base)
+                140,   // height
+                64,    // radial segments
+                32,    // height segments (more for smoother sides)
+                false  // openEnded = false (fechado)
+            );
+            const rockMat = new THREE.MeshStandardMaterial({ color: 0x3a2f2a, roughness: 1, metalness: 0 });
+            const cone = new THREE.Mesh(coneGeo, rockMat);
+            cone.position.y = 70;
+            cone.scale.set(1,1,1);
+            scene.add(cone);
+
+            const groundGeo = new THREE.PlaneGeometry(800, 800, 64, 64);
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x3f3a32, roughness: 0.95, metalness: 0, transparent: true, opacity: 0.95 });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -20;
+            scene.add(ground);
+
+            // lava pool - emissive disc
+            const lavaGeo = new THREE.CircleGeometry(34, 32);
+            const lavaMat = new THREE.MeshBasicMaterial({ color: 0xff6b35, transparent:true, opacity:0.95 });
+            const lava = new THREE.Mesh(lavaGeo, lavaMat);
+            lava.rotation.x = -Math.PI/2;
+            lava.position.y = 30.5;
+            lava.visible = false;
+            scene.add(lava);
+
+            // helper: create canvas textures for particles (lava, smoke)
+            function createParticleTexture(colorInner, colorOuter, size){
+                const c = document.createElement('canvas');
+                c.width = c.height = size;
+                const ctx = c.getContext('2d');
+                const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+                grad.addColorStop(0, colorInner);
+                grad.addColorStop(0.5, colorOuter);
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0,0,size,size);
+                return new THREE.CanvasTexture(c);
+            }
+
+            const lavaTex = createParticleTexture('rgba(255,250,200,1)','rgba(255,90,40,1)', 64);
+            const smokeTex = createParticleTexture('rgba(255,255,255,0.6)','rgba(120,120,120,0.1)', 128);
+
+            // Lava particles (Points) - with size attribute and lifetimes
+            const maxLava = 600;
+            const lavaPositions = new Float32Array(maxLava*3);
+            const lavaVel = new Float32Array(maxLava*3);
+            const lavaLife = new Float32Array(maxLava);
+            const lavaLifeMax = new Float32Array(maxLava);
+            const lavaSizes = new Float32Array(maxLava);
+            for (let i=0;i<maxLava;i++){
+                lavaPositions[i*3+0] = 0;
+                lavaPositions[i*3+1] = -9999;
+                lavaPositions[i*3+2] = 0;
+                lavaVel[i*3+0] = (Math.random()-0.5)*0.8;
+                lavaVel[i*3+1] = 1 + Math.random()*4;
+                lavaVel[i*3+2] = (Math.random()-0.5)*0.8;
+                lavaLife[i] = 0;
+                lavaLifeMax[i] = 1 + Math.random()*1.4;
+                lavaSizes[i] = 4 + Math.random()*6;
+            }
+            const lavaGeom = new THREE.BufferGeometry();
+            lavaGeom.setAttribute('position', new THREE.BufferAttribute(lavaPositions,3));
+            lavaGeom.setAttribute('size', new THREE.BufferAttribute(lavaSizes,1));
+            const lavaMatPts = new THREE.PointsMaterial({ size: 6, sizeAttenuation:true, map: lavaTex, transparent:true, blending: THREE.AdditiveBlending, depthWrite:false, alphaTest:0.01 });
+            const lavaPoints = new THREE.Points(lavaGeom, lavaMatPts);
+            scene.add(lavaPoints);
+
+            // Smoke particles - softer
+            const maxSmoke = 300;
+            const smokePositions = new Float32Array(maxSmoke*3);
+            const smokeVel = new Float32Array(maxSmoke*3);
+            const smokeLife = new Float32Array(maxSmoke);
+            const smokeLifeMax = new Float32Array(maxSmoke);
+            const smokeSizes = new Float32Array(maxSmoke);
+            for (let i=0;i<maxSmoke;i++){
+                smokePositions[i*3+0] = 0; smokePositions[i*3+1] = -9999; smokePositions[i*3+2] = 0;
+                smokeVel[i*3+0] = (Math.random()-0.5)*0.4; smokeVel[i*3+1] = 0.6 + Math.random()*1.4; smokeVel[i*3+2] = (Math.random()-0.5)*0.4;
+                smokeLife[i] = 0; smokeLifeMax[i] = 2 + Math.random()*3; smokeSizes[i] = 18 + Math.random()*30;
+            }
+            const smokeGeom = new THREE.BufferGeometry();
+            smokeGeom.setAttribute('position', new THREE.BufferAttribute(smokePositions,3));
+            smokeGeom.setAttribute('size', new THREE.BufferAttribute(smokeSizes,1));
+            const smokeMat = new THREE.PointsMaterial({ size: 24, sizeAttenuation:true, map: smokeTex, transparent:true, opacity:0.55, depthWrite:false });
+            const smokePoints = new THREE.Points(smokeGeom, smokeMat);
+            scene.add(smokePoints);
+
+            const plumeGeo = new THREE.CylinderGeometry(60, 10, 240, 16, 1, true);
+            const plumeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.08, side: THREE.DoubleSide });
+            const plume = new THREE.Mesh(plumeGeo, plumeMat);
+            plume.position.y = 160;
+            scene.add(plume);
+
+            // resize handling
+            window.addEventListener('resize', ()=>{
+                const w = container.clientWidth || window.innerWidth;
+                const h = container.clientHeight || 420;
+                camera.aspect = w/h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w,h);
+            });
+
+            // animation state
+            let lastTime = performance.now();
+            let cameraShake = 0;
+
+            function emitLavaParticle(){
+                const idx = Math.floor(Math.random()*maxLava);
+                lavaPositions[idx*3+0] = (Math.random()-0.5)*30;
+                lavaPositions[idx*3+1] = 34 + Math.random()*6;
+                lavaPositions[idx*3+2] = (Math.random()-0.5)*30;
+                lavaVel[idx*3+0] = (Math.random()-0.5)*1.2;
+                lavaVel[idx*3+1] = 3 + Math.random()*5;
+                lavaVel[idx*3+2] = (Math.random()-0.5)*1.2;
+                lavaLife[idx] = 0.001;
+                lavaLifeMax[idx] = 0.8 + Math.random()*1.4;
+                lavaGeom.attributes.position.needsUpdate = true;
+            }
+
+            function emitSmokeParticle(){
+                const idx = Math.floor(Math.random()*maxSmoke);
+                smokePositions[idx*3+0] = (Math.random()-0.5)*24;
+                smokePositions[idx*3+1] = 36 + Math.random()*6;
+                smokePositions[idx*3+2] = (Math.random()-0.5)*24;
+                smokeVel[idx*3+0] = (Math.random()-0.5)*0.6;
+                smokeVel[idx*3+1] = 0.8 + Math.random()*1.8;
+                smokeVel[idx*3+2] = (Math.random()-0.5)*0.6;
+                smokeLife[idx] = 0.001;
+                smokeLifeMax[idx] = 2 + Math.random()*3;
+                smokeGeom.attributes.position.needsUpdate = true;
+            }
+
+            // animation loop
+            function animate(){
+                const now = performance.now();
+                const dt = Math.min(0.06, (now - lastTime)/1000);
+                lastTime = now;
+
+                // update lava particles
+                for (let i=0;i<maxLava;i++){
+                    if (lavaLife[i] <= 0) continue;
+                    const base = i*3;
+                    // integrate
+                    lavaPositions[base+0] += lavaVel[base+0]*dt*60;
+                    lavaPositions[base+1] += lavaVel[base+1]*dt*60;
+                    lavaPositions[base+2] += lavaVel[base+2]*dt*60;
+                    // gravity
+                    lavaVel[base+1] -= 9.8 * dt * 0.6;
+                    lavaLife[i] += dt;
+                    const t = lavaLife[i] / lavaLifeMax[i];
+                    // fade/disable
+                    if (t >= 1) {
+                        lavaPositions[base+1] = -9999;
+                        lavaLife[i] = 0;
+                    }
+                }
+                lavaGeom.attributes.position.needsUpdate = true;
+
+                // update smoke
+                for (let i=0;i<maxSmoke;i++){
+                    if (smokeLife[i] <= 0) continue;
+                    const b = i*3;
+                    smokePositions[b+0] += smokeVel[b+0]*dt*30;
+                    smokePositions[b+1] += smokeVel[b+1]*dt*30;
+                    smokePositions[b+2] += smokeVel[b+2]*dt*30;
+                    smokeLife[i] += dt;
+                    if (smokeLife[i] >= smokeLifeMax[i]){ smokePositions[b+1] = -9999; smokeLife[i] = 0; }
+                }
+                smokeGeom.attributes.position.needsUpdate = true;
+
+                // camera shake decay
+                if (cameraShake > 0){
+                    camera.position.x += (Math.random()-0.5) * cameraShake;
+                    camera.position.y += (Math.random()-0.5) * cameraShake*0.2;
+                    cameraShake *= 0.92;
+                }
+
+                cone.rotation.z += 0.0008;
+                plume.rotation.y += 0.0003;
+                plume.material.opacity = 0.05 + Math.sin(now * 0.0005) * 0.015;
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            }
+            animate();
+
+            window.updateThreeEnvironment = function(options = {}){
+                if (options.groundColor) groundMat.color.set(options.groundColor);
+                if (options.lightColor) dir.color.set(options.lightColor);
+                if (options.lightIntensity !== undefined) dir.intensity = options.lightIntensity;
+                if (options.ambientIntensity !== undefined) amb.intensity = options.ambientIntensity;
+                if (options.hemiIntensity !== undefined) hemi.intensity = options.hemiIntensity;
+            };
+
+            // controls to start/stop eruption with variable intensity
+            window.startThreeEruption = function(intensity=1){
+                lava.visible = true;
+                // continuous emitter approach: spawn bursts relative to intensity
+                if (window.threeLavaInterval) clearInterval(window.threeLavaInterval);
+                if (window.threeSmokeInterval) clearInterval(window.threeSmokeInterval);
+                const lavaBurst = Math.max(1, Math.round(2 + intensity*8));
+                const lavaRate = Math.max(20, Math.round(200 - intensity*150));
+                window.threeLavaInterval = setInterval(()=>{ for(let i=0;i<lavaBurst;i++) emitLavaParticle(); cameraShake = 0.6*intensity; }, lavaRate);
+                const smokeBurst = Math.max(1, Math.round(1 + intensity*4));
+                const smokeRate = Math.max(120, Math.round(800 - intensity*600));
+                window.threeSmokeInterval = setInterval(()=>{ for(let i=0;i<smokeBurst;i++) emitSmokeParticle(); }, smokeRate);
+            };
+
+            window.stopThreeEruption = function(){
+                if (window.threeLavaInterval) { clearInterval(window.threeLavaInterval); window.threeLavaInterval = null; }
+                if (window.threeSmokeInterval) { clearInterval(window.threeSmokeInterval); window.threeSmokeInterval = null; }
+                lava.visible = false;
+            };
+
+            window.freezeThreeVolcano = function(){
+                rockMat.color.set(0xdff3ff);
+                lava.visible = false;
+                window.stopThreeEruption();
+            };
+
+            window.unfreezeThreeVolcano = function(){
+                rockMat.color.set(0x3a2f2a);
+            };
+
+            // expose simple init trigger
+            window.__threeVolcanoReady = true;
+        })();
+    </script>
+    <!-- Botão Voltar ao Início -->
+    <a href="index.html" style="position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; background: linear-gradient(to right, #2563eb, #9333ea); color: white; padding: 0.75rem 1.5rem; border-radius: 9999px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.875rem; text-decoration: none; transition: all 0.3s;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        MyApps
+    </a>
+</body>
+</html>

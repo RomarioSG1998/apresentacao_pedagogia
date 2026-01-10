@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards de Estudo - Saber Profissional do Professor que Ensina Matemática</title>
+    <style>
+        .info-block {
+            text-align: left;
+            margin: 20px auto;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-width: 400px;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+        .info-block p {
+            margin: 5px 0;
+        }
+        .info-block strong {
+            color: #667eea;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .reference {
+            color: #666;
+            font-style: italic;
+            font-size: 0.95em;
+        }
+
+        .flashcards-section {
+            margin-top: 30px;
+        }
+
+        .flashcard {
+            margin-bottom: 30px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .flashcard:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .flashcard-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            font-weight: 600;
+            font-size: 1.1em;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .flashcard-back {
+            background-color: #f8f9fa;
+            padding: 25px;
+            color: #333;
+            line-height: 1.8;
+            font-size: 0.95em;
+        }
+
+        .flashcard-back strong {
+            color: #667eea;
+        }
+
+        .flashcard-number {
+            display: inline-block;
+            background-color: #764ba2;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .flashcard-front {
+                font-size: 1em;
+                min-height: 80px;
+                padding: 20px;
+            }
+
+            .flashcard-back {
+                padding: 20px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Flashcards de Estudo</h1>
+            <div class="info-block">
+                <p><strong>Disciplina:</strong> Saberes e Práticas no Ensino de Matemática</p>
+                <p><strong>Professor:</strong> Romilson Santos</p>
+                <p><strong>Aluno:</strong> Romário Galdino</p>
+                <p><strong>Curso:</strong> Pedagogia</p>
+            </div>
+        </header>
+
+        <div class="flashcards-section">
+            <!-- Flashcard 1 -->
+            <div class="flashcard">
+                <div class="flashcard-front">
+                    Qual a diferença entre "Matemática a ensinar" e "Matemática para ensinar"?
+                </div>
+                <div class="flashcard-back">
+                    <p><strong>Matemática a ensinar:</strong> Refere-se ao objeto de ensino, ou seja, o conteúdo disciplinar que o aluno deve aprender (ex: aritmética, geometria).</p>
+                    <p style="margin-top: 15px;"><strong>Matemática para ensinar:</strong> Refere-se à ferramenta de trabalho do professor. São os saberes próprios da docência, forjados para viabilizar o ensino, que não se confundem com o conteúdo puro, mas instrumentalizam o professor a ensiná-lo.</p>
+                </div>
+            </div>
+
+            <!-- Flashcard 2 -->
+            <div class="flashcard">
+                <div class="flashcard-front">
+                    Qual o papel dos "Experts" na produção de saberes docentes segundo o artigo?
+                </div>
+                <div class="flashcard-back">
+                    <p>Os Experts não são sábios neutros, mas agentes (indivíduos ou grupos) convocados por autoridades (como o Estado) para resolver demandas específicas, como reformas educacionais. Eles sistematizam novos saberes oficiais a partir de tensões sociais e políticas de sua época.</p>
+                </div>
+            </div>
+
+            <!-- Flashcard 3 -->
+            <div class="flashcard">
+                <div class="flashcard-front">
+                    O que caracteriza a relação entre Campo Disciplinar e Campo Profissional (Posicionamento 3)?
+                </div>
+                <div class="flashcard-back">
+                    <p>Segundo a leitura de Hofstetter e Schneuwly feita pelos autores, esses campos são irredutíveis (têm lógicas diferentes), mas geram uma <strong>tensão produtiva</strong>. Não há apenas aplicação da teoria na prática, mas um conflito constante entre a academia (campo disciplinar) e o chão da escola (campo profissional) que gera novos conhecimentos.</p>
+                </div>
+            </div>
+
+            <!-- Flashcard 4 -->
+            <div class="flashcard">
+                <div class="flashcard-front">
+                    Como o pesquisador deve tratar documentos oficiais (legislação, programas de ensino) nesta perspectiva histórica?
+                </div>
+                <div class="flashcard-back">
+                    <p>Devem ser tratados como "<strong>caixas-pretas</strong>". A lei ou o currículo oficial não é o ponto de partida neutro, mas o "<strong>ponto de chegada</strong>" ou a síntese de disputas anteriores. O historiador deve investigar as tensões e os grupos que disputaram poder para chegar àquele texto final.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            
+        </footer>
+    </div>
+    <!-- Botão Voltar ao Início -->
+    <a href="index.html" style="position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; background: linear-gradient(to right, #2563eb, #9333ea); color: white; padding: 0.75rem 1.5rem; border-radius: 9999px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.875rem; text-decoration: none; transition: all 0.3s;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        MyApps
+    </a>
+</body>
+</html>

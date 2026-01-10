@@ -1,0 +1,1539 @@
+
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fontes Históricas: A Aventura do Conhecimento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: {
+                        'xs': '475px',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0e8d8; /* Cor de pergaminho */
+            padding-top: 60px; /* Espaço para a barra de progresso fixa */
+            padding-bottom: 80px; /* Espaço para a barra de navegação fixa */
+            overflow-x: hidden; /* Previne scroll horizontal */
+            margin: 0;
+            height: 100vh;
+        }
+        
+        @media (min-width: 480px) {
+            body {
+                padding-top: 70px;
+            }
+        }
+        
+        @media (min-width: 640px) {
+            body {
+                padding-top: 80px;
+                padding-bottom: 100px;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            body {
+                padding-top: 90px;
+            }
+        }
+        .font-lora {
+            font-family: 'Lora', serif;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn {
+            transition: all 0.2s ease;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .section-title {
+            border-bottom: 3px solid #8B4513; /* Marrom sela */
+            padding-bottom: 8px;
+            color: #4a3a2a;
+        }
+        .drop-zone {
+            border: 2px dashed #a0522d;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .drop-zone-over {
+            background-color: #fdf5e6;
+            border-color: #8B4513;
+        }
+        .draggable-item {
+            cursor: grab;
+            user-select: none;
+            transition: opacity 0.2s ease;
+        }
+        .draggable-item:active { cursor: grabbing; }
+        #drawing-canvas {
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            cursor: crosshair;
+            width: 100%;
+            height: auto;
+            touch-action: none; /* Previne rolagem ao desenhar no mobile */
+        }
+        @keyframes contentFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide {
+             animation: contentFadeIn 0.5s ease-in-out;
+        }
+
+        /* --- Animations for Game Feedback --- */
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .shake-animation {
+            animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+        }
+       
+        /* --- Styles for Feedback Popup --- */
+        #feedback-overlay {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #feedback-overlay.visible {
+            opacity: 1;
+        }
+        .feedback-popup {
+            position: relative;
+            transform: scale(0.5);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.2s ease-in-out;
+        }
+        #feedback-overlay.visible .feedback-popup {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .close-feedback-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+            font-size: 2rem;
+            line-height: 1;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+        }
+        
+        /* Header visibility control */
+        #main-header {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            height: 100vh;
+            max-height: 100vh;
+            overflow: hidden;
+            transition: all 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            box-sizing: border-box;
+        }
+        
+        #main-header.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-100%);
+            height: 0;
+            min-height: 0;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #main-header > div {
+            width: 100%;
+            max-width: 100%;
+            padding: 5rem 3rem;
+            box-sizing: border-box;
+        }
+        
+        /* Full viewport height sections */
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
+        .slide .card {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            max-height: calc(100vh - 8rem);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        /* Responsive content sizing based on viewport */
+        .slide h2 {
+            margin-bottom: 1rem !important;
+        }
+        
+        .slide p {
+            margin: 0.5rem 0 !important;
+        }
+        
+        /* Game section specific adjustments */
+        #jogo .card {
+            padding: 1rem;
+        }
+        
+        #jogo h2 {
+            font-size: 1.25rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        
+        #jogo p {
+            font-size: 0.875rem !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        #jogo .grid {
+            gap: 0.5rem !important;
+        }
+        
+        #jogo .drop-zone {
+            min-height: 80px !important;
+            padding: 0.5rem !important;
+        }
+        
+        #jogo .drop-zone h3 {
+            font-size: 0.875rem !important;
+            margin-bottom: 0.25rem !important;
+        }
+        
+        #jogo .drop-zone p {
+            font-size: 0.75rem !important;
+        }
+        
+        /* Comparison section adjustments */
+        #comparacao .grid {
+            gap: 1rem !important;
+        }
+        
+        #comparacao img {
+            max-height: 200px !important;
+            object-fit: contain;
+        }
+        
+        #comparacao h3 {
+            font-size: 1rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        
+        /* Drawing section adjustments */
+        #atividade #drawing-canvas {
+            max-height: 300px !important;
+        }
+        
+        #atividade .flex {
+            gap: 0.5rem !important;
+            margin-top: 0.5rem !important;
+        }
+        
+        /* Quiz section adjustments */
+        #quiz .card {
+            padding: 1rem !important;
+            max-height: calc(100vh - 6rem) !important;
+            overflow-y: auto !important;
+        }
+        
+        #quiz h2 {
+            font-size: 1.25rem !important;
+            margin-bottom: 0.75rem !important;
+        }
+        
+        #quiz .mb-6 {
+            margin-bottom: 0.5rem !important;
+        }
+        
+        #quiz-container {
+            max-height: calc(100vh - 12rem) !important;
+            overflow-y: auto !important;
+            padding-right: 0.5rem;
+        }
+        
+        #quiz-container .mb-6 {
+            margin-bottom: 1rem !important;
+        }
+        
+        #quiz-container label {
+            padding: 0.5rem !important;
+            margin-bottom: 0.25rem !important;
+            font-size: 0.875rem !important;
+        }
+        
+        #quiz-results {
+            margin-top: 0.5rem !important;
+            padding: 0.5rem !important;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-bar {
+            position: fixed;
+            top: 0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 30;
+            display: flex;
+            justify-content: center;
+            gap: 0.25rem;
+            padding: 0.25rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: fit-content;
+            margin: 0;
+            flex-wrap: wrap;
+            transition: all 0.3s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Hide progress bar when scrolling down */
+        .progress-bar.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-50%) translateY(-100%);
+        }
+        .progress-step {
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px solid #a0522d;
+            color: #a0522d;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 0.75rem;
+        }
+        .progress-step.active {
+            background-color: #8B4513;
+            color: white;
+            border-color: #8B4513;
+            transform: scale(1.1);
+        }
+        .progress-step:not(.active):hover {
+            background-color: #fdf5e6;
+        }
+        
+        /* Responsive adjustments */
+        @media (min-width: 480px) {
+            .progress-bar { 
+                gap: 0.5rem; 
+                top: 0.75rem;
+                padding: 0.5rem;
+                border-radius: 30px;
+            }
+            .progress-step { 
+                width: 2rem; 
+                height: 2rem; 
+                font-size: 0.875rem;
+                border-width: 3px;
+            }
+        }
+        
+        @media (min-width: 640px) {
+            .progress-bar { 
+                gap: 1rem; 
+                top: 1rem;
+                padding: 0.75rem;
+                border-radius: 35px;
+            }
+            .progress-step { 
+                width: 2.5rem; 
+                height: 2.5rem; 
+                font-size: 1rem;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .progress-bar {
+                top: 1.25rem;
+                padding: 1rem;
+                border-radius: 40px;
+            }
+            .progress-step { 
+                width: 3rem; 
+                height: 3rem; 
+                font-size: 1.125rem;
+            }
+        }
+        
+        /* Extra small screens (less than 320px) */
+        @media (max-width: 319px) {
+            .progress-step { 
+                width: 1.5rem; 
+                height: 1.5rem; 
+                font-size: 0.625rem;
+            }
+            .progress-bar { 
+                gap: 0.125rem; 
+                padding: 0.125rem;
+                top: 0.25rem;
+                border-radius: 20px;
+            }
+            .card {
+                margin: 0.25rem;
+                border-radius: 8px;
+            }
+            
+            /* Ultra compact layout */
+            .slide .card {
+                padding: 0.5rem !important;
+                max-height: calc(100vh - 6rem);
+            }
+            
+            #jogo .drop-zone {
+                min-height: 60px !important;
+                padding: 0.25rem !important;
+            }
+            
+            #jogo .drop-zone h3 {
+                font-size: 0.75rem !important;
+            }
+            
+            #jogo .drop-zone p {
+                font-size: 0.625rem !important;
+            }
+            
+            #comparacao img {
+                max-height: 120px !important;
+            }
+            
+            #atividade #drawing-canvas {
+                max-height: 200px !important;
+            }
+            
+            #quiz .card {
+                padding: 0.5rem !important;
+                max-height: calc(100vh - 5rem) !important;
+            }
+            
+            #quiz-container {
+                max-height: calc(100vh - 10rem) !important;
+            }
+            
+            #quiz-container label {
+                padding: 0.25rem !important;
+                font-size: 0.75rem !important;
+            }
+            
+        }
+        
+        /* Small screens (320px - 480px) */
+        @media (min-width: 320px) and (max-width: 480px) {
+            .slide .card {
+                padding: 1rem !important;
+                max-height: calc(100vh - 7rem);
+            }
+            
+            #jogo .drop-zone {
+                min-height: 70px !important;
+            }
+            
+            #comparacao img {
+                max-height: 150px !important;
+            }
+            
+            #atividade #drawing-canvas {
+                max-height: 250px !important;
+            }
+            
+            #quiz .card {
+                padding: 0.75rem !important;
+                max-height: calc(100vh - 6rem) !important;
+            }
+            
+            #quiz-container {
+                max-height: calc(100vh - 11rem) !important;
+            }
+            
+        }
+        
+        /* Medium screens (480px - 768px) */
+        @media (min-width: 480px) and (max-width: 768px) {
+            .slide .card {
+                padding: 1.5rem !important;
+                max-height: calc(100vh - 8rem);
+            }
+            
+            #jogo .drop-zone {
+                min-height: 90px !important;
+            }
+            
+            #comparacao img {
+                max-height: 180px !important;
+            }
+            
+            #atividade #drawing-canvas {
+                max-height: 280px !important;
+            }
+            
+            #quiz .card {
+                padding: 1rem !important;
+                max-height: calc(100vh - 7rem) !important;
+            }
+            
+            #quiz-container {
+                max-height: calc(100vh - 12rem) !important;
+            }
+            
+        }
+        
+        /* Large screens (768px+) */
+        @media (min-width: 768px) {
+            .slide .card {
+                padding: 2rem !important;
+                max-height: calc(100vh - 10rem);
+            }
+            
+            #jogo .drop-zone {
+                min-height: 100px !important;
+            }
+            
+            #comparacao img {
+                max-height: 220px !important;
+            }
+            
+            #atividade #drawing-canvas {
+                max-height: 320px !important;
+            }
+            
+            #quiz .card {
+                padding: 1.5rem !important;
+                max-height: calc(100vh - 8rem) !important;
+            }
+            
+            #quiz-container {
+                max-height: calc(100vh - 14rem) !important;
+            }
+            
+        }
+        
+        /* Magnifying Glass Styles */
+        .magnify-container {
+            position: relative;
+            display: inline-block;
+            cursor: default;
+        }
+        
+        .magnifying-glass {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border: 4px solid #8B4513;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.95);
+            background-repeat: no-repeat;
+            background-position: center center;
+            pointer-events: auto;
+            cursor: grab;
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+            display: none;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            transition: none;
+            overflow: hidden;
+        }
+        
+        .magnifying-glass:active {
+            cursor: grabbing;
+        }
+        
+        .magnify-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #8B4513;
+            color: white;
+            border: 2px solid white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .zoom-controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            z-index: 100;
+        }
+        
+        .zoom-btn {
+            width: 30px;
+            height: 30px;
+            background: #8B4513;
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .zoom-btn:hover {
+            background: #a0522d;
+            transform: scale(1.1);
+        }
+        
+        .zoom-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .zoom-level {
+            position: absolute;
+            top: -35px;
+            right: 0;
+            background: rgba(139, 69, 19, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .magnify-button:hover {
+            background: #a0522d;
+            transform: scale(1.05);
+        }
+        
+        .magnify-button.active {
+            background: #a0522d;
+            color: #fff;
+        }
+        
+        .magnify-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            display: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col text-gray-800">
+    
+    <header id="main-header" class="bg-cover bg-center text-white rounded-b-2xl sm:rounded-b-3xl shadow-lg transition-all duration-0.5s ease-in-out" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/e8/Chegada_de_Cabral_%C3%A0_Porto_Seguro.jpg');">
+        <div class="bg-black bg-opacity-50 rounded-lg sm:rounded-xl w-full h-full flex flex-col justify-center items-center">
+            <h1 class="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold font-lora text-center leading-tight px-2">Fontes Históricas</h1>
+            <p class="text-sm xs:text-base sm:text-base md:text-lg lg:text-xl mt-2 xs:mt-3 sm:mt-3 text-center italic px-3 max-w-4xl">Como sabemos o que aconteceu no passado se não estávamos lá para ver?</p>
+        </div>
+    </header>
+    
+    <main id="main-content" class="container mx-auto">
+        <div id="progress-bar" class="progress-bar">
+            <div class="progress-step" data-slide="0" title="Início">1</div>
+            <div class="progress-step" data-slide="1" title="Jogo">2</div>
+            <div class="progress-step" data-slide="2" title="Análise">3</div>
+            <div class="progress-step" data-slide="3" title="Atividade">4</div>
+            <div class="progress-step" data-slide="4" title="Quiz">5</div>
+        </div>
+
+        <!-- Slide 1: O que são Fontes Históricas? -->
+        <section id="o-que-sao" class="slide">
+             <div class="w-full max-w-6xl mx-auto">
+                <div class="card p-4 xs:p-6 sm:p-8 md:p-10 text-center bg-amber-50">
+                     <h2 class="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-lora mb-3 sm:mb-4 section-title inline-block">O que são Fontes Históricas?</h2>
+                     <p class="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl mt-3 sm:mt-4 max-w-4xl mx-auto px-2">Fontes históricas são todas as <strong class="text-[#8B4513]">evidências</strong> produzidas pelos seres humanos que nos ajudam a conhecer o passado. São como as <strong class="text-[#8B4513]">"pistas"</strong> que os historiadores usam para reconstruir a História.</p>
+                     <div class="text-3xl xs:text-4xl sm:text-5xl md:text-6xl mt-4 sm:mt-6 text-[#a0522d]">🕵️‍♂️</div>
+                </div>
+             </div>
+        </section>
+
+        <!-- Slide 2: Jogo: Classifique as Fontes -->
+        <section id="jogo" class="slide hidden">
+            <div class="card p-3 sm:p-4 md:p-6 lg:p-8 bg-stone-100 relative w-full max-w-6xl mx-auto">
+                <h2 class="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-lora mb-4 sm:mb-6 text-center section-title inline-block">Jogo: Classifique as Pistas!</h2>
+                <p class="text-center mb-4 sm:mb-6 md:mb-8 text-xs xs:text-sm sm:text-base md:text-lg px-2">Arraste cada item para a categoria correta.</p>
+                <div id="sources-container" class="flex flex-wrap justify-center items-center gap-1 xs:gap-2 sm:gap-3 md:gap-4 mb-6 sm:mb-8 min-h-[40px] sm:min-h-[50px] md:min-h-[60px]"></div>
+                <div class="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 md:gap-6">
+                    <div id="escritas" class="drop-zone p-2 xs:p-3 sm:p-4 md:p-6 rounded-lg min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[150px] lg:min-h-[160px] bg-white"><h3 class="font-bold text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl text-center mb-1 xs:mb-2">✍️ Escritas</h3><p class="text-xs xs:text-sm sm:text-base text-center text-gray-500">(Cartas, leis)</p></div>
+                    <div id="visuais" class="drop-zone p-2 xs:p-3 sm:p-4 md:p-6 rounded-lg min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[150px] lg:min-h-[160px] bg-white"><h3 class="font-bold text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl text-center mb-1 xs:mb-2">🎨 Visuais</h3><p class="text-xs xs:text-sm sm:text-base text-center text-gray-500">(Pinturas, fotos)</p></div>
+                    <div id="materiais" class="drop-zone p-2 xs:p-3 sm:p-4 md:p-6 rounded-lg min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[150px] lg:min-h-[160px] bg-white"><h3 class="font-bold text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl text-center mb-1 xs:mb-2">🏺 Materiais</h3><p class="text-xs xs:text-sm sm:text-base text-center text-gray-500">(Objetos, moedas)</p></div>
+                    <div id="orais" class="drop-zone p-2 xs:p-3 sm:p-4 md:p-6 rounded-lg min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[150px] lg:min-h-[160px] bg-white"><h3 class="font-bold text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl text-center mb-1 xs:mb-2">🗣️ Orais</h3><p class="text-xs xs:text-sm sm:text-base text-center text-gray-500">(Histórias, canções)</p></div>
+                </div>
+                 <div id="feedback-message" class="mt-4 sm:mt-6 text-center text-sm xs:text-base sm:text-lg md:text-xl font-semibold h-6 sm:h-8 px-2"></div>
+                
+                 <!-- Visual Feedback Overlay -->
+                <div id="feedback-overlay" class="absolute inset-0 bg-black bg-opacity-25 flex justify-center items-center rounded-lg pointer-events-none p-2">
+                    <div id="correct-feedback" class="feedback-popup hidden flex-col items-center bg-green-500 text-white p-4 xs:p-6 sm:p-8 md:p-10 rounded-lg sm:rounded-xl shadow-2xl max-w-xs sm:max-w-sm">
+                        <button class="close-feedback-btn">&times;</button>
+                        <svg class="w-8 h-8 xs:w-12 xs:h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span class="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold mt-1 xs:mt-2 sm:mt-4">CORRETO!</span>
+                        <p id="correct-explanation" class="text-xs xs:text-sm sm:text-base font-normal mt-1 xs:mt-2 max-w-full text-center px-1"></p>
+                    </div>
+                    <div id="incorrect-feedback" class="feedback-popup hidden flex-col items-center bg-red-500 text-white p-4 xs:p-6 sm:p-8 md:p-10 rounded-lg sm:rounded-xl shadow-2xl max-w-xs sm:max-w-sm">
+                        <button class="close-feedback-btn">&times;</button>
+                        <svg class="w-8 h-8 xs:w-12 xs:h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <span class="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold mt-1 xs:mt-2 sm:mt-4">ERRADO!</span>
+                        <p id="incorrect-explanation" class="text-xs xs:text-sm sm:text-base font-normal mt-1 xs:mt-2 max-w-full text-center px-1"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: Comparando Fontes -->
+        <section id="comparacao" class="slide hidden">
+            <div class="magnify-overlay" id="magnify-overlay"></div>
+            <div class="card p-3 sm:p-4 md:p-6 lg:p-8 bg-amber-50 w-full max-w-6xl mx-auto">
+                <h2 class="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-lora mb-4 sm:mb-6 text-center section-title inline-block">Analisando a Primeira Missa</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-center">
+                    <div class="text-center">
+                        <h3 class="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold font-lora mb-3 sm:mb-4">A Pintura (1860)</h3>
+                        <div class="magnify-container" id="painting-container">
+                            <button class="magnify-button" data-target="painting-img">🔍 Lupa</button>
+                            <div class="zoom-controls">
+                                <div class="zoom-level" id="painting-zoom-level">2x</div>
+                                <button class="zoom-btn" id="painting-zoom-out">−</button>
+                                <button class="zoom-btn" id="painting-zoom-in">+</button>
+                            </div>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5d/Meirelles-primeiramissa2.jpg" alt="Pintura 'A Primeira Missa no Brasil' por Victor Meirelles" class="mx-auto shadow-lg rounded-lg w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg" id="painting-img">
+                            <div class="magnifying-glass" id="painting-glass"></div>
+                        </div>
+                        <p class="mt-3 sm:mt-4 text-xs xs:text-sm sm:text-base md:text-lg italic px-2">Uma <strong class="text-[#8B4513]">interpretação artística</strong>, 360 anos depois.</p>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold font-lora mb-3 sm:mb-4">A Carta (1500)</h3>
+                        <div class="p-3 sm:p-4 md:p-6 bg-white rounded-lg shadow-inner h-full flex flex-col justify-center">
+                            <div class="magnify-container" id="letter-container">
+                                <button class="magnify-button" data-target="letter-img">🔍 Lupa</button>
+                                <div class="zoom-controls">
+                                    <div class="zoom-level" id="letter-zoom-level">2x</div>
+                                    <button class="zoom-btn" id="letter-zoom-out">−</button>
+                                    <button class="zoom-btn" id="letter-zoom-in">+</button>
+                                </div>
+                                <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhxAvuyY0pz4vExlT55m1QR7sfh2v2xTL5Bi75dPjyz98oQ3944jpXsr9FXdB-vZDMZGUaLQZQQdLnjAN392jWkoOBr7EG4EZzHLdUZFb2MaHlGEvhUgbu1LnaNGPfi6aKl7_UP11cva887sYODkILi0qeKeA8XeYDgh7-4ldLbEP6ytNzJZJDf2NgdfrqM/s800/image_processing20210724-5162-12rqmek.jpeg" alt="Manuscrito da Carta de Pero Vaz de Caminha" class="mx-auto shadow-lg mb-3 sm:mb-4 w-full max-w-xs sm:max-w-sm md:max-w-md rounded-lg" id="letter-img">
+                                <div class="magnifying-glass" id="letter-glass"></div>
+                            </div>
+                            <p class="font-lora text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl italic px-1">"...outros [...] <strong class=text-[#8B4513]>dançavam e bailavam</strong>... E <strong class=text-[#8B4513]>riam-se muito</strong>."</p>
+                            <p class="mt-3 sm:mt-4 text-xs xs:text-sm sm:text-base md:text-lg italic">Um <strong class="text-[#8B4513]">relato de testemunha ocular</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Atividade Prática -->
+        <section id="atividade" class="slide hidden">
+            <div class="card p-3 sm:p-4 md:p-6 lg:p-8 bg-stone-100 w-full max-w-6xl mx-auto">
+                <h2 class="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-lora mb-4 sm:mb-6 text-center section-title inline-block">Sua Vez de Ser Historiador!</h2>
+                <p class="text-center mb-6 sm:mb-8 text-xs xs:text-sm sm:text-base md:text-lg px-2">Desenhe sua interpretação da Primeira Missa.</p>
+                <div class="bg-white p-1 xs:p-2 sm:p-3 md:p-4 rounded-lg shadow-inner">
+                    <canvas id="drawing-canvas" class="w-full h-auto"></canvas>
+                </div>
+                <div class="flex justify-center items-center mt-3 sm:mt-4 gap-2 xs:gap-3 sm:gap-4 flex-wrap">
+                     <div class="flex items-center gap-1 xs:gap-2 text-xs xs:text-sm sm:text-base"><label for="colorPicker">Cor:</label><input type="color" id="colorPicker" value="#000000" class="h-6 w-6 xs:h-8 xs:w-8 sm:h-10 sm:w-10 rounded"></div>
+                     <div class="flex items-center gap-1 xs:gap-2 text-xs xs:text-sm sm:text-base"><label for="brushSize">Pincel:</label><input type="range" id="brushSize" min="1" max="20" value="3" class="w-16 xs:w-20 sm:w-24"></div>
+                    <button id="clear-canvas" class="btn bg-[#a0522d] text-white py-1.5 px-3 xs:py-2 xs:px-4 sm:py-3 sm:px-6 rounded-lg text-xs xs:text-sm sm:text-base hover:bg-[#8B4513] transition-colors">Limpar</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Slide 5: Quiz Final -->
+        <section id="quiz" class="slide hidden">
+            <div class="card p-2 xs:p-3 sm:p-4 md:p-6 bg-amber-50 w-full max-w-5xl mx-auto">
+                <h2 class="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold font-lora mb-2 xs:mb-3 sm:mb-4 text-center section-title inline-block">Quiz Rápido: O que Você Aprendeu?</h2>
+                <div id="quiz-container" class="max-w-4xl mx-auto text-xs xs:text-sm sm:text-base md:text-lg px-1 xs:px-2"></div>
+                <div id="quiz-results" class="text-center mt-2 xs:mt-3 sm:mt-4 font-bold text-xs xs:text-sm sm:text-base md:text-lg h-4 xs:h-6 sm:h-8 px-1 xs:px-2"></div>
+            </div>
+        </section>
+    </main>
+    
+    <nav id="navigation-controls" class="fixed bottom-0 left-0 w-full bg-white/20 backdrop-blur-sm p-2 xs:p-3 sm:p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20 flex justify-between items-center gap-1 xs:gap-2">
+        <button id="prev-btn" class="btn bg-gray-500 text-white py-1.5 px-2 xs:py-2 xs:px-3 sm:py-3 sm:px-6 md:px-8 rounded-md xs:rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold shadow-lg hover:bg-gray-600 transition-colors flex-shrink-0">&larr; <span class="hidden xs:inline">Voltar</span></button>
+        <button id="next-btn" class="btn bg-[#8B4513] text-white py-1.5 px-2 xs:py-2 xs:px-3 sm:py-3 sm:px-6 md:px-8 rounded-md xs:rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold shadow-lg hover:bg-[#a0522d] transition-colors flex-shrink-0"><span class="hidden xs:inline">Avançar</span> &rarr;</button>
+        <button id="restart-btn" class="btn bg-green-700 text-white py-1.5 px-2 xs:py-2 xs:px-3 sm:py-3 sm:px-6 md:px-8 rounded-md xs:rounded-lg text-xs xs:text-sm sm:text-base md:text-lg font-bold shadow-lg hover:bg-green-800 transition-colors hidden flex-shrink-0"><span class="hidden xs:inline">Reiniciar Aventura</span> ↺</button>
+    </nav>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Global Elements ---
+            const slides = document.querySelectorAll('.slide');
+            const progressSteps = document.querySelectorAll('.progress-step');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const mainHeader = document.getElementById('main-header');
+            let currentSlide = 0;
+            
+            // --- Scroll Direction Detection ---
+            let lastScrollTop = 0;
+            let scrollTimeout;
+            let hideTimeout;
+            
+            function handleScroll() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollDirection = scrollTop > lastScrollTop ? 'down' : 'up';
+                
+                // Clear existing timeouts
+                clearTimeout(scrollTimeout);
+                clearTimeout(hideTimeout);
+                
+                // Show progress bar immediately when scrolling
+                progressBar.classList.remove('hidden');
+                
+                // Hide progress bar after 3 seconds of inactivity
+                hideTimeout = setTimeout(() => {
+                    if (scrollTop > 50) {
+                        progressBar.classList.add('hidden');
+                    }
+                }, 3000);
+                
+                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+            }
+            
+            // Throttled scroll event listener
+            window.addEventListener('scroll', () => {
+                if (!scrollTimeout) {
+                    scrollTimeout = setTimeout(() => {
+                        handleScroll();
+                        scrollTimeout = null;
+                    }, 10);
+                }
+            }, { passive: true });
+            
+            // --- Dynamic Content Sizing ---
+            function adjustContentToViewport() {
+                const viewportHeight = window.innerHeight;
+                const progressBarHeight = document.getElementById('progress-bar').offsetHeight;
+                const navHeight = document.getElementById('navigation-controls').offsetHeight;
+                const availableHeight = viewportHeight - progressBarHeight - navHeight - 40; // 40px buffer
+                
+                // Adjust canvas size for drawing section
+                if (currentSlide === 3) { // Drawing section
+                    const canvas = document.getElementById('drawing-canvas');
+                    if (canvas) {
+                        const container = canvas.parentElement;
+                        const containerWidth = container.clientWidth;
+                        const maxCanvasHeight = Math.min(availableHeight * 0.6, 400);
+                        canvas.width = containerWidth;
+                        canvas.height = maxCanvasHeight;
+                        clearAndPrepareCanvas();
+                    }
+                }
+                
+                // Adjust game drop zones if needed
+                if (currentSlide === 1) { // Game section
+                    const dropZones = document.querySelectorAll('.drop-zone');
+                    const availableGameHeight = availableHeight * 0.7;
+                    dropZones.forEach(zone => {
+                        zone.style.maxHeight = `${availableGameHeight / 2 - 20}px`;
+                    });
+                }
+                
+                // Adjust images in comparison section
+                if (currentSlide === 2) { // Comparison section
+                    const images = document.querySelectorAll('#comparacao img');
+                    const maxImageHeight = Math.min(availableHeight * 0.4, 250);
+                    images.forEach(img => {
+                        img.style.maxHeight = `${maxImageHeight}px`;
+                    });
+                }
+                
+                // Adjust quiz section
+                if (currentSlide === 4) { // Quiz section
+                    const quizContainer = document.getElementById('quiz-container');
+                    const quizCard = document.querySelector('#quiz .card');
+                    if (quizContainer && quizCard) {
+                        const quizMaxHeight = Math.min(availableHeight * 0.8, availableHeight - 100);
+                        quizCard.style.maxHeight = `${quizMaxHeight}px`;
+                        quizContainer.style.maxHeight = `${quizMaxHeight - 80}px`;
+                    }
+                }
+                
+            }
+            
+            // Call on resize and slide change
+            window.addEventListener('resize', adjustContentToViewport);
+
+            // --- Canvas Drawing Globals ---
+            const canvas = document.getElementById('drawing-canvas');
+            const ctx = canvas.getContext('2d');
+            const colorPicker = document.getElementById('colorPicker');
+            const brushSize = document.getElementById('brushSize');
+            let isDrawing = false;
+            
+            // --- Canvas Functions ---
+            function clearAndPrepareCanvas() {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                const size = container.clientWidth;
+                canvas.width = size;
+                canvas.height = size * 0.6; // Proporção
+                clearAndPrepareCanvas(); 
+            }
+            
+            function getCanvasPosition(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
+            }
+            function startDrawing(e) { e.preventDefault(); isDrawing = true; const { x, y } = getCanvasPosition(e); ctx.beginPath(); ctx.moveTo(x, y); }
+            function draw(e) { if (!isDrawing) return; e.preventDefault(); const { x, y } = getCanvasPosition(e); ctx.lineTo(x, y); ctx.strokeStyle = colorPicker.value; ctx.lineWidth = brushSize.value; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); }
+            function stopDrawing() { isDrawing = false; ctx.closePath(); }
+
+            // --- Slide Navigation Logic ---
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.toggle('hidden', i !== index);
+                });
+
+                progressSteps.forEach((step, i) => step.classList.toggle('active', i === index));
+                currentSlide = index;
+
+                // --- Header Visibility ---
+                if (index === 0) {
+                    // Show header only on first slide
+                    mainHeader.classList.remove('hidden');
+                } else {
+                    // Hide header on all other slides
+                    mainHeader.classList.add('hidden');
+                }
+
+                // --- Button Visibility and Text ---
+                prevBtn.classList.toggle('hidden', index === 0);
+                nextBtn.classList.toggle('hidden', index === slides.length - 1);
+                restartBtn.classList.toggle('hidden', index !== slides.length - 1);
+
+                if (index === 0) {
+                    nextBtn.innerHTML = 'Começar Investigação &rarr;';
+                } else if (index === slides.length - 2) {
+                    nextBtn.innerHTML = 'Teste Final &rarr;';
+                } else {
+                    nextBtn.innerHTML = 'Avançar &rarr;';
+                }
+
+                if (index === 3) {
+                    setTimeout(resizeCanvas, 0);
+                }
+                
+                // Initialize magnifying glass when on comparison slide
+                if (index === 2) {
+                    setTimeout(initMagnifyingGlass, 200);
+                }
+                
+                // Adjust content to viewport after slide change
+                setTimeout(adjustContentToViewport, 100);
+
+                const targetElement = index === 0 ? mainHeader : slides[index];
+                if(targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+
+            function navigate(direction) {
+                const newIndex = currentSlide + direction;
+                if (newIndex >= 0 && newIndex < slides.length) showSlide(newIndex);
+            }
+            
+            progressSteps.forEach(step => {
+                step.addEventListener('click', () => {
+                    showSlide(parseInt(step.dataset.slide));
+                    // Show progress bar when user clicks on progress step
+                    progressBar.classList.remove('hidden');
+                    // Clear any existing hide timeout
+                    clearTimeout(hideTimeout);
+                    // Set new hide timeout after 3 seconds of inactivity
+                    hideTimeout = setTimeout(() => {
+                        if (window.pageYOffset > 50) {
+                            progressBar.classList.add('hidden');
+                        }
+                    }, 3000);
+                });
+            });
+
+            nextBtn.addEventListener('click', () => {
+                navigate(1);
+                // Show progress bar when user navigates
+                progressBar.classList.remove('hidden');
+                // Clear any existing hide timeout
+                clearTimeout(hideTimeout);
+                // Set new hide timeout after 3 seconds of inactivity
+                hideTimeout = setTimeout(() => {
+                    if (window.pageYOffset > 50) {
+                        progressBar.classList.add('hidden');
+                    }
+                }, 3000);
+            });
+            prevBtn.addEventListener('click', () => {
+                navigate(-1);
+                // Show progress bar when user navigates
+                progressBar.classList.remove('hidden');
+                // Clear any existing hide timeout
+                clearTimeout(hideTimeout);
+                // Set new hide timeout after 3 seconds of inactivity
+                hideTimeout = setTimeout(() => {
+                    if (window.pageYOffset > 50) {
+                        progressBar.classList.add('hidden');
+                    }
+                }, 3000);
+            });
+            
+            function resetQuiz() {
+                 renderQuiz();
+            }
+
+            restartBtn.addEventListener('click', () => {
+                showSlide(0);
+                resetQuiz();
+                // Show progress bar when user restarts (stays visible on first slide)
+                progressBar.classList.remove('hidden');
+            });
+
+            showSlide(currentSlide);
+
+            // --- JOGO DE ARRASTAR E SOLTAR ---
+            const draggableItems = [
+                { id: 'item1', text: 'Carta', category: 'escritas' }, { id: 'item2', text: 'Pintura', category: 'visuais' },
+                { id: 'item3', text: 'Moeda', category: 'materiais' }, { id: 'item4', text: 'Lenda', category: 'orais' },
+                { id: 'item5', text: 'Foto', category: 'visuais' }, { id: 'item6', text: 'Ferramenta', category: 'materiais' },
+                { id: 'item7', text: 'Diário', category: 'escritas' }
+            ];
+            
+            const sourcesContainer = document.getElementById('sources-container');
+            const feedbackMessage = document.getElementById('feedback-message');
+            const feedbackOverlay = document.getElementById('feedback-overlay');
+            const correctFeedback = document.getElementById('correct-feedback');
+            const incorrectFeedback = document.getElementById('incorrect-feedback');
+            const correctExplanationEl = document.getElementById('correct-explanation');
+            const incorrectExplanationEl = document.getElementById('incorrect-explanation');
+            let correctCount = 0;
+            
+            document.querySelectorAll('.close-feedback-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    feedbackOverlay.classList.remove('visible');
+                    feedbackOverlay.style.pointerEvents = 'none';
+                });
+            });
+
+
+            function getReason(category) {
+                switch(category) {
+                    case 'escritas': return 'usa palavras para registrar informações.';
+                    case 'visuais': return 'usa imagens para mostrar algo.';
+                    case 'materiais': return 'é um objeto físico que podemos tocar.';
+                    case 'orais': return 'é uma história contada em voz alta.';
+                    default: return '';
+                }
+            }
+
+            function showFeedback(type, explanation = '') {
+                feedbackOverlay.style.pointerEvents = 'auto';
+                if (type === 'correct') {
+                    correctExplanationEl.textContent = explanation;
+                } else {
+                    incorrectExplanationEl.textContent = explanation;
+                }
+                
+                const elementToShow = type === 'correct' ? correctFeedback : incorrectFeedback;
+                const elementToHide = type === 'correct' ? incorrectFeedback : correctFeedback;
+
+                elementToHide.classList.add('hidden');
+                elementToShow.classList.remove('hidden');
+                
+                feedbackOverlay.classList.add('visible');
+            }
+
+            draggableItems.sort(() => Math.random() - 0.5).forEach(item => {
+                const div = document.createElement('div');
+                div.id = item.id;
+                div.textContent = item.text;
+                div.className = 'draggable-item p-1.5 xs:p-2 sm:p-3 bg-[#8B4513] text-white text-xs xs:text-sm sm:text-base rounded-md shadow-md whitespace-nowrap';
+                div.dataset.category = item.category;
+                div.draggable = true;
+                sourcesContainer.appendChild(div);
+            });
+            
+            sourcesContainer.addEventListener('dragstart', e => { if (e.target.classList.contains('draggable-item')) { e.dataTransfer.setData('text/plain', e.target.id); e.target.classList.add('opacity-50'); } });
+            sourcesContainer.addEventListener('dragend', e => { if (e.target.classList.contains('draggable-item')) { e.target.classList.remove('opacity-50'); } });
+
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drop-zone-over'); });
+                zone.addEventListener('dragleave', () => zone.classList.remove('drop-zone-over'));
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('drop-zone-over');
+                    const id = e.dataTransfer.getData('text');
+                    const draggableElement = document.getElementById(id);
+                    if (!draggableElement || !zone.contains(draggableElement) && draggableElement.parentElement.id !== 'sources-container') return;
+                    
+                    if (draggableElement.dataset.category === zone.id) {
+                        const explanation = `Uma ${draggableElement.textContent.toLowerCase()} é uma fonte ${zone.id} porque ${getReason(zone.id)}`;
+                        showFeedback('correct', explanation);
+                        zone.appendChild(draggableElement);
+                        draggableElement.draggable = false;
+                        draggableElement.style.cursor = 'default';
+                        draggableElement.style.backgroundColor = '#228B22';
+                        correctCount++;
+                        if (correctCount === draggableItems.length) { 
+                            setTimeout(() => {
+                                feedbackMessage.textContent = 'Parabéns! Você classificou todas as pistas!';
+                                feedbackMessage.style.color = 'green';
+                            }, 1000);
+                        }
+                    } else {
+                        const correctCategory = draggableElement.dataset.category;
+                        const explanation = `Na verdade, uma ${draggableElement.textContent.toLowerCase()} é uma fonte ${correctCategory}, pois ${getReason(correctCategory)}`;
+                        showFeedback('incorrect', explanation);
+                        draggableElement.classList.add('shake-animation');
+                        setTimeout(() => draggableElement.classList.remove('shake-animation'), 800);
+                    }
+                });
+            });
+            
+            // --- Event Listeners Canvas ---
+            window.addEventListener('resize', resizeCanvas);
+            ['mousedown', 'touchstart'].forEach(evt => canvas.addEventListener(evt, startDrawing));
+            ['mousemove', 'touchmove'].forEach(evt => canvas.addEventListener(evt, draw));
+            ['mouseup', 'mouseout', 'touchend'].forEach(evt => canvas.addEventListener(evt, stopDrawing));
+            document.getElementById('clear-canvas').addEventListener('click', clearAndPrepareCanvas);
+
+            // --- QUIZ ---
+            const quizData = [
+                { question: "Qual o principal documento sobre a chegada dos portugueses ao Brasil?", answers: ["A pintura de V. Meirelles", "A Carta de P. V. Caminha", "Um diário indígena"], correct: "A Carta de P. V. Caminha" },
+                { question: "A pintura da Primeira Missa é um registro exato do que aconteceu?", answers: ["Sim, foi pintada no dia", "Não, é uma interpretação artística", "Sim, o pintor estava lá"], correct: "Não, é uma interpretação artística" },
+                { question: "Por que comparar diferentes fontes é importante?", answers: ["Para achar erros", "Para ter uma visão mais completa", "Para decorar datas"], correct: "Para ter uma visão mais completa" }
+            ];
+
+            const quizContainer = document.getElementById('quiz-container');
+            const quizResults = document.getElementById('quiz-results');
+            let score = 0;
+
+            function renderQuiz() {
+                quizContainer.innerHTML = '';
+                score = 0;
+                quizResults.textContent = '';
+
+                quizData.forEach((q, i) => {
+                    const questionBlock = document.createElement('div');
+                    questionBlock.className = 'mb-3 xs:mb-4';
+                    
+                    const questionText = document.createElement('p');
+                    questionText.className = 'font-semibold text-sm xs:text-base sm:text-lg mb-2';
+                    questionText.textContent = `${i + 1}. ${q.question}`;
+                    questionBlock.appendChild(questionText);
+
+                    const answersContainer = document.createElement('div');
+                    answersContainer.className = 'ml-2 xs:ml-4 mt-1 xs:mt-2';
+
+                    q.answers.forEach(answer => {
+                        const label = document.createElement('label');
+                        label.className = 'block mt-1 xs:mt-2 cursor-pointer p-1.5 xs:p-2 rounded-md hover:bg-amber-100 transition-colors text-xs xs:text-sm sm:text-base';
+                        
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = `question${i}`;
+                        radio.value = answer;
+                        radio.className = 'mr-2';
+
+                        label.appendChild(radio);
+                        label.appendChild(document.createTextNode(answer));
+                        answersContainer.appendChild(label);
+                    });
+
+                    questionBlock.appendChild(answersContainer);
+                    quizContainer.appendChild(questionBlock);
+
+                    answersContainer.addEventListener('change', (e) => {
+                        const selectedLabel = e.target.parentElement;
+                        const radios = answersContainer.querySelectorAll('input[type="radio"]');
+                        
+                        radios.forEach(radio => {
+                            radio.disabled = true;
+                            const label = radio.parentElement;
+                            if(radio.value === q.correct) {
+                                label.classList.add('bg-green-200', 'font-bold');
+                            }
+                        });
+
+                        if (e.target.value !== q.correct) {
+                            selectedLabel.classList.add('bg-red-200');
+                            selectedLabel.classList.remove('font-bold');
+                        } else {
+                            score++;
+                        }
+                        quizResults.textContent = `Você acertou ${score} de ${quizData.length}!`;
+                    });
+                });
+            }
+
+            renderQuiz();
+            
+            // --- MAGNIFYING GLASS FUNCTIONALITY ---
+            let magnifyActive = { painting: false, letter: false };
+            let magnifyInitialized = false;
+            let isDragging = false;
+            let dragOffset = { x: 0, y: 0 };
+            let zoomLevels = { painting: 2, letter: 2 };
+            
+            function initMagnifyingGlass() {
+                if (magnifyInitialized) return;
+                
+                const paintingContainer = document.getElementById('painting-container');
+                const paintingImg = document.getElementById('painting-img');
+                const paintingGlass = document.getElementById('painting-glass');
+                const paintingBtn = document.querySelector('[data-target="painting-img"]');
+                
+                const letterContainer = document.getElementById('letter-container');
+                const letterImg = document.getElementById('letter-img');
+                const letterGlass = document.getElementById('letter-glass');
+                const letterBtn = document.querySelector('[data-target="letter-img"]');
+                
+                const overlay = document.getElementById('magnify-overlay');
+                
+                if (!paintingContainer || !letterContainer || !overlay || !paintingImg || !letterImg) {
+                    return;
+                }
+                
+                magnifyInitialized = true;
+                
+                function deactivateAll() {
+                    magnifyActive.painting = false;
+                    magnifyActive.letter = false;
+                    paintingBtn.classList.remove('active');
+                    letterBtn.classList.remove('active');
+                    paintingContainer.style.cursor = 'default';
+                    letterContainer.style.cursor = 'default';
+                    paintingGlass.style.display = 'none';
+                    letterGlass.style.display = 'none';
+                    overlay.style.display = 'none';
+                }
+                
+                // Painting button
+                paintingBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    magnifyActive.painting = !magnifyActive.painting;
+                    paintingBtn.classList.toggle('active', magnifyActive.painting);
+                    
+                    if (magnifyActive.painting) {
+                        magnifyActive.letter = false;
+                        letterBtn.classList.remove('active');
+                        letterContainer.style.cursor = 'default';
+                        letterGlass.style.display = 'none';
+                        
+                        paintingContainer.style.cursor = 'default';
+                        paintingGlass.style.display = 'block';
+                        overlay.style.display = 'block';
+                        
+                        // Initialize background image and size
+                        const rect = paintingImg.getBoundingClientRect();
+                        const zoomFactor = 2;
+                        const bgWidth = rect.width * zoomFactor;
+                        const bgHeight = rect.height * zoomFactor;
+                        
+                        paintingGlass.style.backgroundImage = `url(${paintingImg.src})`;
+                        paintingGlass.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+                        paintingGlass.style.backgroundPosition = 'center center';
+                    } else {
+                        deactivateAll();
+                    }
+                });
+                
+                // Letter button
+                letterBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    magnifyActive.letter = !magnifyActive.letter;
+                    letterBtn.classList.toggle('active', magnifyActive.letter);
+                    
+                    if (magnifyActive.letter) {
+                        magnifyActive.painting = false;
+                        paintingBtn.classList.remove('active');
+                        paintingContainer.style.cursor = 'default';
+                        paintingGlass.style.display = 'none';
+                        
+                        letterContainer.style.cursor = 'default';
+                        letterGlass.style.display = 'block';
+                        overlay.style.display = 'block';
+                        
+                        // Initialize background image and size
+                        const rect = letterImg.getBoundingClientRect();
+                        const zoomFactor = 2;
+                        const bgWidth = rect.width * zoomFactor;
+                        const bgHeight = rect.height * zoomFactor;
+                        
+                        letterGlass.style.backgroundImage = `url(${letterImg.src})`;
+                        letterGlass.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+                        letterGlass.style.backgroundPosition = 'center center';
+                    } else {
+                        deactivateAll();
+                    }
+                });
+                
+                
+                // Overlay click to deactivate
+                overlay.addEventListener('click', () => {
+                    deactivateAll();
+                });
+                
+                // Drag functionality for magnifying glass
+                function setupDragFunctionality(glass, img, container) {
+                    // Mouse events for desktop
+                    glass.addEventListener('mousedown', (e) => {
+                        isDragging = true;
+                        const rect = glass.getBoundingClientRect();
+                        dragOffset.x = e.clientX - rect.left;
+                        dragOffset.y = e.clientY - rect.top;
+                        glass.style.cursor = 'grabbing';
+                        e.preventDefault();
+                    });
+                    
+                    document.addEventListener('mousemove', (e) => {
+                        if (!isDragging) return;
+                        
+                        const newX = e.clientX - dragOffset.x;
+                        const newY = e.clientY - dragOffset.y;
+                        
+                        // Keep magnifying glass within screen bounds
+                        const glassSize = 300;
+                        const boundedX = Math.max(glassSize/2, Math.min(window.innerWidth - glassSize/2, newX + glassSize/2));
+                        const boundedY = Math.max(glassSize/2, Math.min(window.innerHeight - glassSize/2, newY + glassSize/2));
+                        
+                        glass.style.left = boundedX + 'px';
+                        glass.style.top = boundedY + 'px';
+                        glass.style.transform = 'translate(-50%, -50%)';
+                        
+                        // Update magnified view based on position relative to image
+                        updateMagnifiedView(glass, img, container, boundedX, boundedY);
+                    });
+                    
+                    document.addEventListener('mouseup', () => {
+                        if (isDragging) {
+                            isDragging = false;
+                            glass.style.cursor = 'grab';
+                        }
+                    });
+                    
+                    // Touch events for mobile
+                    glass.addEventListener('touchstart', (e) => {
+                        isDragging = true;
+                        const touch = e.touches[0];
+                        const rect = glass.getBoundingClientRect();
+                        dragOffset.x = touch.clientX - rect.left;
+                        dragOffset.y = touch.clientY - rect.top;
+                        e.preventDefault();
+                    });
+                    
+                    document.addEventListener('touchmove', (e) => {
+                        if (!isDragging) return;
+                        
+                        const touch = e.touches[0];
+                        const newX = touch.clientX - dragOffset.x;
+                        const newY = touch.clientY - dragOffset.y;
+                        
+                        const glassSize = 300;
+                        const boundedX = Math.max(glassSize/2, Math.min(window.innerWidth - glassSize/2, newX + glassSize/2));
+                        const boundedY = Math.max(glassSize/2, Math.min(window.innerHeight - glassSize/2, newY + glassSize/2));
+                        
+                        glass.style.left = boundedX + 'px';
+                        glass.style.top = boundedY + 'px';
+                        glass.style.transform = 'translate(-50%, -50%)';
+                        
+                        updateMagnifiedView(glass, img, container, boundedX, boundedY);
+                        e.preventDefault();
+                    });
+                    
+                    document.addEventListener('touchend', () => {
+                        isDragging = false;
+                    });
+                }
+                
+                // Function to update magnified view based on glass position
+                function updateMagnifiedView(glass, img, container, glassX, glassY, zoomFactor = null) {
+                    const imgRect = img.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    
+                    // Calculate relative position of glass center to image
+                    const relativeX = glassX - imgRect.left;
+                    const relativeY = glassY - imgRect.top;
+                    
+                    // Check if glass is over the image
+                    if (relativeX >= 0 && relativeX <= imgRect.width && 
+                        relativeY >= 0 && relativeY <= imgRect.height) {
+                        
+                        // Use provided zoom factor or current zoom level
+                        const currentZoom = zoomFactor || (img.id === 'painting-img' ? zoomLevels.painting : zoomLevels.letter);
+                        const magnifySize = 300;
+                        
+                        // Calculate background size
+                        const bgWidth = imgRect.width * currentZoom;
+                        const bgHeight = imgRect.height * currentZoom;
+                        
+                        // Calculate background position for zoom effect
+                        const bgX = -(relativeX * currentZoom - magnifySize / 2);
+                        const bgY = -(relativeY * currentZoom - magnifySize / 2);
+                        
+                        glass.style.backgroundImage = `url(${img.src})`;
+                        glass.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+                        glass.style.backgroundPosition = `${bgX}px ${bgY}px`;
+                    }
+                }
+                
+                // Function to update zoom level display
+                function updateZoomDisplay(type, level) {
+                    const zoomDisplay = document.getElementById(`${type}-zoom-level`);
+                    if (zoomDisplay) {
+                        zoomDisplay.textContent = `${level}x`;
+                    }
+                }
+                
+                // Function to change zoom level
+                function changeZoom(type, direction) {
+                    const currentZoom = zoomLevels[type];
+                    let newZoom = currentZoom;
+                    
+                    if (direction === 'in' && currentZoom < 5) {
+                        newZoom = Math.min(currentZoom + 0.5, 5);
+                    } else if (direction === 'out' && currentZoom > 1) {
+                        newZoom = Math.max(currentZoom - 0.5, 1);
+                    }
+                    
+                    if (newZoom !== currentZoom) {
+                        zoomLevels[type] = newZoom;
+                        updateZoomDisplay(type, newZoom);
+                        
+                        // Update current magnified view if active
+                        if (magnifyActive[type]) {
+                            const glass = document.getElementById(`${type}-glass`);
+                            const img = document.getElementById(`${type}-img`);
+                            const container = document.getElementById(`${type}-container`);
+                            
+                            if (glass && img && container) {
+                                const glassRect = glass.getBoundingClientRect();
+                                const glassX = glassRect.left + glassRect.width / 2;
+                                const glassY = glassRect.top + glassRect.height / 2;
+                                
+                                updateMagnifiedView(glass, img, container, glassX, glassY, newZoom);
+                            }
+                        }
+                    }
+                }
+                
+                // Setup drag functionality for both glasses
+                setupDragFunctionality(paintingGlass, paintingImg, paintingContainer);
+                setupDragFunctionality(letterGlass, letterImg, letterContainer);
+                
+                // Setup zoom controls
+                const paintingZoomIn = document.getElementById('painting-zoom-in');
+                const paintingZoomOut = document.getElementById('painting-zoom-out');
+                const letterZoomIn = document.getElementById('letter-zoom-in');
+                const letterZoomOut = document.getElementById('letter-zoom-out');
+                
+                // Painting zoom controls
+                if (paintingZoomIn) {
+                    paintingZoomIn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        changeZoom('painting', 'in');
+                    });
+                }
+                
+                if (paintingZoomOut) {
+                    paintingZoomOut.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        changeZoom('painting', 'out');
+                    });
+                }
+                
+                // Letter zoom controls
+                if (letterZoomIn) {
+                    letterZoomIn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        changeZoom('letter', 'in');
+                    });
+                }
+                
+                if (letterZoomOut) {
+                    letterZoomOut.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        changeZoom('letter', 'out');
+                    });
+                }
+                
+                // Initialize zoom displays
+                updateZoomDisplay('painting', zoomLevels.painting);
+                updateZoomDisplay('letter', zoomLevels.letter);
+            }
+        });
+    </script>
+
+    <!-- Botão Voltar ao Início -->
+    <a href="index.html" style="position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; background: linear-gradient(to right, #2563eb, #9333ea); color: white; padding: 0.75rem 1.5rem; border-radius: 9999px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.875rem; text-decoration: none; transition: all 0.3s;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        MyApps
+    </a>
+</body>
+</html>
+
+
+

@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaHub - Dicionário de Sintaxe</title>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons (Vanilla JS version) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Configuração do Tailwind para Dark Mode -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.2s ease-out',
+                        'zoom-in': 'zoomIn 0.2s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        zoomIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fontes (Inter e JetBrains Mono para código) -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Scrollbar customizada suave */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 transition-colors duration-300">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- COMPONENTE DE ÍCONES (Adapter para Lucide Global) ---
+        const LucideIcon = ({ name, size = 20, className = "" }) => {
+            const [svgHtml, setSvgHtml] = useState("");
+
+            useEffect(() => {
+                if (window.lucide && window.lucide.icons && window.lucide.icons[name]) {
+                    try {
+                        const iconNode = window.lucide.icons[name];
+                        const element = window.lucide.createElement(iconNode);
+                        element.setAttribute('width', size);
+                        element.setAttribute('height', size);
+                        setSvgHtml(element.outerHTML);
+                    } catch (error) {
+                        console.error(`Erro ao renderizar ícone ${name}:`, error);
+                    }
+                }
+            }, [name, size]);
+
+            if (!svgHtml) return <span style={{ width: size, height: size, display: 'inline-block' }}></span>;
+
+            return (
+                <span
+                    dangerouslySetInnerHTML={{ __html: svgHtml }}
+                    className={`flex items-center justify-center ${className}`}
+                    style={{ width: size, height: size, display: 'inline-flex' }}
+                />
+            );
+        };
+
+        // Ícones mapeados
+        const Icons = {
+            Search: (props) => <LucideIcon name="Search" {...props} />,
+            Copy: (props) => <LucideIcon name="Copy" {...props} />,
+            Check: (props) => <LucideIcon name="Check" {...props} />,
+            Book: (props) => <LucideIcon name="Book" {...props} />,
+            Code: (props) => <LucideIcon name="Code" {...props} />,
+            Terminal: (props) => <LucideIcon name="Terminal" {...props} />,
+            Layers: (props) => <LucideIcon name="Layers" {...props} />,
+            Database: (props) => <LucideIcon name="Database" {...props} />,
+            Cpu: (props) => <LucideIcon name="Cpu" {...props} />,
+            Moon: (props) => <LucideIcon name="Moon" {...props} />,
+            Sun: (props) => <LucideIcon name="Sun" {...props} />,
+            Menu: (props) => <LucideIcon name="Menu" {...props} />,
+            X: (props) => <LucideIcon name="X" {...props} />,
+            ChevronRight: (props) => <LucideIcon name="ChevronRight" {...props} />,
+            Zap: (props) => <LucideIcon name="Zap" {...props} />,
+            FileText: (props) => <LucideIcon name="FileText" {...props} />,
+            Clock: (props) => <LucideIcon name="Clock" {...props} />,
+            AlertCircle: (props) => <LucideIcon name="AlertCircle" {...props} />,
+            Box: (props) => <LucideIcon name="Box" {...props} />,
+            Maximize2: (props) => <LucideIcon name="Maximize2" {...props} />
+        };
+
+        // --- DADOS COMPLETOS (SYNTAX_DATA) ---
+        const SYNTAX_DATA = [
+            // --- BÁSICO ---
+            {
+                id: 'basic-main',
+                category: 'Básico',
+                title: 'Método Main',
+                description: 'O ponto de entrada de qualquer aplicação Java.',
+                code: `public static void main(String[] args) {\n    System.out.println("Olá, Mundo!");\n}`
+            },
+            {
+                id: 'basic-vars',
+                category: 'Básico',
+                title: 'Declaração e Inferência (var)',
+                description: 'Tipos primitivos e inferência de tipo (Java 10+).',
+                code: `int idade = 30;\nvar nome = "Java"; // Inferência automática (String)\nvar lista = new ArrayList<String>();`
+            },
+            {
+                id: 'basic-class-simple',
+                category: 'Básico',
+                title: 'Classe Básica (Pessoa)',
+                description: 'Exemplo de uma classe simples com atributos e métodos.',
+                code: `public class Pessoa {\n    // Atributos\n    private String nome;\n    private int idade;\n    \n    // Construtor\n    public Pessoa(String nome, int idade) {\n        this.nome = nome;\n        this.idade = idade;\n    }\n    \n    // Métodos\n    public void apresentar() {\n        System.out.println("Olá, meu nome é " + nome);\n        System.out.println("Tenho " + idade + " anos");\n    }\n    \n    // Getters\n    public String getNome() { return nome; }\n    public int getIdade() { return idade; }\n}`
+            },
+            {
+                id: 'basic-main-with-class',
+                category: 'Básico',
+                title: 'Main Usando Classes',
+                description: 'Como criar e usar objetos de classes no método main.',
+                code: `public class Main {\n    public static void main(String[] args) {\n        // Criando objetos\n        Pessoa pessoa1 = new Pessoa("Ana", 25);\n        Pessoa pessoa2 = new Pessoa("Bruno", 30);\n        \n        // Chamando métodos\n        pessoa1.apresentar();\n        System.out.println("\\n---\\n");\n        pessoa2.apresentar();\n        \n        // Usando getters\n        System.out.println("\\nNome: " + pessoa1.getNome());\n    }\n}`
+            },
+            {
+                id: 'basic-complete-example',
+                category: 'Básico',
+                title: 'Exemplo Completo (Calculadora)',
+                description: 'Classe Calculadora + Main em um arquivo completo.',
+                code: `// Arquivo: Calculadora.java\npublic class Calculadora {\n    public int somar(int a, int b) {\n        return a + b;\n    }\n    \n    public int subtrair(int a, int b) {\n        return a - b;\n    }\n    \n    public double dividir(double a, double b) {\n        if (b == 0) {\n            System.out.println("Erro: divisão por zero!");\n            return 0;\n        }\n        return a / b;\n    }\n}\n\n// Arquivo: Main.java\npublic class Main {\n    public static void main(String[] args) {\n        Calculadora calc = new Calculadora();\n        \n        int soma = calc.somar(10, 5);\n        int sub = calc.subtrair(10, 5);\n        double div = calc.dividir(10, 3);\n        \n        System.out.println("Soma: " + soma);      // 15\n        System.out.println("Subtração: " + sub);  // 5\n        System.out.println("Divisão: " + div);    // 3.333...\n    }\n}`
+            },
+
+            // --- CONTROLE DE FLUXO ---
+            {
+                id: 'flow-switch',
+                category: 'Controle',
+                title: 'Switch Expression (Java 14+)',
+                description: 'Sintaxe moderna que retorna valores diretamente.',
+                code: `var tipo = switch (dia) {\n    case "SÁB", "DOM" -> "Fim de semana";\n    case "SEG" -> "Útil";\n    default -> throw new IllegalArgumentException("Dia inválido");\n};`
+            },
+            {
+                id: 'flow-ternary',
+                category: 'Controle',
+                title: 'Operador Ternário',
+                description: 'Condicional simplificada em uma linha.',
+                code: `String status = (nota >= 7) ? "Aprovado" : "Reprovado";`
+            },
+
+            // --- COLEÇÕES ---
+            {
+                id: 'coll-list-of',
+                category: 'Coleções',
+                title: 'Listas Imutáveis (Java 9+)',
+                description: 'Criar listas rapidamente (Factory Methods).',
+                code: `List<String> itens = List.of("A", "B", "C");\n// itens.add("D"); // Lança UnsupportedOperationException`
+            },
+            {
+                id: 'coll-map-of',
+                category: 'Coleções',
+                title: 'Mapas Imutáveis',
+                description: 'Criar mapas estáticos de forma concisa.',
+                code: `Map<String, Integer> precos = Map.of(\n    "Maçã", 10,\n    "Banana", 5\n);`
+            },
+
+            // --- POO ---
+            {
+                id: 'oop-record',
+                category: 'POO',
+                title: 'Records (DTOs)',
+                description: 'Classes de dados imutáveis com equals/hashcode/tostring automáticos.',
+                code: `public record Cliente(String nome, String email) {}\n\nvar c = new Cliente("Ana", "ana@email.com");\nSystem.out.println(c.nome());`
+            },
+            {
+                id: 'oop-interface',
+                category: 'POO',
+                title: 'Interface com Default Methods',
+                description: 'Métodos com implementação padrão em interfaces.',
+                code: `interface Veiculo {\n    void acelerar();\n    \n    default void buzinar() {\n        System.out.println("Bip Bip!");\n    }\n}`
+            },
+            {
+                id: 'oop-enum',
+                category: 'POO',
+                title: 'Enum com Campos e Métodos',
+                description: 'Enums ricos com construtores e lógica.',
+                code: `enum Nivel {\n    BAIXO(1), ALTO(5);\n    \n    private final int valor;\n    Nivel(int valor) { this.valor = valor; }\n    public int getValor() { return valor; }\n}`
+            },
+            {
+                id: 'oop-generics',
+                category: 'POO',
+                title: 'Generics (Classes e Métodos)',
+                description: 'Tipagem flexível e segura.',
+                code: `// Classe Genérica\npublic class Caixa<T> {\n    private T conteudo;\n    public void set(T t) { this.conteudo = t; }\n}\n\n// Método Genérico\npublic <T> T pegarPrimeiro(List<T> lista) {\n    return lista.get(0);\n}`
+            },
+
+            // --- FUNCIONAL (NOVO) ---
+            {
+                id: 'func-optional',
+                category: 'Funcional',
+                title: 'Optional (Evitar Null)',
+                description: 'Contêiner para valores que podem estar ausentes.',
+                code: `Optional<String> opt = Optional.ofNullable(texto);\n\n// Se existir imprime, senão lança erro ou usa padrão\nString res = opt.orElse("Padrão");\nopt.ifPresent(val -> System.out.println(val));`
+            },
+            {
+                id: 'func-method-ref',
+                category: 'Funcional',
+                title: 'Method References (::)',
+                description: 'Sintaxe curta para expressões lambda.',
+                code: `list.forEach(System.out::println);\n\n// Referência a método estático\nlist.stream().map(String::toUpperCase);`
+            },
+
+            // --- STREAMS ---
+            {
+                id: 'stream-complex',
+                category: 'Streams',
+                title: 'Filter, Map & Collect',
+                description: 'Pipeline de processamento de dados.',
+                code: `List<String> nomes = pessoas.stream()\n    .filter(p -> p.getIdade() > 18)\n    .map(Pessoa::getNome)\n    .collect(Collectors.toList());`
+            },
+            {
+                id: 'stream-flatmap',
+                category: 'Streams',
+                title: 'FlatMap',
+                description: 'Achatar estruturas aninhadas (Lista de Listas).',
+                code: `List<List<String>> turmas = List.of(turmaA, turmaB);\n\nList<String> todosAlunos = turmas.stream()\n    .flatMap(List::stream)\n    .collect(Collectors.toList());`
+            },
+            {
+                id: 'stream-grouping',
+                category: 'Streams',
+                title: 'Grouping By',
+                description: 'Agrupar elementos (como SQL Group By).',
+                code: `Map<String, List<Pessoa>> porCidade = pessoas.stream()\n    .collect(Collectors.groupingBy(Pessoa::getCidade));`
+            },
+
+            // --- CONCORRÊNCIA (NOVO) ---
+            {
+                id: 'conc-completable',
+                category: 'Concorrência',
+                title: 'CompletableFuture',
+                description: 'Programação assíncrona moderna.',
+                code: `CompletableFuture.supplyAsync(() -> "Processando...")\n    .thenApply(s -> s + " Concluído")\n    .thenAccept(System.out::println); // Não bloqueia main`
+            },
+            {
+                id: 'conc-virtual',
+                category: 'Concorrência',
+                title: 'Virtual Threads (Java 21)',
+                description: 'Threads leves de alto desempenho.',
+                code: `try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n    executor.submit(() -> System.out.println("Tarefa Leve"));\n}`
+            },
+
+            // --- ARQUIVOS / I/O (NOVO) ---
+            {
+                id: 'io-read-write',
+                category: 'I/O',
+                title: 'Ler/Escrever Arquivos (NIO.2)',
+                description: 'Maneira moderna e simples de lidar com arquivos.',
+                code: `Path path = Path.of("dados.txt");\n\n// Escrita\nFiles.writeString(path, "Conteúdo Java");\n\n// Leitura\nString conteudo = Files.readString(path);`
+            },
+            {
+                id: 'io-walk',
+                category: 'I/O',
+                title: 'Listar Diretórios (Walk)',
+                description: 'Percorrer árvore de arquivos com Streams.',
+                code: `try (Stream<Path> paths = Files.walk(Path.of("."))) {\n    paths.filter(Files::isRegularFile)\n         .forEach(System.out::println);\n}`
+            },
+
+            // --- UTILS (Data/Hora) ---
+            {
+                id: 'util-time',
+                category: 'Utils',
+                title: 'LocalDate & Time API',
+                description: 'Manipulação de datas segura (Thread-safe).',
+                code: `LocalDate hoje = LocalDate.now();\nLocalDate amanha = hoje.plusDays(1);\n\nLocalDateTime dataHora = LocalDateTime.of(2023, Month.DECEMBER, 25, 10, 0);`
+            },
+            {
+                id: 'util-duration',
+                category: 'Utils',
+                title: 'Duration & Period',
+                description: 'Calcular diferença entre tempos.',
+                code: `Duration duracao = Duration.between(inicio, fim);\nlong segundos = duracao.toSeconds();\n\nPeriod periodo = Period.between(dataNasc, hoje);\nint anos = periodo.getYears();`
+            },
+
+            // --- TRATAMENTO DE ERROS ---
+            {
+                id: 'err-try-res',
+                category: 'Erros',
+                title: 'Try-with-Resources',
+                description: 'Fecha recursos (arquivos/conexões) automaticamente.',
+                code: `try (BufferedReader br = new BufferedReader(new FileReader(path))) {\n    return br.readLine();\n} catch (IOException e) {\n    e.printStackTrace();\n}`
+            }
+        ];
+
+        // --- COMPONENTES AUXILIARES ---
+
+        const KEYWORDS = new Set([
+            'abstract', 'assert', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'class',
+            'const', 'continue', 'default', 'do', 'double', 'else', 'enum', 'extends', 'final',
+            'finally', 'float', 'for', 'goto', 'if', 'implements', 'import', 'instanceof', 'int',
+            'interface', 'long', 'native', 'new', 'package', 'private', 'protected', 'public',
+            'return', 'short', 'static', 'strictfp', 'super', 'switch', 'synchronized', 'this',
+            'throw', 'throws', 'transient', 'try', 'void', 'volatile', 'while', 'var', 'record',
+            'module', 'requires', 'exports', 'permits', 'sealed', 'non-sealed', 'yield'
+        ]);
+
+        const JavaHighlighter = ({ code }) => {
+            const tokenRegex = /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\/\/.*$|\/\*[\s\S]*?\*\/)|(@\w+)|([(){}[\];,.<>?:=+\-*/%&|^!])|(\b\d+\.?\d*\b)|(\b\w+\b)|(\s+)/gm;
+
+            const parts = [];
+            let lastIndex = 0;
+            let match;
+
+            while ((match = tokenRegex.exec(code)) !== null) {
+                if (match.index > lastIndex) {
+                    parts.push(<span key={lastIndex} className="text-[#a9b7c6]">{code.slice(lastIndex, match.index)}</span>);
+                }
+
+                const [fullMatch, string, comment, annotation, symbol, number, word, space] = match;
+                let element = null;
+                const key = match.index;
+
+                if (string) {
+                    element = <span key={key} className="text-[#6a8759]">{string}</span>;
+                } else if (comment) {
+                    element = <span key={key} className="text-[#808080] italic">{comment}</span>;
+                } else if (annotation) {
+                    element = <span key={key} className="text-[#bbb529]">{annotation}</span>;
+                } else if (symbol) {
+                    element = <span key={key} className="text-[#cc7832]">{symbol}</span>;
+                } else if (number) {
+                    element = <span key={key} className="text-[#6897bb]">{number}</span>;
+                } else if (word) {
+                    if (KEYWORDS.has(word)) {
+                        element = <span key={key} className="text-[#cc7832] font-semibold">{word}</span>;
+                    } else if (/^[A-Z]/.test(word) && word.length > 1) {
+                        element = <span key={key} className="text-[#a9b7c6]">{word}</span>;
+                    } else if (/^[a-z][a-zA-Z0-9]*$/.test(word) && code[match.index + word.length] === '(') {
+                        element = <span key={key} className="text-[#ffc66d]">{word}</span>;
+                    } else {
+                        element = <span key={key} className="text-[#a9b7c6]">{word}</span>;
+                    }
+                } else if (space) {
+                    element = <span key={key}>{space}</span>;
+                } else {
+                    element = <span key={key} className="text-[#a9b7c6]">{fullMatch}</span>;
+                }
+
+                parts.push(element);
+                lastIndex = tokenRegex.lastIndex;
+            }
+
+            if (lastIndex < code.length) {
+                parts.push(<span key={lastIndex} className="text-[#a9b7c6]">{code.slice(lastIndex)}</span>);
+            }
+
+            return <>{parts}</>;
+        };
+
+        const CategoryBadge = ({ iconName, label, isActive, onClick }) => {
+            const Icon = Icons[iconName] || Icons.Code;
+            return (
+                <button
+                    onClick={onClick}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${isActive
+                        ? 'bg-orange-600 text-white border-orange-600 shadow-md shadow-orange-500/20'
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-500'
+                        }`}
+                >
+                    <Icon size={16} />
+                    {label}
+                </button>
+            );
+        };
+
+        const SyntaxCard = ({ item, onCopy, isCopied, onExpand }) => {
+            const { Copy, Check, Maximize2 } = Icons;
+            return (
+                <div
+                    onClick={() => onExpand(item)}
+                    className="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:border-orange-300 dark:hover:border-orange-500 transition-all duration-300 overflow-hidden flex flex-col h-full cursor-pointer transform hover:-translate-y-1"
+                >
+                    <div className="p-5 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start mb-2">
+                            <span className="text-xs font-bold tracking-wider text-blue-700 dark:text-blue-400 uppercase bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">
+                                {item.category}
+                            </span>
+                            <Maximize2 size={16} className="text-slate-300 dark:text-slate-600 group-hover:text-orange-500 transition-colors opacity-0 group-hover:opacity-100" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                            {item.title}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">
+                            {item.description}
+                        </p>
+
+                        <div className="relative mt-auto">
+                            <pre className="bg-[#2b2b2b] p-4 rounded-lg text-sm overflow-hidden font-mono leading-relaxed border border-slate-700 shadow-inner h-24 relative">
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#2b2b2b]/90 pointer-events-none"></div>
+                                <code>
+                                    <JavaHighlighter code={item.code} />
+                                </code>
+                            </pre>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onCopy(item.code, item.id);
+                                }}
+                                className="absolute top-2 right-2 p-2 bg-slate-800/80 hover:bg-orange-600 text-slate-400 hover:text-white rounded transition-colors backdrop-blur-sm border border-slate-700 z-10"
+                                title="Copiar código"
+                            >
+                                {isCopied ? <Check size={16} /> : <Copy size={16} />}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ExpandedModal = ({ item, onClose, onCopy, isCopied }) => {
+            const { X, Copy, Check } = Icons;
+
+            useEffect(() => {
+                const handleEsc = (e) => {
+                    if (e.key === 'Escape') onClose();
+                };
+                window.addEventListener('keydown', handleEsc);
+                document.body.style.overflow = 'hidden';
+                return () => {
+                    window.removeEventListener('keydown', handleEsc);
+                    document.body.style.overflow = 'auto';
+                }
+            }, [onClose]);
+
+            if (!item) return null;
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+                        onClick={onClose}
+                    ></div>
+
+                    {/* Modal Content */}
+                    <div className="relative w-full max-w-4xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-zoom-in border border-slate-200 dark:border-slate-700">
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky top-0 z-10">
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-bold tracking-wider text-blue-700 dark:text-blue-400 uppercase bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">
+                                    {item.category}
+                                </span>
+                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                                    {item.title}
+                                </h2>
+                            </div>
+                            <button
+                                onClick={onClose}
+                                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-6 overflow-y-auto custom-scrollbar">
+                            <p className="text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+                                {item.description}
+                            </p>
+
+                            <div className="relative group">
+                                <div className="absolute top-4 right-4 z-10">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onCopy(item.code, item.id);
+                                        }}
+                                        className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-orange-600 text-slate-300 hover:text-white rounded-lg transition-all border border-slate-700 shadow-lg font-medium text-sm"
+                                        title="Copiar código"
+                                    >
+                                        {isCopied ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
+                                    </button>
+                                </div>
+                                <pre className="bg-[#2b2b2b] p-6 rounded-xl text-sm sm:text-base overflow-x-auto font-mono leading-relaxed border border-slate-700 shadow-inner">
+                                    <code>
+                                        <JavaHighlighter code={item.code} />
+                                    </code>
+                                </pre>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            );
+        };
+
+        const Toast = ({ message, isVisible }) => {
+            const { Check } = Icons;
+            return (
+                <div
+                    className={`fixed bottom-6 right-6 z-50 transform transition-all duration-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                        }`}
+                >
+                    <div className="bg-slate-900 dark:bg-orange-600 text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 font-medium border-l-4 border-orange-500 dark:border-white">
+                        <Check size={20} className="text-orange-500 dark:text-white" />
+                        {message}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- APP PRINCIPAL ---
+
+        function App() {
+            const [currentPage, setCurrentPage] = useState('home'); // 'home' ou 'dictionary'
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('Todos');
+            // Inicializa dark mode a partir do localStorage
+            const [isDarkMode, setIsDarkMode] = useState(() => {
+                const saved = localStorage.getItem('darkMode');
+                return saved ? JSON.parse(saved) : false;
+            });
+            const [copiedId, setCopiedId] = useState(null);
+            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+            const [expandedItem, setExpandedItem] = useState(null);
+
+            const { Search, Sun, Moon, Menu, X, Book } = Icons;
+
+            // Aplica dark mode e salva no localStorage
+            useEffect(() => {
+                if (isDarkMode) {
+                    document.documentElement.classList.add('dark');
+                    document.body.classList.add('bg-slate-900');
+                    document.body.classList.remove('bg-slate-50');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.body.classList.remove('bg-slate-900');
+                    document.body.classList.add('bg-slate-50');
+                }
+                // Salva preferência no localStorage
+                localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
+            }, [isDarkMode]);
+
+            // Mapa de sinônimos e palavras-chave relacionadas
+            const KEYWORD_MAP = {
+                'lista': ['list', 'array', 'arraylist', 'coleção', 'colecao'],
+                'mapa': ['map', 'hashmap', 'dicionário', 'dicionario', 'chave-valor'],
+                'arquivo': ['file', 'files', 'io', 'i/o', 'leitura', 'escrita', 'read', 'write'],
+                'thread': ['concorrência', 'concorrencia', 'async', 'assincrono', 'assíncrono', 'parallel', 'virtual'],
+                'loop': ['for', 'while', 'repetição', 'repeticao', 'iteração', 'iteracao'],
+                'condicional': ['if', 'else', 'switch', 'case', 'ternário', 'ternario'],
+                'classe': ['class', 'objeto', 'poo', 'orientação', 'orientacao', 'pessoa', 'calculadora', 'atributo', 'construtor'],
+                'metodo': ['method', 'função', 'funcao', 'function'],
+                'main': ['principal', 'iniciar', 'executar', 'entry', 'ponto de entrada'],
+                'objeto': ['instância', 'instancia', 'new', 'criar', 'object'],
+                'erro': ['exception', 'try', 'catch', 'finally', 'throw'],
+                'data': ['time', 'date', 'localdate', 'datetime', 'tempo', 'hora'],
+                'texto': ['string', 'char', 'character'],
+                'numero': ['int', 'integer', 'double', 'float', 'long'],
+                'stream': ['filter', 'map', 'collect', 'pipeline', 'functional'],
+                'lambda': ['arrow', 'functional', 'anonymous', 'anônima', 'anonima'],
+                'opcional': ['optional', 'null', 'nullable', 'nulo']
+            };
+
+            // Função para normalizar texto (remover acentos)
+            const normalizeText = (text) => {
+                return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            };
+
+            // Função de busca inteligente com sinônimos
+            const smartSearch = (searchTerm, item) => {
+                if (!searchTerm.trim()) return true;
+
+                const normalizedSearch = normalizeText(searchTerm);
+                const searchWords = normalizedSearch.split(/\s+/);
+
+                // Expandir busca com sinônimos
+                const expandedTerms = new Set([normalizedSearch]);
+                for (const [key, synonyms] of Object.entries(KEYWORD_MAP)) {
+                    if (normalizedSearch.includes(key) || synonyms.some(syn => normalizedSearch.includes(syn))) {
+                        expandedTerms.add(key);
+                        synonyms.forEach(syn => expandedTerms.add(syn));
+                    }
+                }
+
+                // Campos para busca com diferentes pesos
+                const normalizedTitle = normalizeText(item.title);
+                const normalizedDesc = normalizeText(item.description);
+                const normalizedCode = normalizeText(item.code);
+                const normalizedCategory = normalizeText(item.category);
+
+                // Verifica se algum termo expandido corresponde
+                for (const term of expandedTerms) {
+                    if (normalizedTitle.includes(term)) return true;
+                    if (normalizedDesc.includes(term)) return true;
+                    if (normalizedCode.includes(term)) return true;
+                    if (normalizedCategory.includes(term)) return true;
+                }
+
+                // Verifica palavras individuais para buscas com múltiplas palavras
+                const allWords = searchWords.every(word => {
+                    if (word.length < 2) return true; // Ignora palavras muito curtas
+                    return normalizedTitle.includes(word) ||
+                        normalizedDesc.includes(word) ||
+                        normalizedCode.includes(word) ||
+                        normalizedCategory.includes(word);
+                });
+
+                return allWords;
+            };
+
+            // Categorias e Ícones
+            const categories = useMemo(() => {
+                const cats = ['Todos', ...new Set(SYNTAX_DATA.map(d => d.category))];
+                return cats.map(cat => {
+                    let iconName = 'Code';
+                    switch (cat) {
+                        case 'Básico': iconName = 'Terminal'; break;
+                        case 'Coleções': iconName = 'Layers'; break;
+                        case 'POO': iconName = 'Database'; break;
+                        case 'Streams': iconName = 'ChevronRight'; break;
+                        case 'Erros': iconName = 'AlertCircle'; break;
+                        case 'Funcional': iconName = 'Zap'; break;
+                        case 'Concorrência': iconName = 'Cpu'; break;
+                        case 'I/O': iconName = 'FileText'; break;
+                        case 'Utils': iconName = 'Clock'; break;
+                    }
+                    return { label: cat, iconName };
+                });
+            }, []);
+
+            const filteredData = useMemo(() => {
+                return SYNTAX_DATA.filter(item => {
+                    const matchesSearch = smartSearch(searchTerm, item);
+                    const matchesCategory = selectedCategory === 'Todos' || item.category === selectedCategory;
+
+                    return matchesSearch && matchesCategory;
+                });
+            }, [searchTerm, selectedCategory]);
+
+            const handleCopy = (text, id) => {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    setCopiedId(id);
+                    setTimeout(() => setCopiedId(null), 2000);
+                } catch (err) {
+                    console.error('Falha ao copiar', err);
+                }
+                document.body.removeChild(textArea);
+            };
+
+            // Componente da Página Inicial
+            const HomePage = () => {
+                const { Code, Search, Zap, Book, ChevronRight } = Icons;
+
+                return (
+                    <div className="min-h-screen">
+                        {/* Hero Section */}
+                        <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-orange-500 dark:from-blue-900 dark:via-purple-900 dark:to-orange-700">
+                            <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]"></div>
+                            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
+                                <div className="text-center">
+                                    <div className="inline-flex items-center gap-3 mb-6">
+                                        <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-2xl">
+                                            <span className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-red-600">J</span>
+                                        </div>
+                                    </div>
+                                    <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6 drop-shadow-lg">
+                                        JavaHub
+                                    </h1>
+                                    <p className="text-xl sm:text-2xl text-blue-100 dark:text-blue-200 mb-8 max-w-3xl mx-auto">
+                                        Seu dicionário interativo de sintaxe Java. Aprenda, consulte e domine a linguagem mais popular do mundo.
+                                    </p>
+                                    <button
+                                        onClick={() => setCurrentPage('dictionary')}
+                                        className="inline-flex items-center gap-2 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 px-8 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 transition-all duration-300"
+                                    >
+                                        Explorar Sintaxes
+                                        <ChevronRight size={24} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Features Section */}
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                            <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-12">
+                                Por que usar o JavaHub?
+                            </h2>
+                            <div className="grid md:grid-cols-3 gap-8">
+                                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-shadow">
+                                    <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center mb-4">
+                                        <Search size={24} className="text-orange-600 dark:text-orange-400" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                                        Busca Inteligente
+                                    </h3>
+                                    <p className="text-slate-600 dark:text-slate-400">
+                                        Encontre rapidamente qualquer sintaxe com busca por sinônimos em português e inglês. Digite "lista" e encontre ArrayList, List.of() e muito mais.
+                                    </p>
+                                </div>
+
+                                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-shadow">
+                                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mb-4">
+                                        <Code size={24} className="text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                                        Exemplos Práticos
+                                    </h3>
+                                    <p className="text-slate-600 dark:text-slate-400">
+                                        Mais de 20 exemplos de código com syntax highlighting, desde o básico até recursos avançados como Streams, Records e Virtual Threads.
+                                    </p>
+                                </div>
+
+                                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-shadow">
+                                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mb-4">
+                                        <Zap size={24} className="text-purple-600 dark:text-purple-400" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                                        Copiar com 1 Clique
+                                    </h3>
+                                    <p className="text-slate-600 dark:text-slate-400">
+                                        Copie qualquer exemplo de código instantaneamente para usar em seus projetos. Economize tempo e aumente sua produtividade.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Categories Preview */}
+                        <div className="bg-slate-50 dark:bg-slate-900 py-20">
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-12">
+                                    Categorias Disponíveis
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                    {['Básico', 'Controle', 'Coleções', 'POO', 'Streams', 'Funcional', 'Concorrência', 'I/O', 'Utils', 'Erros'].map(cat => (
+                                        <div key={cat} className="bg-white dark:bg-slate-800 px-4 py-3 rounded-lg text-center font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-500 transition-colors cursor-pointer">
+                                            {cat}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* CTA Section */}
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+                            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">
+                                Pronto para começar?
+                            </h2>
+                            <p className="text-xl text-slate-600 dark:text-slate-400 mb-8 max-w-2xl mx-auto">
+                                Explore mais de 20 sintaxes Java organizadas por categoria, com exemplos práticos e busca inteligente.
+                            </p>
+                            <button
+                                onClick={() => setCurrentPage('dictionary')}
+                                className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                            >
+                                <Book size={24} />
+                                Acessar Dicionário
+                            </button>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen font-sans pb-12">
+
+                    {/* Sidebar Navigation */}
+                    <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg">
+                                        J
+                                    </div>
+                                    <span className="text-lg font-bold text-slate-900 dark:text-white">JavaHub</span>
+                                </div>
+                                <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                                    <X size={20} className="text-slate-500" />
+                                </button>
+                            </div>
+
+                            <nav className="space-y-2">
+                                <button
+                                    onClick={() => { setCurrentPage('home'); setIsSidebarOpen(false); }}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${currentPage === 'home' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                >
+                                    <Icons.Book size={20} />
+                                    <span className="font-medium">MyApps</span>
+                                </button>
+                                <button
+                                    onClick={() => { setCurrentPage('dictionary'); setIsSidebarOpen(false); }}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${currentPage === 'dictionary' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                >
+                                    <Icons.Code size={20} />
+                                    <span className="font-medium">Dicionário</span>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+
+                    {/* Overlay */}
+                    {isSidebarOpen && (
+                        <div
+                            className="fixed inset-0 bg-slate-900/50 z-40 backdrop-blur-sm"
+                            onClick={() => setIsSidebarOpen(false)}
+                        ></div>
+                    )}
+
+                    {/* Header */}
+                    <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex items-center justify-between h-16 gap-4">
+
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => setIsSidebarOpen(true)}
+                                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                    >
+                                        <Menu size={24} className="text-slate-600 dark:text-slate-400" />
+                                    </button>
+
+                                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentPage('home')}>
+                                        <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-orange-500/30">
+                                            J
+                                        </div>
+                                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-900 to-blue-700 dark:from-white dark:to-slate-300 hidden sm:block">
+                                            Java<span className="font-light text-slate-600 dark:text-slate-400">Hub</span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {currentPage === 'dictionary' && (
+                                    <div className="flex-1 max-w-2xl relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <Search className="text-slate-400 group-focus-within:text-orange-500 transition-colors" size={20} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-full leading-5 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-900 transition-all shadow-sm"
+                                            placeholder="Busque por 'lista', 'arquivo', 'thread', 'opcional', 'loop'..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setIsDarkMode(!isDarkMode)}
+                                        className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors hover:text-orange-600"
+                                    >
+                                        {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                                    </button>
+
+                                    <button
+                                        className="sm:hidden p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                    >
+                                        {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Main Content - Conditional Rendering */}
+                    {currentPage === 'home' ? (
+                        <HomePage />
+                    ) : (
+                        <>
+                            {/* Main Layout - Dictionary */}
+                            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+                                <div className="hidden sm:flex flex-wrap gap-2 mb-8 justify-center">
+                                    {categories.map((cat) => (
+                                        <CategoryBadge
+                                            key={cat.label}
+                                            iconName={cat.iconName}
+                                            label={cat.label}
+                                            isActive={selectedCategory === cat.label}
+                                            onClick={() => setSelectedCategory(cat.label)}
+                                        />
+                                    ))}
+                                </div>
+
+                                {isSidebarOpen && (
+                                    <div className="sm:hidden mb-6 grid grid-cols-2 gap-2 animate-in slide-in-from-top-4 duration-200">
+                                        {categories.map((cat) => (
+                                            <CategoryBadge
+                                                key={cat.label}
+                                                iconName={cat.iconName}
+                                                label={cat.label}
+                                                isActive={selectedCategory === cat.label}
+                                                onClick={() => {
+                                                    setSelectedCategory(cat.label);
+                                                    setIsSidebarOpen(false);
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+
+                                {filteredData.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {filteredData.map((item) => (
+                                            <SyntaxCard
+                                                key={item.id}
+                                                item={item}
+                                                onCopy={handleCopy}
+                                                isCopied={copiedId === item.id}
+                                                onExpand={setExpandedItem}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-20">
+                                        <div className="bg-slate-100 dark:bg-slate-800 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <Book size={40} className="text-slate-400" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
+                                            Nenhuma sintaxe encontrada
+                                        </h3>
+                                        <p className="text-slate-500 dark:text-slate-400">
+                                            Não encontramos nada para "{searchTerm}".
+                                        </p>
+                                        <button
+                                            onClick={() => { setSearchTerm(''); setSelectedCategory('Todos'); }}
+                                            className="mt-6 text-orange-600 dark:text-orange-400 font-medium hover:underline"
+                                        >
+                                            Limpar filtros
+                                        </button>
+                                    </div>
+                                )}
+                            </main>
+
+                            <footer className="border-t border-slate-200 dark:border-slate-800 py-8 mt-12 bg-white dark:bg-slate-900">
+                                <div className="max-w-7xl mx-auto px-4 text-center">
+                                    <p className="text-slate-500 text-sm mb-2">
+                                        JavaHub - Seu dicionário de sintaxe rápido.
+                                    </p>
+                                    <p className="text-slate-400 text-xs opacity-60">
+                                        Developed By <span className="font-semibold text-orange-500 dark:text-orange-400">Romário Galdino</span>
+                                    </p>
+                                </div>
+                            </footer>
+
+                            {/* Modal de Expansão */}
+                            <ExpandedModal
+                                item={expandedItem}
+                                onClose={() => setExpandedItem(null)}
+                                onCopy={handleCopy}
+                                isCopied={copiedId === (expandedItem?.id)}
+                            />
+
+                            <Toast message="Código copiado para a área de transferência!" isVisible={!!copiedId} />
+                        </>
+                    )}
+
+                    {/* Marca d'água fixa - sempre visível em todas as páginas */}
+                    <div className="fixed bottom-4 left-4 z-50 pointer-events-none">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 opacity-70 select-none bg-white/80 dark:bg-slate-900/80 px-2 py-1 rounded backdrop-blur-sm">
+                            Developed By <span className="font-semibold text-orange-600 dark:text-orange-400">Romário Galdino</span>
+                        </p>
+                    </div>
+
+                    {/* Botão Voltar ao Início */}
+                    <a href="index.html" className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 font-medium text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                        MyApps
+                    </a>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

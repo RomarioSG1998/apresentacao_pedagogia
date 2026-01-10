@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variação Linguística - Seminário Interativo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideDown 1s ease-out;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .university-info {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .team-members {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .member {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .member:hover {
+            transform: translateY(-5px);
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
+
+        .section {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 2px;
+        }
+
+        .concept-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #3498db;
+            transition: transform 0.3s ease;
+        }
+
+        .concept-card:hover {
+            transform: translateX(10px);
+        }
+
+        .concept-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .concept-card p {
+            line-height: 1.6;
+            color: #5a6c7d;
+        }
+
+        .methodology-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .method-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .method-card:hover {
+            transform: scale(1.05);
+        }
+
+        .method-card h4 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+
+        .analysis-box {
+            background: linear-gradient(135deg, #ff7675, #fd79a8);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 20px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analysis-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+
+        .quote-box {
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-style: italic;
+            position: relative;
+        }
+
+        .quote-box::before {
+            content: '"';
+            font-size: 4rem;
+            color: #28a745;
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            opacity: 0.5;
+        }
+
+        .variation-types {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .variation-type {
+            flex: 1;
+            min-width: 250px;
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .variation-type h4 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 3px;
+            transition: width 0.8s ease;
+        }
+
+        .references {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-element {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .variation-types {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="floating-element" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="floating-element" style="left: 20%; animation-delay: 1s;"></div>
+        <div class="floating-element" style="left: 30%; animation-delay: 2s;"></div>
+        <div class="floating-element" style="left: 40%; animation-delay: 3s;"></div>
+        <div class="floating-element" style="left: 50%; animation-delay: 4s;"></div>
+        <div class="floating-element" style="left: 60%; animation-delay: 5s;"></div>
+        <div class="floating-element" style="left: 70%; animation-delay: 0.5s;"></div>
+        <div class="floating-element" style="left: 80%; animation-delay: 1.5s;"></div>
+        <div class="floating-element" style="left: 90%; animation-delay: 2.5s;"></div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <div class="university-info">
+                <strong>Universidade Estadual de Alagoas</strong><br>
+                Universidade Aberta do Brasil - UAB<br>
+                Curso de Pedagogia
+            </div>
+            <h1>Marcação de Plural e Variação Linguística</h1>
+            <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-bottom: 20px;">
+                Análise de Produções Escritas de Alunos do Ensino Fundamental I
+            </p>
+            <div class="team-members">
+                <div class="member">Jessiele de Oliveira Sousa</div>
+                <div class="member">Jessica Melo</div>
+                <div class="member">José Carlos Silva Monteiro</div>
+                <div class="member">Elly Fátima Vieira Palmeira Silva</div>
+                <div class="member">Romário de Souza Galdino</div>
+            </div>
+            <p style="color: rgba(255,255,255,0.8); margin-top: 15px;">
+                <strong>Docente:</strong> Prof. Dr. Douglas Gonçalves
+            </p>
+            <div style="text-align:center; margin-top: 25px;">
+                <a href="#" 
+                   onclick="openPopup('pdf'); return false;" 
+                   style="display:inline-block; padding:12px 28px; background:linear-gradient(45deg,#2ecc71,#27ae60); color:white; border-radius:25px; font-size:1.1rem; font-weight:bold; text-decoration:none; box-shadow:0 4px 15px rgba(0,0,0,0.12); transition:background 0.3s;">
+                    📄 Baixar PDF da Pesquisa Original
+                </a>
+            </div>
+            <div style="text-align:center; margin-top: 15px;">
+                <a href="#" 
+                   onclick="openPopup('video'); return false;" 
+                   style="display:inline-block; padding:12px 28px; background:linear-gradient(45deg,#3498db,#2980b9); color:white; border-radius:25px; font-size:1.1rem; font-weight:bold; text-decoration:none; box-shadow:0 4px 15px rgba(0,0,0,0.12); transition:background 0.3s;">
+                    ▶️ Assistir Apresentação
+                </a>
+            </div>
+            <div style="text-align:center; margin-top: 15px;">
+                <a href="#" 
+                   onclick="openPopup('slides'); return false;" 
+                   style="display:inline-block; padding:12px 28px; background:linear-gradient(45deg,#f39c12,#e67e22); color:white; border-radius:25px; font-size:1.1rem; font-weight:bold; text-decoration:none; box-shadow:0 4px 15px rgba(0,0,0,0.12); transition:background 0.3s;">
+                    📑 Ver Slides
+                </a>
+            </div>
+        </header>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+        </div>
+
+        <nav class="nav-buttons">
+            <button class="nav-btn active" onclick="showSection('introducao', 0)">Introdução</button>
+            <button class="nav-btn" onclick="showSection('conceitos', 1)">Conceitos</button>
+            <button class="nav-btn" onclick="showSection('metodologia', 2)">Metodologia</button>
+            <button class="nav-btn" onclick="showSection('analise', 3)">Análise</button>
+            <button class="nav-btn" onclick="showSection('resultados', 4)">Resultados</button>
+            <button class="nav-btn" onclick="showSection('referencias', 5)">Referências</button>
+        </nav>
+
+        <section id="introducao" class="section active">
+            <h2>Introdução</h2>
+            <div class="concept-card">
+                <h3>🗣️ O que é Variação Linguística?</h3>
+                <p>A variação linguística é o fenômeno natural que ocorre quando uma mesma língua apresenta formas diferentes de uso, de acordo com a região, idade, classe social, grau de escolaridade ou situação de comunicação.</p>
+            </div>
+            <div class="concept-card">
+                <h3>✨ Diversidade na Linguagem</h3>
+                <p>As pessoas falam de maneiras diferentes, e isso não significa que uma forma seja "certa" e outra "errada". Essa diversidade é uma característica natural e rica de qualquer idioma vivo.</p>
+            </div>
+            <div class="analysis-box">
+                <h3>🎯 Foco da Pesquisa</h3>
+                <p>Nossa pesquisa analisa como os alunos do Ensino Fundamental I utilizam a marcação de plural em suas produções escritas, considerando as variações linguísticas presentes em seus textos.</p>
+            </div>
+        </section>
+
+        <section id="conceitos" class="section">
+            <h2>Conceitos Fundamentais</h2>
+            <div class="concept-card">
+                <h3>🌍 Língua como Fenômeno Social</h3>
+                <p>A língua é um fenômeno social, histórico e cultural que se manifesta através das interações humanas e evolui constantemente através do tempo e das comunidades.</p>
+            </div>
+            <div class="concept-card">
+                <h3>📚 Tipos de Variação Linguística</h3>
+                <p>Existem diferentes tipos de variação: diatópica (regional), diastrática (social), diafásica (situacional) e diacrônica (temporal).</p>
+            </div>
+            <div class="variation-types">
+                <div class="variation-type">
+                    <h4>Variação Diatópica</h4>
+                    <p>Influência da região onde a pessoa vive</p>
+                </div>
+                <div class="variation-type">
+                    <h4>Variação Diastrática</h4>
+                    <p>Influência dos grupos sociais de convivência</p>
+                </div>
+            </div>
+            <div class="concept-card">
+                <h3>🔬 Sociolinguística</h3>
+                <p>Campo de estudo que investiga a relação entre língua e sociedade, baseado nos trabalhos de Labov, Possenti e Bagno, analisando como fatores sociais influenciam o uso da linguagem.</p>
+            </div>
+            <div class="concept-card">
+                <h3>⚠️ Preconceito Linguístico</h3>
+                <p>Atitude discriminatória em relação a variedades linguísticas que não seguem a norma padrão, frequentemente associada a questões de classe social e poder.</p>
+            </div>
+        </section>
+
+        <section id="metodologia" class="section">
+            <h2>Metodologia</h2>
+            <div class="methodology-grid">
+                <div class="method-card">
+                    <h4>📊 Tipo de Pesquisa</h4>
+                    <p>Qualitativa do tipo pesquisa de campo</p>
+                    <small>Fundamentação: Godoy (1995)</small>
+                </div>
+                <div class="method-card">
+                    <h4>📅 Período de Coleta</h4>
+                    <p>Novembro/2021</p>
+                    <small>Alunos do 2º ao 5º ano</small>
+                </div>
+                <div class="method-card">
+                    <h4>📝 Contexto</h4>
+                    <p>Aulas de Língua Portuguesa</p>
+                    <small>Tema: "Os dias mais incríveis da minha vida"</small>
+                </div>
+                <div class="method-card">
+                    <h4>🎯 Objetivos</h4>
+                    <p>Analisar marcação do plural, variação linguística e compreensão comunicativa</p>
+                </div>
+                <div class="method-card">
+                    <h4>🔍 Análise</h4>
+                    <p>Dezembro/2021 a janeiro/2022</p>
+                    <small>Revisão teórica concomitante</small>
+                </div>
+            </div>
+        </section>
+
+        <section id="analise" class="section">
+            <h2>Análise das Produções Escritas</h2>
+            <div class="concept-card">
+                <h3>✍️ Escrita Espontânea</h3>
+                <p>Identificamos traços da linguagem oral transpostos na escrita, revelando a naturalidade com que as crianças expressam suas ideias.</p>
+            </div>
+            <div class="concept-card">
+                <h3>🌈 Heterogeneidade Linguística</h3>
+                <p>As produções demonstram a diversidade linguística presente nas escritas infantis, refletindo suas experiências sociais e culturais.</p>
+            </div>
+            <div class="concept-card">
+                <h3>🗣️ Comunicação Infantil</h3>
+                <p>A comunicação da criança através da oralidade e da escrita está associada a fatores como vivência e costumes de seu ambiente social.</p>
+            </div>
+            <div class="analysis-box">
+                <h3>📈 Influência do Desenvolvimento</h3>
+                <p>A influência social e o grau de escolaridade são fatores determinantes que podem avançar tanto a fala quanto a escrita das crianças.</p>
+            </div>
+        </section>
+
+        <section id="resultados" class="section">
+            <h2>Resultados e Discussão</h2>
+
+            <div style="text-align:center; margin-bottom: 25px;">
+                <img src="image.png" 
+                     alt="Crianças escrevendo em sala de aula" 
+                     style="max-width: 350px; width: 100%; border-radius: 15px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);">
+                <div style="font-size: 0.95rem; color: #555; margin-top: 8px;">
+                    <em>Figura: Produção escrita infantil em contexto escolar</em>
+                </div>
+            </div>
+
+            <div class="quote-box">
+                <p>Observando a produção escrita apresentada acima, entende-se que o uso do pronome "a gente" para expressar duas ou mais pessoas em substituição do pronome "nós", bem como a conjugação dos verbos na 3ª pessoa do singular não inviabilizam a compreensão da intenção comunicativa da criança.</p>
+            </div>
+            
+            <div class="concept-card">
+                <h3>💡 Interpretação dos Resultados</h3>
+                <p>O uso da expressão "a gente" no lugar de "nós" por uma criança, com o verbo na 3ª pessoa do singular, não atrapalha a comunicação e a compreensão do que ela quer dizer.</p>
+            </div>
+
+            <div class="concept-card">
+                <h3>🌐 Influência Social</h3>
+                <p>Essa maneira de falar e escrever revela a influência do ambiente social na linguagem da criança, demonstrando como o contexto molda a expressão linguística.</p>
+            </div>
+
+            <div class="variation-types">
+                <div class="variation-type">
+                    <h4>🗺️ Variação Diatópica</h4>
+                    <p>Influência da região onde a criança vive, refletindo características linguísticas locais</p>
+                </div>
+                <div class="variation-type">
+                    <h4>👥 Variação Diastrática</h4>
+                    <p>Influência dos grupos sociais com os quais ela convive, moldando seu repertório linguístico</p>
+                </div>
+            </div>
+
+            <div class="analysis-box">
+                <h3>✅ Conclusão Principal</h3>
+                <p>Essa variação é uma característica natural da língua e não prejudica a comunicação entre as pessoas. A diversidade linguística deve ser valorizada e compreendida como parte da riqueza cultural.</p>
+            </div>
+        </section>
+
+        <section id="referencias" class="section">
+            <h2>Agradecimentos e Referências</h2>
+            <div class="references">
+                <h3>🙏 Obrigado!</h3>
+                <p style="margin: 20px 0;">Agradecemos a atenção e participação de todos!</p>
+                <hr style="margin: 20px 0; opacity: 0.3;">
+                <h4>📚 Referência Principal</h4>
+                <p style="text-align: left; margin-top: 15px; line-height: 1.6;">
+                    <strong>FELIX, Any Cristina; CAVALCANTE, Maria Auxiliadora da S.</strong> 
+                    Marcação de Plural e Variação Linguística: Análise de Produções Escritas de Alunos do Ensino Fundamental I. 
+                    <em>Revista (Con)Textos Linguísticos</em>, Vitória, v. 16, n. 34, p. 88-105, 2022.
+                </p>
+            </div>
+        </section>
+    </div>
+
+    <div id="multiPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+        <div id="popupContent" style="position:relative; background:#fff; border-radius:16px; padding:20px; max-width:90vw; max-height:90vh; box-shadow:0 8px 32px rgba(0,0,0,0.3); display:flex; flex-direction:column; align-items:center;">
+            <button onclick="closeMultiPopup()" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:2rem; color:#e74c3c; cursor:pointer;">×</button>
+            <div id="popupInnerContent" style="width:80vw; max-width:700px; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center;"></div>
+        </div>
+    </div>
+
+    <script>
+        const sections = ['introducao', 'conceitos', 'metodologia', 'analise', 'resultados', 'referencias'];
+        let currentSection = 0;
+
+        function showSection(sectionId, index) {
+            // Hide all sections
+            sections.forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Update progress bar
+            currentSection = index;
+            updateProgressBar();
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentSection + 1) / sections.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' && currentSection < sections.length - 1) {
+                currentSection++;
+                showSectionByIndex(currentSection);
+            } else if (e.key === 'ArrowLeft' && currentSection > 0) {
+                currentSection--;
+                showSectionByIndex(currentSection);
+            }
+        });
+
+        function showSectionByIndex(index) {
+            const sectionId = sections[index];
+            const button = document.querySelectorAll('.nav-btn')[index];
+            
+            // Hide all sections
+            sections.forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            button.classList.add('active');
+            
+            updateProgressBar();
+        }
+
+        // Initialize progress bar
+        updateProgressBar();
+
+        // Add floating elements animation
+        function createFloatingElements() {
+            const container = document.querySelector('.floating-elements');
+            for (let i = 0; i < 15; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.style.left = Math.random() * 100 + '%';
+                element.style.top = Math.random() * 100 + '%';
+                element.style.animationDelay = Math.random() * 6 + 's';
+                element.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                container.appendChild(element);
+            }
+        }
+
+        // Initialize floating elements
+        createFloatingElements();
+
+        // Popup functions
+        function openPopup(type) {
+            var popup = document.getElementById('multiPopup');
+            var inner = document.getElementById('popupInnerContent');
+            var popupContent = document.getElementById('popupContent');
+            inner.innerHTML = ""; // Limpa conteúdo anterior
+
+            if (type === 'pdf') {
+                popupContent.style.width = '80vw';
+                popupContent.style.height = '90vh';
+                inner.style.width = '100%';
+                inner.style.height = '100%';
+                inner.innerHTML = `<iframe src="Texto 5 - Seminário (Sociolinguística) (1) (1).pdf" width="100%" height="100%" style="border:none;"></iframe>`;
+            } else if (type === 'video') {
+                // Ajustes para o layout do vídeo
+                popupContent.style.width = 'auto';
+                popupContent.style.height = 'auto';
+                inner.style.flexDirection = 'column';
+                inner.style.width = '80vw';
+                inner.style.maxWidth = '700px';
+                inner.style.height = 'auto';
+                
+                inner.innerHTML = `
+                    <div style="width:100%; text-align:center; margin-bottom:15px; font-size:1.15rem; color:#222; font-weight: bold;">
+                        Assista a apresentação do trabalho antes de navegar na página.
+                    </div>
+                    <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0;">
+                        <iframe 
+                            src="https://www.youtube.com/embed/4aeexfz2bA4" 
+                            frameborder="0" 
+                            allowfullscreen 
+                            allow="autoplay"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                        </iframe>
+                    </div>`;
+            } else if (type === 'slides') {
+                popupContent.style.width = '80vw';
+                popupContent.style.height = '90vh';
+                inner.style.width = '100%';
+                inner.style.height = '100%';
+                inner.innerHTML = `<iframe src="Modelo de Slide -Seminário.pptx (1).pdf" width="100%" height="100%" style="border:none;" allowfullscreen></iframe>`;
+            }
+            popup.style.display = "flex";
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeMultiPopup() {
+            var popup = document.getElementById('multiPopup');
+            var inner = document.getElementById('popupInnerContent');
+            
+            // Pausa o vídeo ao fechar o popup
+            var iframe = inner.querySelector('iframe');
+            if (iframe) {
+                var iframeSrc = iframe.src;
+                iframe.src = iframeSrc; // Isso "reseta" o iframe e para o vídeo
+            }
+            
+            inner.innerHTML = "";
+            popup.style.display = "none";
+            document.body.style.overflow = "";
+        }
+
+        // Abrir automaticamente o popup de apresentação ao carregar a página
+        window.addEventListener('DOMContentLoaded', function() {
+            openPopup('video');
+        });
+    </script>
+
+    <footer style="text-align:center; margin: 40px 0 15px 0; color: #fff; font-size: 1rem; opacity: 0.8;">
+        Developed by Romário Galdino
+    </footer>
+    <!-- Botão Voltar ao Início -->
+    <a href="index.html" style="position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; background: linear-gradient(to right, #2563eb, #9333ea); color: white; padding: 0.75rem 1.5rem; border-radius: 9999px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.875rem; text-decoration: none; transition: all 0.3s;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        MyApps
+    </a>
+</body>
+</html>
