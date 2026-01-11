@@ -185,6 +185,158 @@
                 code: `// Arquivo: Calculadora.java\npublic class Calculadora {\n    public int somar(int a, int b) {\n        return a + b;\n    }\n    \n    public int subtrair(int a, int b) {\n        return a - b;\n    }\n    \n    public double dividir(double a, double b) {\n        if (b == 0) {\n            System.out.println("Erro: divisão por zero!");\n            return 0;\n        }\n        return a / b;\n    }\n}\n\n// Arquivo: Main.java\npublic class Main {\n    public static void main(String[] args) {\n        Calculadora calc = new Calculadora();\n        \n        int soma = calc.somar(10, 5);\n        int sub = calc.subtrair(10, 5);\n        double div = calc.dividir(10, 3);\n        \n        System.out.println("Soma: " + soma);      // 15\n        System.out.println("Subtração: " + sub);  // 5\n        System.out.println("Divisão: " + div);    // 3.333...\n    }\n}`
             },
 
+            // --- TIPOS DE DADOS (NOVO) ---
+            {
+                id: 'types-primitivos',
+                category: 'Tipos',
+                title: 'Tipos Primitivos',
+                description: 'Os 8 tipos primitivos de dados em Java.',
+                code: `// Inteiros\nbyte b = 127;        // -128 a 127\nshort s = 32000;     // -32768 a 32767\nint i = 2000000;     // -2 bilhões a 2 bilhões\nlong l = 9000000000L; // Números muito grandes\n\n// Decimais\nfloat f = 3.14f;     // Precisão simples\ndouble d = 3.14159;  // Precisão dupla (padrão)\n\n// Outros\nchar c = 'A';        // Um único caractere\nboolean ativo = true; // true ou false`
+            },
+            {
+                id: 'types-string',
+                category: 'Tipos',
+                title: 'String (Texto)',
+                description: 'String não é primitivo, é uma classe para texto.',
+                code: `String nome = "Maria";\nString sobrenome = "Silva";\n\n// Concatenação\nString completo = nome + " " + sobrenome;\n\n// Métodos úteis\nint tamanho = nome.length();          // 5\nString maiuscula = nome.toUpperCase(); // "MARIA"\nchar letra = nome.charAt(0);           // 'M'`
+            },
+            {
+                id: 'types-conversao',
+                category: 'Tipos',
+                title: 'Conversão de Tipos (Casting)',
+                description: 'Como converter entre tipos de dados.',
+                code: `// String para número\nint num = Integer.parseInt("42");\ndouble dec = Double.parseDouble("3.14");\n\n// Número para String\nString texto = String.valueOf(100);\nString texto2 = "" + 100;  // Também funciona\n\n// Entre números (casting)\ndouble d = 10.5;\nint i = (int) d;  // i = 10 (perde decimal)`
+            },
+
+            // --- VARIÁVEIS ---
+            {
+                id: 'vars-declaracao',
+                category: 'Variáveis',
+                title: 'Declaração de Variáveis',
+                description: 'Sintaxe básica para criar variáveis em Java.',
+                code: `// Sintaxe: tipo nome = valor;\nint idade = 25;\nString nome = "João";\ndouble salario = 2500.50;\nboolean ativo = true;\n\n// Declarar sem inicializar\nint x;\nx = 10;  // Atribui depois\n\n// Múltiplas variáveis do mesmo tipo\nint a = 1, b = 2, c = 3;`
+            },
+            {
+                id: 'vars-constantes',
+                category: 'Variáveis',
+                title: 'Constantes (final)',
+                description: 'Valores que não podem ser alterados.',
+                code: `// Use 'final' para criar constantes\nfinal double PI = 3.14159;\nfinal String PAIS = "Brasil";\nfinal int MAX_TENTATIVAS = 3;\n\n// PI = 3.0; // ERRO! Não pode alterar\n\n// Convenção: MAIÚSCULAS_COM_UNDERSCORE`
+            },
+
+            // --- INPUT (Scanner) ---
+            {
+                id: 'input-scanner-basico',
+                category: 'Input',
+                title: 'Scanner - Leitura Básica',
+                description: 'Como ler dados digitados pelo usuário.',
+                code: `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        \n        System.out.print("Digite seu nome: ");\n        String nome = sc.nextLine();\n        \n        System.out.println("Olá, " + nome + "!");\n        \n        sc.close(); // Sempre fechar!\n    }\n}`
+            },
+            {
+                id: 'input-scanner-numeros',
+                category: 'Input',
+                title: 'Scanner - Números',
+                description: 'Ler diferentes tipos de números do usuário.',
+                code: `Scanner sc = new Scanner(System.in);\n\n// Ler inteiro\nSystem.out.print("Idade: ");\nint idade = sc.nextInt();\n\n// Ler decimal\nSystem.out.print("Altura: ");\ndouble altura = sc.nextDouble();\n\n// ATENÇÃO: Após nextInt/nextDouble, limpe o buffer:\nsc.nextLine(); // Consome o \\n residual\n\nSystem.out.print("Nome: ");\nString nome = sc.nextLine();`
+            },
+            {
+                id: 'input-print',
+                category: 'Input',
+                title: 'Print e Println',
+                description: 'Exibir mensagens no console.',
+                code: `// println = com quebra de linha\nSystem.out.println("Linha 1");\nSystem.out.println("Linha 2");\n\n// print = sem quebra de linha\nSystem.out.print("Na ");\nSystem.out.print("mesma ");\nSystem.out.println("linha!");\n\n// printf = formatado (como C)\nString nome = "Ana";\nint idade = 20;\nSystem.out.printf("Nome: %s, Idade: %d\\n", nome, idade);\nSystem.out.printf("Média: %.2f\\n", 8.567); // 8.57`
+            },
+
+            // --- IF/ELSE ---
+            {
+                id: 'control-if-simples',
+                category: 'Controle',
+                title: 'If Simples',
+                description: 'Executa código se condição for verdadeira.',
+                code: `int idade = 18;\n\nif (idade >= 18) {\n    System.out.println("Maior de idade");\n}\n\n// Operadores: == (igual), != (diferente)\n//            > < >= <= (comparação)\n//            && (e), || (ou), ! (não)`
+            },
+            {
+                id: 'control-if-else',
+                category: 'Controle',
+                title: 'If-Else',
+                description: 'Executa um bloco OU outro.',
+                code: `int nota = 7;\n\nif (nota >= 7) {\n    System.out.println("Aprovado!");\n} else {\n    System.out.println("Reprovado!");\n}`
+            },
+            {
+                id: 'control-if-elseif',
+                category: 'Controle',
+                title: 'If-Else If-Else',
+                description: 'Múltiplas condições encadeadas.',
+                code: `int nota = 8;\n\nif (nota >= 9) {\n    System.out.println("Excelente!");\n} else if (nota >= 7) {\n    System.out.println("Aprovado!");\n} else if (nota >= 5) {\n    System.out.println("Recuperação");\n} else {\n    System.out.println("Reprovado");\n}`
+            },
+            {
+                id: 'control-if-and-or',
+                category: 'Controle',
+                title: 'If com && e ||',
+                description: 'Combinando múltiplas condições.',
+                code: `int idade = 25;\nboolean temCarteira = true;\n\n// && = E (ambas precisam ser true)\nif (idade >= 18 && temCarteira) {\n    System.out.println("Pode dirigir!");\n}\n\n// || = OU (uma ou outra precisa ser true)\nif (idade < 12 || idade >= 65) {\n    System.out.println("Meia entrada!");\n}\n\n// ! = NÃO (inverte)\nif (!temCarteira) {\n    System.out.println("Não tem carteira");\n}`
+            },
+
+            // --- LOOPS ---
+            {
+                id: 'loop-for-basico',
+                category: 'Loops',
+                title: 'For Loop (Básico)',
+                description: 'Repetir um número conhecido de vezes.',
+                code: `// Contar de 1 a 5\nfor (int i = 1; i <= 5; i++) {\n    System.out.println("Número: " + i);\n}\n\n// Estrutura: for (início; condição; incremento)\n// i++ é o mesmo que i = i + 1`
+            },
+            {
+                id: 'loop-for-decr',
+                category: 'Loops',
+                title: 'For Decrescente',
+                description: 'Contar de trás para frente.',
+                code: `// Contagem regressiva\nfor (int i = 10; i >= 1; i--) {\n    System.out.println(i + "...");\n}\nSystem.out.println("FIM!");`
+            },
+            {
+                id: 'loop-for-array',
+                category: 'Loops',
+                title: 'For com Array',
+                description: 'Percorrer todos os elementos de um array.',
+                code: `int[] numeros = {10, 20, 30, 40, 50};\n\n// For tradicional\nfor (int i = 0; i < numeros.length; i++) {\n    System.out.println("Índice " + i + ": " + numeros[i]);\n}\n\n// For-each (mais simples)\nfor (int num : numeros) {\n    System.out.println("Valor: " + num);\n}`
+            },
+            {
+                id: 'loop-while',
+                category: 'Loops',
+                title: 'While Loop',
+                description: 'Repetir enquanto condição for true.',
+                code: `int contador = 1;\n\nwhile (contador <= 5) {\n    System.out.println("Contando: " + contador);\n    contador++;  // IMPORTANTE: evitar loop infinito!\n}\n\n// Exemplo: Ler até digitar 0\nScanner sc = new Scanner(System.in);\nint num = -1;\nwhile (num != 0) {\n    System.out.print("Digite (0 para sair): ");\n    num = sc.nextInt();\n}`
+            },
+            {
+                id: 'loop-dowhile',
+                category: 'Loops',
+                title: 'Do-While Loop',
+                description: 'Executa pelo menos UMA vez, depois verifica.',
+                code: `Scanner sc = new Scanner(System.in);\nint opcao;\n\ndo {\n    System.out.println("\\n=== MENU ===\");\n    System.out.println("1. Opção A");\n    System.out.println("2. Opção B");\n    System.out.println("0. Sair");\n    System.out.print("Escolha: ");\n    opcao = sc.nextInt();\n    \n    // Processar opção...\n    \n} while (opcao != 0);\n\nSystem.out.println("Até logo!");`
+            },
+            {
+                id: 'loop-break-continue',
+                category: 'Loops',
+                title: 'Break e Continue',
+                description: 'Controlar o fluxo dentro de loops.',
+                code: `// BREAK = sair do loop imediatamente\nfor (int i = 1; i <= 10; i++) {\n    if (i == 5) {\n        break;  // Para quando i = 5\n    }\n    System.out.println(i);\n}  // Imprime: 1 2 3 4\n\n// CONTINUE = pula para próxima iteração\nfor (int i = 1; i <= 5; i++) {\n    if (i == 3) {\n        continue;  // Pula o 3\n    }\n    System.out.println(i);\n}  // Imprime: 1 2 4 5`
+            },
+
+            // --- ARRAYS ---
+            {
+                id: 'array-criar',
+                category: 'Arrays',
+                title: 'Criar Arrays',
+                description: 'Estrutura para armazenar múltiplos valores.',
+                code: `// Declarar e inicializar\nint[] numeros = {10, 20, 30, 40, 50};\nString[] nomes = {"Ana", "Bruno", "Carla"};\n\n// Declarar com tamanho fixo\nint[] notas = new int[5];  // 5 espaços (valores = 0)\nnotas[0] = 8;\nnotas[1] = 9;\n\n// Acessar elementos (índice começa em 0)\nSystem.out.println(numeros[0]);  // 10\nSystem.out.println(numeros[4]);  // 50`
+            },
+            {
+                id: 'array-operacoes',
+                category: 'Arrays',
+                title: 'Operações com Arrays',
+                description: 'Tamanho, soma, maior e menor valor.',
+                code: `int[] nums = {5, 2, 9, 1, 7};\n\n// Tamanho do array\nint tam = nums.length;  // 5\n\n// Soma de todos\nint soma = 0;\nfor (int n : nums) {\n    soma += n;\n}\nSystem.out.println("Soma: " + soma);  // 24\n\n// Encontrar maior\nint maior = nums[0];\nfor (int n : nums) {\n    if (n > maior) {\n        maior = n;\n    }\n}\nSystem.out.println("Maior: " + maior);  // 9`
+            },
+
             // --- CONTROLE DE FLUXO ---
             {
                 id: 'flow-switch',
@@ -600,8 +752,8 @@
                 'mapa': ['map', 'hashmap', 'dicionário', 'dicionario', 'chave-valor'],
                 'arquivo': ['file', 'files', 'io', 'i/o', 'leitura', 'escrita', 'read', 'write'],
                 'thread': ['concorrência', 'concorrencia', 'async', 'assincrono', 'assíncrono', 'parallel', 'virtual'],
-                'loop': ['for', 'while', 'repetição', 'repeticao', 'iteração', 'iteracao'],
-                'condicional': ['if', 'else', 'switch', 'case', 'ternário', 'ternario'],
+                'loop': ['for', 'while', 'repetição', 'repeticao', 'iteração', 'iteracao', 'laço', 'laco', 'do-while', 'dowhile'],
+                'condicional': ['if', 'else', 'switch', 'case', 'ternário', 'ternario', 'condição', 'condicao'],
                 'classe': ['class', 'objeto', 'poo', 'orientação', 'orientacao', 'pessoa', 'calculadora', 'atributo', 'construtor'],
                 'metodo': ['method', 'função', 'funcao', 'function'],
                 'main': ['principal', 'iniciar', 'executar', 'entry', 'ponto de entrada'],
@@ -612,7 +764,13 @@
                 'numero': ['int', 'integer', 'double', 'float', 'long'],
                 'stream': ['filter', 'map', 'collect', 'pipeline', 'functional'],
                 'lambda': ['arrow', 'functional', 'anonymous', 'anônima', 'anonima'],
-                'opcional': ['optional', 'null', 'nullable', 'nulo']
+                'opcional': ['optional', 'null', 'nullable', 'nulo'],
+                'variavel': ['variable', 'var', 'declarar', 'declaração', 'declaracao', 'atribuir', 'atribuição'],
+                'scanner': ['input', 'entrada', 'ler', 'leitura', 'teclado', 'nextline', 'nextint'],
+                'imprimir': ['print', 'println', 'printf', 'sysout', 'system.out', 'exibir', 'mostrar'],
+                'array': ['vetor', 'arranjo', 'lista', 'indice', 'índice'],
+                'tipo': ['primitivo', 'int', 'double', 'boolean', 'char', 'string', 'byte', 'short', 'long', 'float'],
+                'constante': ['final', 'imutável', 'imutavel']
             };
 
             // Função para normalizar texto (remover acentos)
@@ -669,6 +827,12 @@
                     let iconName = 'Code';
                     switch (cat) {
                         case 'Básico': iconName = 'Terminal'; break;
+                        case 'Tipos': iconName = 'Box'; break;
+                        case 'Variáveis': iconName = 'Box'; break;
+                        case 'Input': iconName = 'Terminal'; break;
+                        case 'Controle': iconName = 'ChevronRight'; break;
+                        case 'Loops': iconName = 'Zap'; break;
+                        case 'Arrays': iconName = 'Layers'; break;
                         case 'Coleções': iconName = 'Layers'; break;
                         case 'POO': iconName = 'Database'; break;
                         case 'Streams': iconName = 'ChevronRight'; break;
@@ -790,7 +954,7 @@
                                     Categorias Disponíveis
                                 </h2>
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                    {['Básico', 'Controle', 'Coleções', 'POO', 'Streams', 'Funcional', 'Concorrência', 'I/O', 'Utils', 'Erros'].map(cat => (
+                                    {['Básico', 'Tipos', 'Variáveis', 'Input', 'Controle', 'Loops', 'Arrays', 'Coleções', 'POO', 'Streams', 'Funcional', 'Concorrência', 'I/O', 'Utils', 'Erros'].map(cat => (
                                         <div key={cat} className="bg-white dark:bg-slate-800 px-4 py-3 rounded-lg text-center font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-500 transition-colors cursor-pointer">
                                             {cat}
                                         </div>
@@ -978,15 +1142,26 @@
                                         <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
                                             Nenhuma sintaxe encontrada
                                         </h3>
-                                        <p className="text-slate-500 dark:text-slate-400">
+                                        <p className="text-slate-500 dark:text-slate-400 mb-6">
                                             Não encontramos nada para "{searchTerm}".
                                         </p>
-                                        <button
-                                            onClick={() => { setSearchTerm(''); setSelectedCategory('Todos'); }}
-                                            className="mt-6 text-orange-600 dark:text-orange-400 font-medium hover:underline"
-                                        >
-                                            Limpar filtros
-                                        </button>
+                                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                                            <button
+                                                onClick={() => { setSearchTerm(''); setSelectedCategory('Todos'); }}
+                                                className="text-orange-600 dark:text-orange-400 font-medium hover:underline"
+                                            >
+                                                Limpar filtros
+                                            </button>
+                                            <button
+                                                onClick={() => window.open(`https://github.com/search?q=${encodeURIComponent(searchTerm)}+language:java&type=code`, 'codeSearch', 'width=1100,height=750,menubar=no,toolbar=yes,location=yes,status=yes,scrollbars=yes,resizable=yes')}
+                                                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                                                </svg>
+                                                Ver Código no GitHub
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </main>
