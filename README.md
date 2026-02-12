@@ -36,6 +36,10 @@ Roda da sorte interativa para sorteios e decisões.
 ### 9. **Variação Linguística** 📚
 Seminário interativo sobre variação linguística.
 
+### 10. **Alive** 🏝️
+Simulação 3D do meu sonho de viver numa ilha remota.  
+Link: https://romariosg1998.github.io/Alive/
+
 ## 🎯 Como Iniciar o Servidor
 
 ### 🔥 Modo Watch (Recomendado) - Auto-reload
@@ -74,4 +78,3 @@ A página inicial (`index.html`) mostra todos os projetos disponíveis.
 ## 📝 Licença
 
 MIT License - Romario Galdino © 2026
-
