@@ -38,10 +38,10 @@
             transform: scale(0.9);
         }
         
-        /* Estilos da Funcionalidade de Tradução (Novo) */
+        /* Estilos da Funcionalidade de Tradução */
         .translatable {
             cursor: help;
-            border-bottom: 1px dashed #ec4899; /* Linha pontilhada rosa indica que é clicável */
+            border-bottom: 1px dashed #ec4899;
             position: relative;
             transition: background-color 0.2s;
         }
@@ -51,7 +51,7 @@
         .translation-tag {
             display: block;
             font-size: 0.85rem;
-            color: #be185d; /* Pink-700 */
+            color: #be185d;
             font-weight: 600;
             background-color: #fce7f3;
             padding: 2px 8px;
@@ -61,11 +61,28 @@
             width: fit-content;
         }
 
+        /* Mini Speaker Icon Style */
+        .mini-speaker {
+            color: #f472b6; /* pink-400 */
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 0.9em;
+            transition: color 0.2s, transform 0.1s;
+            display: inline-block;
+        }
+        .mini-speaker:hover {
+            color: #db2777; /* pink-600 */
+            transform: scale(1.1);
+        }
+        .mini-speaker:active {
+            transform: scale(0.9);
+        }
+
         /* Menu Flutuante */
         .fab-container {
             position: fixed;
-            bottom: 2rem;
-            right: 2rem;
+            bottom: 1.5rem;
+            right: 1.5rem;
             z-index: 50;
             display: flex;
             flex-direction: column-reverse;
@@ -73,8 +90,8 @@
             gap: 10px;
         }
         .fab-button {
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             background-color: #ec4899;
             color: white;
@@ -139,39 +156,55 @@
 <body class="text-gray-800 pb-24">
 
     <!-- Header -->
-    <header class="bg-pink-500 text-white p-6 shadow-lg" id="topo">
+    <header class="bg-pink-500 text-white p-4 md:p-6 shadow-lg" id="topo">
         <div class="max-w-3xl mx-auto text-center">
-            <h1 class="text-3xl font-bold mb-2">
+            <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center justify-center gap-2">
                 <i class="fas fa-graduation-cap"></i> English for Miriam
+                <i class="fas fa-volume-up text-pink-200 cursor-pointer hover:text-white text-lg" onclick="speak('English for Miriam')"></i>
             </h1>
-            <p class="text-pink-100 translatable" data-pt="Aula 1: Primeiros Passos & Introdução">
-                Lesson 1: First Steps & Introduction
+            <p class="text-pink-100 text-sm md:text-base">
+                <span class="translatable" data-pt="Aula 1: Primeiros Passos & Introdução">Lesson 1: First Steps & Introduction</span>
+                <i class="fas fa-volume-up text-pink-200 cursor-pointer hover:text-white ml-2" onclick="speak('Lesson 1: First Steps and Introduction')"></i>
             </p>
         </div>
     </header>
 
-    <main class="max-w-3xl mx-auto p-6 space-y-12">
+    <main class="max-w-3xl mx-auto p-4 md:p-6 space-y-8 md:space-y-12">
 
         <!-- Instructions -->
-        <section class="bg-white p-6 rounded-xl shadow-md border-l-4 border-pink-400" id="conteudo">
-            <h2 class="text-xl font-bold text-pink-600 mb-2 translatable" data-pt="👋 Olá, Miriam!">
-                👋 Hello, Miriam!
+        <section class="bg-white p-4 md:p-6 rounded-xl shadow-md border-l-4 border-pink-400" id="conteudo">
+            <h2 class="text-xl font-bold text-pink-600 mb-2 flex items-center">
+                <span class="translatable" data-pt="👋 Olá, Miriam!">👋 Hello, Miriam!</span>
+                <i class="fas fa-volume-up mini-speaker" onclick="speak('Hello, Miriam!')"></i>
             </h2>
-            <p class="mb-4 translatable" data-pt="Bem-vinda ao seu curso intensivo. Esta página está em inglês para ajudar você a praticar.">
-                Welcome to your intensive course. This page is in English to help you practice.
+            <p class="mb-4">
+                <span class="translatable" data-pt="Bem-vinda ao seu curso intensivo. Esta página está em inglês para ajudar você a praticar.">Welcome to your intensive course. This page is in English to help you practice.</span>
+                <i class="fas fa-volume-up mini-speaker" onclick="speak('Welcome to your intensive course. This page is in English to help you practice.')"></i>
             </p>
             
             <div class="bg-pink-50 p-4 rounded-lg text-sm text-gray-700">
-                <p class="font-bold mb-2 text-pink-700"><i class="fas fa-info-circle"></i> How to use (Como usar):</p>
+                <p class="font-bold mb-2 text-pink-700 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i> How to use:
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('How to use')"></i>
+                </p>
                 <ul class="space-y-2">
-                    <li class="translatable" data-pt="Clique em qualquer texto sublinhado para ver a tradução em Português.">
-                        <i class="fas fa-language text-pink-400"></i> <strong>Click on any underlined text</strong> to see the Portuguese translation.
+                    <li class="flex items-start">
+                        <span class="translatable" data-pt="Clique em qualquer texto sublinhado para ver a tradução em Português.">
+                            <i class="fas fa-language text-pink-400"></i> <strong>Click on any underlined text</strong> to see the Portuguese translation.
+                        </span>
+                        <i class="fas fa-volume-up mini-speaker mt-1" onclick="speak('Click on any underlined text to see the Portuguese translation.')"></i>
                     </li>
-                    <li class="translatable" data-pt="Clique no ícone de som para ouvir a pronúncia.">
-                        <i class="fas fa-volume-up text-pink-400"></i> <strong>Click the sound icon</strong> to hear the pronunciation.
+                    <li class="flex items-start">
+                        <span class="translatable" data-pt="Clique no ícone de som para ouvir a pronúncia.">
+                            <i class="fas fa-volume-up text-pink-400"></i> <strong>Click the sound icon</strong> to hear the pronunciation.
+                        </span>
+                        <i class="fas fa-volume-up mini-speaker mt-1" onclick="speak('Click the sound icon to hear the pronunciation.')"></i>
                     </li>
-                    <li class="translatable" data-pt="Passe o mouse sobre o texto borrado para revelar a resposta.">
-                        <i class="fas fa-eye text-pink-400"></i> <strong>Hover over blurred text</strong> to reveal the answer.
+                    <li class="flex items-start">
+                        <span class="translatable" data-pt="Passe o mouse sobre o texto borrado para revelar a resposta.">
+                            <i class="fas fa-eye text-pink-400"></i> <strong>Hover over blurred text</strong> to reveal the answer.
+                        </span>
+                        <i class="fas fa-volume-up mini-speaker mt-1" onclick="speak('Hover over blurred text to reveal the answer.')"></i>
                     </li>
                 </ul>
             </div>
@@ -179,10 +212,11 @@
 
         <!-- Module 1: Flashcards -->
         <section id="flashcards">
-            <h3 class="text-2xl font-bold text-gray-700 mb-6 border-b border-pink-200 pb-2 translatable" data-pt="1. Saudações Essenciais (Flashcards)">
-                1. Essential Greetings (Flashcards)
+            <h3 class="text-xl md:text-2xl font-bold text-gray-700 mb-6 border-b border-pink-200 pb-2 flex items-center">
+                <span class="translatable" data-pt="1. Saudações Essenciais (Flashcards)">1. Essential Greetings (Flashcards)</span>
+                <i class="fas fa-volume-up mini-speaker" onclick="speak('Essential Greetings, Flashcards')"></i>
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 
                 <!-- Card 1 -->
                 <div class="card bg-white p-6 rounded-xl shadow border border-pink-100 flex flex-col items-center text-center">
@@ -190,7 +224,10 @@
                         <i class="fas fa-volume-up fa-lg"></i>
                     </button>
                     <p class="text-2xl font-bold text-gray-800 mb-2">Hello!</p>
-                    <p class="text-gray-500 text-sm mb-2 translatable" data-pt="Formal / Geral">Formal / General</p>
+                    <p class="text-gray-500 text-sm mb-2">
+                        <span class="translatable" data-pt="Formal / Geral">Formal / General</span>
+                        <i class="fas fa-volume-up mini-speaker" onclick="speak('Formal, General')"></i>
+                    </p>
                     <div class="bg-gray-100 px-4 py-2 rounded text-pink-600 font-medium blur-text" onclick="this.classList.toggle('revealed')">
                         Olá!
                     </div>
@@ -202,7 +239,10 @@
                         <i class="fas fa-volume-up fa-lg"></i>
                     </button>
                     <p class="text-2xl font-bold text-gray-800 mb-2">Hi!</p>
-                    <p class="text-gray-500 text-sm mb-2 translatable" data-pt="Informal">Informal</p>
+                    <p class="text-gray-500 text-sm mb-2">
+                        <span class="translatable" data-pt="Informal">Informal</span>
+                        <i class="fas fa-volume-up mini-speaker" onclick="speak('Informal')"></i>
+                    </p>
                     <div class="bg-gray-100 px-4 py-2 rounded text-pink-600 font-medium blur-text" onclick="this.classList.toggle('revealed')">
                         Oi!
                     </div>
@@ -214,7 +254,10 @@
                         <i class="fas fa-volume-up fa-lg"></i>
                     </button>
                     <p class="text-2xl font-bold text-gray-800 mb-2">Good morning</p>
-                    <p class="text-gray-500 text-sm mb-2 translatable" data-pt="Usado pela manhã">Used in the morning</p>
+                    <p class="text-gray-500 text-sm mb-2">
+                        <span class="translatable" data-pt="Usado pela manhã">Used in the morning</span>
+                        <i class="fas fa-volume-up mini-speaker" onclick="speak('Used in the morning')"></i>
+                    </p>
                     <div class="bg-gray-100 px-4 py-2 rounded text-pink-600 font-medium blur-text" onclick="this.classList.toggle('revealed')">
                         Bom dia
                     </div>
@@ -226,7 +269,10 @@
                         <i class="fas fa-volume-up fa-lg"></i>
                     </button>
                     <p class="text-2xl font-bold text-gray-800 mb-2">Nice to meet you</p>
-                    <p class="text-gray-500 text-sm mb-2 translatable" data-pt="Ao conhecer alguém">When meeting someone</p>
+                    <p class="text-gray-500 text-sm mb-2">
+                        <span class="translatable" data-pt="Ao conhecer alguém">When meeting someone</span>
+                        <i class="fas fa-volume-up mini-speaker" onclick="speak('When meeting someone')"></i>
+                    </p>
                     <div class="bg-gray-100 px-4 py-2 rounded text-pink-600 font-medium blur-text" onclick="this.classList.toggle('revealed')">
                         Prazer em te conhecer
                     </div>
@@ -236,70 +282,77 @@
         </section>
 
         <!-- Video Section -->
-        <section id="video" class="bg-pink-50 rounded-xl p-6 border border-pink-200">
-            <h3 class="text-2xl font-bold text-pink-700 mb-4 translatable" data-pt="Vídeo da Aula">
-                <i class="fas fa-video"></i> Video Lesson
+        <section id="video" class="bg-pink-50 rounded-xl p-4 md:p-6 border border-pink-200">
+            <h3 class="text-xl md:text-2xl font-bold text-pink-700 mb-4 flex items-center">
+                <i class="fas fa-video mr-2"></i>
+                <span class="translatable" data-pt="Vídeo da Aula">Video Lesson</span>
+                <i class="fas fa-volume-up mini-speaker" onclick="speak('Video Lesson')"></i>
             </h3>
-            <p class="mb-4 text-gray-600 translatable" data-pt="O vídeo solicitado tem restrições de reprodução. Clique no botão abaixo para assistir no YouTube.">
-                The requested video has playback restrictions. Click the button below to watch on YouTube.
+            <p class="mb-4 text-gray-600">
+                <span class="translatable" data-pt="O vídeo solicitado tem restrições de reprodução. Clique no botão abaixo para assistir no YouTube.">The requested video has playback restrictions. Click the button below to watch on YouTube.</span>
+                <i class="fas fa-volume-up mini-speaker" onclick="speak('The requested video has playback restrictions. Click the button below to watch on YouTube.')"></i>
             </p>
             
-            <!-- Fallback Video (Safe to embed) -->
-            <div class="aspect-w-16 aspect-h-9 w-full bg-black rounded-lg overflow-hidden shadow-lg mb-4">
-                <iframe class="w-full h-[350px] rounded-lg" src="https://www.youtube.com/embed/_ENiRpspMhw?list=PL8emVvNIujHioWpdEDkzZCATUO0wqeLL8" title="English Greetings Alternative" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <!-- Fallback Video (Safe to embed) - Responsive Wrapper -->
+            <div class="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-lg mb-4">
+                <iframe class="w-full h-full" src="https://www.youtube.com/embed/_ENiRpspMhw?list=PL8emVvNIujHioWpdEDkzZCATUO0wqeLL8" title="English Greetings Alternative" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
 
             <!-- Button to External Video -->
             <div class="text-center">
-                <a href="https://www.youtube.com/watch?v=_ENiRpspMhw&list=PL8emVvNIujHioWpdEDkzZCATUO0wqeLL8" target="_blank" class="inline-flex items-center gap-2 bg-red-600 text-white font-bold py-3 px-6 rounded-full hover:bg-red-700 transition shadow-md translatable" data-pt="Assista ao vídeo para responder o quiz">
-                    <i class="fab fa-youtube fa-lg"></i> Watch the video to answer the quiz
+                <a href="https://www.youtube.com/watch?v=_ENiRpspMhw&list=PL8emVvNIujHioWpdEDkzZCATUO0wqeLL8" target="_blank" class="inline-flex items-center justify-center gap-2 bg-red-600 text-white font-bold py-3 px-6 rounded-full hover:bg-red-700 transition shadow-md w-full md:w-auto">
+                    <i class="fab fa-youtube fa-lg"></i>
+                    <span class="translatable text-white border-b-0" data-pt="Assista ao vídeo para responder o quiz">Watch the video to answer the quiz</span>
+                    <i class="fas fa-volume-up ml-2 cursor-pointer hover:text-red-200" onclick="event.preventDefault(); event.stopPropagation(); speak('Watch the video to answer the quiz')"></i>
                 </a>
             </div>
         </section>
 
         <!-- Module 2: Introduction -->
-        <section class="bg-purple-50 rounded-xl p-8 border border-purple-100">
-            <h3 class="text-2xl font-bold text-purple-700 mb-4 translatable" data-pt="2. Quem é você? (Introdução)">
-                2. Who are you? (Introduction)
+        <section class="bg-purple-50 rounded-xl p-4 md:p-8 border border-purple-100">
+            <h3 class="text-xl md:text-2xl font-bold text-purple-700 mb-4 flex items-center">
+                <span class="translatable" data-pt="2. Quem é você? (Introdução)">2. Who are you? (Introduction)</span>
+                <i class="fas fa-volume-up mini-speaker text-purple-400 hover:text-purple-600" onclick="speak('Who are you? Introduction')"></i>
             </h3>
-            <p class="mb-6 text-gray-700 translatable" data-pt="Miriam, clique para ouvir as formas de dizer seu nome.">
-                Miriam, click to hear ways to say your name.
+            <p class="mb-6 text-gray-700">
+                <span class="translatable" data-pt="Miriam, clique para ouvir as formas de dizer seu nome.">Miriam, click to hear ways to say your name.</span>
+                <i class="fas fa-volume-up mini-speaker text-purple-400 hover:text-purple-600" onclick="speak('Miriam, click to hear ways to say your name.')"></i>
             </p>
 
             <div class="space-y-4">
-                <div class="bg-white p-4 rounded-lg flex items-center justify-between shadow-sm border border-purple-50">
-                    <div class="flex items-center gap-4">
-                        <button onclick="speak('I am Miriam')" class="bg-purple-100 text-purple-500 rounded-full p-3 hover:bg-purple-200 audio-btn">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <div>
-                            <p class="text-xl font-bold text-gray-800">I am Miriam.</p>
-                            <p class="text-sm text-gray-500 translatable" data-pt="Eu sou a Miriam.">Eu sou a Miriam.</p>
-                        </div>
+                <div class="bg-white p-4 rounded-lg flex flex-col sm:flex-row items-center gap-4 sm:gap-6 shadow-sm border border-purple-50 text-center sm:text-left">
+                    <button onclick="speak('I am Miriam')" class="bg-purple-100 text-purple-500 rounded-full p-3 hover:bg-purple-200 audio-btn flex-shrink-0">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <div>
+                        <p class="text-xl font-bold text-gray-800">I am Miriam.</p>
+                        <p class="text-sm text-gray-500">
+                            <span class="translatable" data-pt="Eu sou a Miriam.">Eu sou a Miriam.</span>
+                        </p>
                     </div>
                 </div>
-
-                <div class="bg-white p-4 rounded-lg flex items-center justify-between shadow-sm border border-purple-50">
-                    <div class="flex items-center gap-4">
-                        <button onclick="speak('My name is Miriam')" class="bg-purple-100 text-purple-500 rounded-full p-3 hover:bg-purple-200 audio-btn">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <div>
-                            <p class="text-xl font-bold text-gray-800">My name is Miriam.</p>
-                            <p class="text-sm text-gray-500 translatable" data-pt="Meu nome é Miriam.">Meu nome é Miriam.</p>
-                        </div>
+                <!-- ... other items already have big play buttons ... -->
+                <div class="bg-white p-4 rounded-lg flex flex-col sm:flex-row items-center gap-4 sm:gap-6 shadow-sm border border-purple-50 text-center sm:text-left">
+                    <button onclick="speak('My name is Miriam')" class="bg-purple-100 text-purple-500 rounded-full p-3 hover:bg-purple-200 audio-btn flex-shrink-0">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <div>
+                        <p class="text-xl font-bold text-gray-800">My name is Miriam.</p>
+                        <p class="text-sm text-gray-500">
+                            <span class="translatable" data-pt="Meu nome é Miriam.">Meu nome é Miriam.</span>
+                        </p>
                     </div>
                 </div>
                 
-                 <div class="bg-white p-4 rounded-lg flex items-center justify-between shadow-sm border border-purple-50">
-                    <div class="flex items-center gap-4">
-                        <button onclick="speak('I am from Brazil')" class="bg-purple-100 text-purple-500 rounded-full p-3 hover:bg-purple-200 audio-btn">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <div>
-                            <p class="text-xl font-bold text-gray-800">I am from Brazil.</p>
-                            <p class="text-sm text-gray-500 translatable" data-pt="Eu sou do Brasil.">Eu sou do Brasil.</p>
-                        </div>
+                 <div class="bg-white p-4 rounded-lg flex flex-col sm:flex-row items-center gap-4 sm:gap-6 shadow-sm border border-purple-50 text-center sm:text-left">
+                    <button onclick="speak('I am from Brazil')" class="bg-purple-100 text-purple-500 rounded-full p-3 hover:bg-purple-200 audio-btn flex-shrink-0">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <div>
+                        <p class="text-xl font-bold text-gray-800">I am from Brazil.</p>
+                        <p class="text-sm text-gray-500">
+                            <span class="translatable" data-pt="Eu sou do Brasil.">Eu sou do Brasil.</span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -307,46 +360,57 @@
 
         <!-- Module 3: Survival Kit -->
         <section>
-            <h3 class="text-2xl font-bold text-gray-700 mb-6 border-b border-pink-200 pb-2 translatable" data-pt="3. Kit de Sobrevivência">
-                3. Survival Kit
+            <h3 class="text-xl md:text-2xl font-bold text-gray-700 mb-6 border-b border-pink-200 pb-2 flex items-center">
+                <span class="translatable" data-pt="3. Kit de Sobrevivência">3. Survival Kit</span>
+                <i class="fas fa-volume-up mini-speaker" onclick="speak('Survival Kit')"></i>
             </h3>
-            <div class="overflow-x-auto">
-                <table class="w-full bg-white shadow-md rounded-lg overflow-hidden">
-                    <thead class="bg-rose-50 text-rose-700 uppercase text-sm leading-normal">
+            <div class="overflow-x-auto rounded-lg shadow-md">
+                <table class="w-full bg-white">
+                    <thead class="bg-rose-50 text-rose-700 uppercase text-xs md:text-sm leading-normal">
                         <tr>
-                            <th class="py-3 px-6 text-left translatable" data-pt="Ouvir">Listen</th>
-                            <th class="py-3 px-6 text-left translatable" data-pt="Inglês">English</th>
-                            <th class="py-3 px-6 text-left translatable" data-pt="Tradução">Translation</th>
+                            <th class="py-3 px-3 md:px-6 text-left">
+                                <span class="translatable" data-pt="Ouvir">Listen</span>
+                                <i class="fas fa-volume-up mini-speaker" onclick="speak('Listen')"></i>
+                            </th>
+                            <th class="py-3 px-3 md:px-6 text-left">
+                                <span class="translatable" data-pt="Inglês">English</span>
+                                <i class="fas fa-volume-up mini-speaker" onclick="speak('English')"></i>
+                            </th>
+                            <th class="py-3 px-3 md:px-6 text-left">
+                                <span class="translatable" data-pt="Tradução">Translation</span>
+                                <i class="fas fa-volume-up mini-speaker" onclick="speak('Translation')"></i>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-600 text-md">
+                    <tbody class="text-gray-600 text-sm md:text-md">
+                        <!-- Content already has buttons -->
                         <tr class="border-b border-gray-100 hover:bg-rose-50">
-                            <td class="py-3 px-6 text-left">
+                            <td class="py-3 px-3 md:px-6 text-left">
                                 <button onclick="speak('Please')" class="text-rose-400 hover:text-rose-600"><i class="fas fa-volume-up"></i></button>
                             </td>
-                            <td class="py-3 px-6 text-left font-bold text-lg">Please</td>
-                            <td class="py-3 px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Por favor</td>
+                            <td class="py-3 px-3 md:px-6 text-left font-bold text-base md:text-lg">Please</td>
+                            <td class="py-3 px-3 md:px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Por favor</td>
                         </tr>
                         <tr class="border-b border-gray-100 hover:bg-rose-50">
-                            <td class="py-3 px-6 text-left">
+                            <td class="py-3 px-3 md:px-6 text-left">
                                 <button onclick="speak('Thank you')" class="text-rose-400 hover:text-rose-600"><i class="fas fa-volume-up"></i></button>
                             </td>
-                            <td class="py-3 px-6 text-left font-bold text-lg">Thank you</td>
-                            <td class="py-3 px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Obrigado(a)</td>
+                            <td class="py-3 px-3 md:px-6 text-left font-bold text-base md:text-lg">Thank you</td>
+                            <td class="py-3 px-3 md:px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Obrigado(a)</td>
                         </tr>
                         <tr class="border-b border-gray-100 hover:bg-rose-50">
-                            <td class="py-3 px-6 text-left">
+                            <td class="py-3 px-3 md:px-6 text-left">
                                 <button onclick="speak('Sorry')" class="text-rose-400 hover:text-rose-600"><i class="fas fa-volume-up"></i></button>
                             </td>
-                            <td class="py-3 px-6 text-left font-bold text-lg">Sorry</td>
-                            <td class="py-3 px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Desculpe</td>
+                            <td class="py-3 px-3 md:px-6 text-left font-bold text-base md:text-lg">Sorry</td>
+                            <td class="py-3 px-3 md:px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Desculpe</td>
                         </tr>
                         <tr class="border-b border-gray-100 hover:bg-rose-50">
-                            <td class="py-3 px-6 text-left">
+                            <td class="py-3 px-3 md:px-6 text-left">
                                 <button onclick="speak('I do not understand')" class="text-rose-400 hover:text-rose-600"><i class="fas fa-volume-up"></i></button>
                             </td>
-                            <td class="py-3 px-6 text-left font-bold text-lg">I don't understand</td>
-                            <td class="py-3 px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Eu não entendo</td>
+                            <td class="py-3 px-3 md:px-6 text-left font-bold text-base md:text-lg">I don't understand</td>
+                            <td class="py-3 px-3 md:px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Eu não entendo</td>
                         </tr>
                     </tbody>
                 </table>
@@ -354,139 +418,239 @@
         </section>
 
         <!-- Quiz Section -->
-        <section id="teste" class="bg-fuchsia-50 p-8 rounded-xl shadow-inner border border-fuchsia-100">
-            <h3 class="text-2xl font-bold text-fuchsia-800 mb-4 translatable" data-pt="Quiz da Miriam: Clube das Winx">
-                <i class="fas fa-puzzle-piece"></i> Miriam's Quiz: Winx Club
+        <section id="teste" class="bg-fuchsia-50 p-4 md:p-8 rounded-xl shadow-inner border border-fuchsia-100">
+            <h3 class="text-xl md:text-2xl font-bold text-fuchsia-800 mb-4 flex items-center">
+                <i class="fas fa-puzzle-piece mr-2"></i>
+                <span class="translatable" data-pt="Quiz da Miriam: Clube das Winx">Miriam's Quiz: Winx Club</span>
+                <i class="fas fa-volume-up mini-speaker text-fuchsia-400 hover:text-fuchsia-600" onclick="speak('Miriam\'s Quiz: Winx Club')"></i>
             </h3>
-            <p class="mb-6 text-fuchsia-600 translatable" data-pt="Vamos testar sua memória sobre o episódio? Clique na resposta correta.">
-                Let's test your memory about the episode? Click on the correct answer.
+            <p class="mb-6 text-fuchsia-600">
+                <span class="translatable" data-pt="Vamos testar sua memória sobre o episódio? Clique na resposta correta.">Let's test your memory about the episode? Click on the correct answer.</span>
+                <i class="fas fa-volume-up mini-speaker text-fuchsia-400 hover:text-fuchsia-600" onclick="speak('Let\'s test your memory about the episode? Click on the correct answer.')"></i>
             </p>
 
             <!-- Question 1 -->
-            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
-                <p class="font-bold text-lg mb-3 translatable" data-pt="1. Qual o nome da garota que mora em Gardenia?">
-                    1. What is the name of the girl who lives in Gardenia?
+            <div class="mb-6 bg-white p-4 md:p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-base md:text-lg mb-3">
+                    <span class="translatable" data-pt="1. Qual o nome da garota que mora em Gardenia?">1. What is the name of the girl who lives in Gardenia?</span>
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('What is the name of the girl who lives in Gardenia?')"></i>
                 </p>
-                <div class="space-x-2">
-                    <button onclick="checkAnswer(this, true, 'Correct! Bloom is the main character.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Bloom</button>
-                    <button onclick="checkAnswer(this, false, 'Try again. Stella meets her later.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Stella</button>
-                    <button onclick="checkAnswer(this, false, 'Flora is another fairy.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Flora</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, true, 'Correct! Bloom is the main character.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Bloom</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Bloom')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Try again. Stella meets her later.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Stella</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Stella')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Flora is another fairy.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Flora</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Flora')"></i>
+                    </div>
                 </div>
                 <p class="feedback mt-2 text-sm font-bold"></p>
             </div>
 
             <!-- Question 2 -->
-            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
-                <p class="font-bold text-lg mb-3 translatable" data-pt="2. Quantos anos a Bloom tem?">
-                    2. How old is Bloom?
+            <div class="mb-6 bg-white p-4 md:p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-base md:text-lg mb-3">
+                    <span class="translatable" data-pt="2. Quantos anos a Bloom tem?">2. How old is Bloom?</span>
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('How old is Bloom?')"></i>
                 </p>
-                <div class="space-x-2">
-                    <button onclick="checkAnswer(this, false, 'Too young!')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">14</button>
-                    <button onclick="checkAnswer(this, true, 'Correct! She is sixteen.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">16</button>
-                    <button onclick="checkAnswer(this, false, 'Too old!')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">18</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Too young!')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">14</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('14')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, true, 'Correct! She is sixteen.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">16</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('16')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Too old!')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">18</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('18')"></i>
+                    </div>
                 </div>
                 <p class="feedback mt-2 text-sm font-bold"></p>
             </div>
 
             <!-- Question 3 -->
-            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
-                <p class="font-bold text-lg mb-3 translatable" data-pt="3. Quem acorda a Bloom de manhã?">
-                    3. Who wakes Bloom up in the morning?
+            <div class="mb-6 bg-white p-4 md:p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-base md:text-lg mb-3">
+                    <span class="translatable" data-pt="3. Quem acorda a Bloom de manhã?">3. Who wakes Bloom up in the morning?</span>
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('Who wakes Bloom up in the morning?')"></i>
                 </p>
-                <div class="space-x-2">
-                    <button onclick="checkAnswer(this, true, 'Correct! Her mother wakes her up.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Her mom</button>
-                    <button onclick="checkAnswer(this, false, 'Not her dad.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Her dad</button>
-                    <button onclick="checkAnswer(this, false, 'Kiko is her pet.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Her rabbit</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, true, 'Correct! Her mother wakes her up.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Her mom</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Her mom')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Not her dad.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Her dad</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Her dad')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Kiko is her pet.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Her rabbit</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Her rabbit')"></i>
+                    </div>
                 </div>
                 <p class="feedback mt-2 text-sm font-bold"></p>
             </div>
 
             <!-- Question 4 -->
-            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
-                <p class="font-bold text-lg mb-3 translatable" data-pt="4. O que o pai da Bloom dá de presente para ela?">
-                    4. What does Bloom's dad give her as a present?
+            <div class="mb-6 bg-white p-4 md:p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-base md:text-lg mb-3">
+                    <span class="translatable" data-pt="4. O que o pai da Bloom dá de presente para ela?">4. What does Bloom's dad give her as a present?</span>
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('What does Bloom\'s dad give her as a present?')"></i>
                 </p>
-                <div class="space-x-2">
-                    <button onclick="checkAnswer(this, false, 'Not a car yet!')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A car</button>
-                    <button onclick="checkAnswer(this, true, 'Correct! A new bicycle.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A bicycle</button>
-                    <button onclick="checkAnswer(this, false, 'Not a phone.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A phone</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Not a car yet!')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">A car</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('A car')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, true, 'Correct! A new bicycle.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">A bicycle</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('A bicycle')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Not a phone.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">A phone</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('A phone')"></i>
+                    </div>
                 </div>
                 <p class="feedback mt-2 text-sm font-bold"></p>
             </div>
 
             <!-- Question 5 -->
-            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
-                <p class="font-bold text-lg mb-3 translatable" data-pt="5. Qual o nome da fada que a Bloom ajuda no parque?">
-                    5. What is the name of the fairy that Bloom helps in the park?
+            <div class="mb-6 bg-white p-4 md:p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-base md:text-lg mb-3">
+                    <span class="translatable" data-pt="5. Qual o nome da fada que a Bloom ajuda no parque?">5. What is the name of the fairy that Bloom helps in the park?</span>
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('What is the name of the fairy that Bloom helps in the park?')"></i>
                 </p>
-                <div class="space-x-2">
-                    <button onclick="checkAnswer(this, true, 'Correct! It is Stella.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Stella</button>
-                    <button onclick="checkAnswer(this, false, 'Not Musa.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Musa</button>
-                    <button onclick="checkAnswer(this, false, 'Not Tecna.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Tecna</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, true, 'Correct! It is Stella.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Stella</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Stella')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Not Musa.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Musa</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Musa')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Not Tecna.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Tecna</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Tecna')"></i>
+                    </div>
                 </div>
                 <p class="feedback mt-2 text-sm font-bold"></p>
             </div>
 
             <!-- Question 6 -->
-            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
-                <p class="font-bold text-lg mb-3 translatable" data-pt="6. De onde a Stella vem?">
-                    6. Where does Stella come from?
+            <div class="mb-6 bg-white p-4 md:p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-base md:text-lg mb-3">
+                    <span class="translatable" data-pt="6. De onde a Stella vem?">6. Where does Stella come from?</span>
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('Where does Stella come from?')"></i>
                 </p>
-                <div class="space-x-2">
-                    <button onclick="checkAnswer(this, false, 'Bloom is from Gardenia.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Gardenia</button>
-                    <button onclick="checkAnswer(this, true, 'Correct! She is from Solaria.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Solaria</button>
-                    <button onclick="checkAnswer(this, false, 'Magix is the dimension.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Magix</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Bloom is from Gardenia.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Gardenia</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Gardenia')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, true, 'Correct! She is from Solaria.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Solaria</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Solaria')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Magix is the dimension.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Magix</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Magix')"></i>
+                    </div>
                 </div>
                 <p class="feedback mt-2 text-sm font-bold"></p>
             </div>
 
             <!-- Question 7 -->
-            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
-                <p class="font-bold text-lg mb-3 translatable" data-pt="7. Sobre qual escola para fadas a Stella fala?">
-                    7. What school does Stella talk about for fairies?
+            <div class="mb-6 bg-white p-4 md:p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-base md:text-lg mb-3">
+                    <span class="translatable" data-pt="7. Sobre qual escola para fadas a Stella fala?">7. What school does Stella talk about for fairies?</span>
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('What school does Stella talk about for fairies?')"></i>
                 </p>
-                <div class="space-x-2">
-                    <button onclick="checkAnswer(this, true, 'Correct! Alfea School for Fairies.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Alfea</button>
-                    <button onclick="checkAnswer(this, false, 'Red Fountain is for Specialists.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Red Fountain</button>
-                    <button onclick="checkAnswer(this, false, 'Cloud Tower is for Witches.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Cloud Tower</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, true, 'Correct! Alfea School for Fairies.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Alfea</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Alfea')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Red Fountain is for Specialists.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Red Fountain</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Red Fountain')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Cloud Tower is for Witches.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Cloud Tower</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Cloud Tower')"></i>
+                    </div>
                 </div>
                 <p class="feedback mt-2 text-sm font-bold"></p>
             </div>
 
             <!-- Question 8 -->
-            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
-                <p class="font-bold text-lg mb-3 translatable" data-pt="8. Que animal é o bicho de estimação da Bloom?">
-                    8. What animal is Bloom's pet?
+            <div class="mb-6 bg-white p-4 md:p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-base md:text-lg mb-3">
+                    <span class="translatable" data-pt="8. Que animal é o bicho de estimação da Bloom?">8. What animal is Bloom's pet?</span>
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('What animal is Bloom\'s pet?')"></i>
                 </p>
-                <div class="space-x-2">
-                    <button onclick="checkAnswer(this, false, 'Not a dog.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A dog</button>
-                    <button onclick="checkAnswer(this, false, 'Not a cat.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A cat</button>
-                    <button onclick="checkAnswer(this, true, 'Correct! Kiko is a rabbit.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A rabbit</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Not a dog.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">A dog</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('A dog')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Not a cat.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">A cat</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('A cat')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, true, 'Correct! Kiko is a rabbit.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">A rabbit</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('A rabbit')"></i>
+                    </div>
                 </div>
                 <p class="feedback mt-2 text-sm font-bold"></p>
             </div>
 
             <!-- Question 9 -->
-            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
-                <p class="font-bold text-lg mb-3 translatable" data-pt="9. Quem ataca a Stella no parque?">
-                    9. Who attacks Stella in the park?
+            <div class="mb-6 bg-white p-4 md:p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-base md:text-lg mb-3">
+                    <span class="translatable" data-pt="9. Quem ataca a Stella no parque?">9. Who attacks Stella in the park?</span>
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('Who attacks Stella in the park?')"></i>
                 </p>
-                <div class="space-x-2">
-                    <button onclick="checkAnswer(this, false, 'Teachers are at school.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Teachers</button>
-                    <button onclick="checkAnswer(this, true, 'Correct! Knut the Ogre and ghouls.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Monsters/Ogre</button>
-                    <button onclick="checkAnswer(this, false, 'Pixies are friendly.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Pixies</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Teachers are at school.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Teachers</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Teachers')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, true, 'Correct! Knut the Ogre and ghouls.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Monsters/Ogre</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Monsters, Ogre')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'Pixies are friendly.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Pixies</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Pixies')"></i>
+                    </div>
                 </div>
                 <p class="feedback mt-2 text-sm font-bold"></p>
             </div>
 
             <!-- Question 10 -->
-            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
-                <p class="font-bold text-lg mb-3 translatable" data-pt="10. No final do episódio, o que a Bloom decide fazer?">
-                    10. At the end of the episode, what does Bloom decide to do?
+            <div class="mb-6 bg-white p-4 md:p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-base md:text-lg mb-3">
+                    <span class="translatable" data-pt="10. No final do episódio, o que a Bloom decide fazer?">10. At the end of the episode, what does Bloom decide to do?</span>
+                    <i class="fas fa-volume-up mini-speaker" onclick="speak('At the end of the episode, what does Bloom decide to do?')"></i>
                 </p>
-                <div class="space-x-2">
-                    <button onclick="checkAnswer(this, false, 'She leaves Gardenia.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Stay in Gardenia</button>
-                    <button onclick="checkAnswer(this, true, 'Correct! She goes to the magic school.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Go to Alfea</button>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, false, 'She leaves Gardenia.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Stay in Gardenia</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Stay in Gardenia')"></i>
+                    </div>
+                    <div class="relative w-full sm:w-auto">
+                        <button onclick="checkAnswer(this, true, 'Correct! She goes to the magic school.')" class="w-full px-4 py-3 md:py-2 border border-gray-300 rounded hover:bg-gray-100 transition text-left pr-10">Go to Alfea</button>
+                        <i class="fas fa-volume-up absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-pink-600" onclick="event.stopPropagation(); speak('Go to Alfea')"></i>
+                    </div>
                 </div>
                 <p class="feedback mt-2 text-sm font-bold"></p>
             </div>
@@ -496,8 +660,11 @@
     </main>
 
     <footer class="bg-pink-900 text-white text-center p-8 mt-12">
-        <p class="translatable" data-pt="Ótimo trabalho, Miriam! Continue praticando.">Great job, Miriam! Keep practicing.</p>
-        <p class="text-xs text-pink-300 mt-2">Personal English Lesson v1.3</p>
+        <p class="">
+            <span class="translatable" data-pt="Ótimo trabalho, Miriam! Continue praticando.">Great job, Miriam! Keep practicing.</span>
+            <i class="fas fa-volume-up mini-speaker text-pink-300 hover:text-white" onclick="speak('Great job, Miriam! Keep practicing.')"></i>
+        </p>
+        <p class="text-xs text-pink-300 mt-2">Personal English Lesson v1.5</p>
     </footer>
 
     <!-- Floating Menu -->
@@ -582,11 +749,14 @@
 
         // Quiz functionality
         function checkAnswer(btn, isCorrect, msg) {
-            const parent = btn.parentElement;
-            const feedback = parent.nextElementSibling;
+            const parent = btn.parentElement; // div wrapping button and icon
+            const container = parent.parentElement; // flex container
+            const feedback = container.nextElementSibling;
             
-            const buttons = parent.querySelectorAll('button');
-            buttons.forEach(b => {
+            // Disable all buttons in this question group
+            const allButtons = container.querySelectorAll('button:not([onclick^="speak"])'); // Select only answer buttons, not speaker buttons
+            
+            allButtons.forEach(b => {
                 b.classList.remove('bg-green-500', 'bg-red-500', 'text-white', 'border-gray-300');
                 b.classList.add('opacity-50', 'cursor-not-allowed');
                 b.disabled = true;
