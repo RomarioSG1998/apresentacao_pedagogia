@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 1: Welcome Miriam!</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff1f2; /* Rose-50 */
+        }
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        /* Efeito de Blur para respostas (Flashcards) */
+        .blur-text {
+            filter: blur(5px);
+            cursor: pointer;
+            transition: filter 0.3s ease;
+            user-select: none;
+        }
+        .blur-text:hover, .blur-text.revealed {
+            filter: blur(0);
+        }
+        .audio-btn {
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .audio-btn:active {
+            transform: scale(0.9);
+        }
+        
+        /* Estilos da Funcionalidade de Tradução (Novo) */
+        .translatable {
+            cursor: help;
+            border-bottom: 1px dashed #ec4899; /* Linha pontilhada rosa indica que é clicável */
+            position: relative;
+            transition: background-color 0.2s;
+        }
+        .translatable:hover {
+            background-color: rgba(253, 224, 239, 0.5);
+        }
+        .translation-tag {
+            display: block;
+            font-size: 0.85rem;
+            color: #be185d; /* Pink-700 */
+            font-weight: 600;
+            background-color: #fce7f3;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            animation: fadeIn 0.3s ease-out;
+            width: fit-content;
+        }
+
+        /* Menu Flutuante */
+        .fab-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 50;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        .fab-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ec4899;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+            border: none;
+        }
+        .fab-button:hover {
+            transform: scale(1.1);
+            background-color: #db2777;
+        }
+        .fab-options {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .fab-options.open {
+            display: flex;
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+        .fab-option {
+            background-color: white;
+            color: #ec4899;
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+            border: 1px solid #fbcfe8;
+        }
+        .fab-option:hover {
+            transform: translateX(-5px);
+            background-color: #fdf2f8;
+        }
+        .fab-option.disabled {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+            border-color: #e5e7eb;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-gray-800 pb-24">
+
+    <!-- Header -->
+    <header class="bg-pink-500 text-white p-6 shadow-lg" id="topo">
+        <div class="max-w-3xl mx-auto text-center">
+            <h1 class="text-3xl font-bold mb-2">
+                <i class="fas fa-graduation-cap"></i> English for Miriam
+            </h1>
+            <p class="text-pink-100 translatable" data-pt="Aula 1: Primeiros Passos & Introdução">
+                Lesson 1: First Steps & Introduction
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto p-6 space-y-12">
+
+        <!-- Instructions -->
+        <section class="bg-white p-6 rounded-xl shadow-md border-l-4 border-pink-400" id="conteudo">
+            <h2 class="text-xl font-bold text-pink-600 mb-2 translatable" data-pt="👋 Olá, Miriam!">
+                👋 Hello, Miriam!
+            </h2>
+            <p class="mb-4 translatable" data-pt="Bem-vinda ao seu curso intensivo. Esta página está em inglês para ajudar você a praticar.">
+                Welcome to your intensive course. This page is in English to help you practice.
+            </p>
+            
+            <div class="bg-pink-50 p-4 rounded-lg text-sm text-gray-700">
+                <p class="font-bold mb-2 text-pink-700"><i class="fas fa-info-circle"></i> How to use (Como usar):</p>
+                <ul class="space-y-2">
+                    <li class="translatable" data-pt="Clique em qualquer texto sublinhado para ver a tradução em Português.">
+                        <i class="fas fa-language text-pink-400"></i> <strong>Click on any underlined text</strong> to see the Portuguese translation.
+                    </li>
+                    <li class="translatable" data-pt="Clique no ícone de som para ouvir a pronúncia.">
+                        <i class="fas fa-volume-up text-pink-400"></i> <strong>Click the sound icon</strong> to hear the pronunciation.
+                    </li>
+                    <li class="translatable" data-pt="Passe o mouse sobre o texto borrado para revelar a resposta.">
+                        <i class="fas fa-eye text-pink-400"></i> <strong>Hover over blurred text</strong> to reveal the answer.
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Module 1: Flashcards -->
+        <section id="flashcards">
+            <h3 class="text-2xl font-bold text-gray-700 mb-6 border-b border-pink-200 pb-2 translatable" data-pt="1. Saudações Essenciais (Flashcards)">
+                1. Essential Greetings (Flashcards)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- Card 1 -->
+                <div class="card bg-white p-6 rounded-xl shadow border border-pink-100 flex flex-col items-center text-center">
+                    <button onclick="speak('Hello')" class="audio-btn bg-pink-100 text-pink-500 rounded-full p-3 mb-3 hover:bg-pink-200">
+                        <i class="fas fa-volume-up fa-lg"></i>
+                    </button>
+                    <p class="text-2xl font-bold text-gray-800 mb-2">Hello!</p>
+                    <p class="text-gray-500 text-sm mb-2 translatable" data-pt="Formal / Geral">Formal / General</p>
+                    <div class="bg-gray-100 px-4 py-2 rounded text-pink-600 font-medium blur-text" onclick="this.classList.toggle('revealed')">
+                        Olá!
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="card bg-white p-6 rounded-xl shadow border border-pink-100 flex flex-col items-center text-center">
+                    <button onclick="speak('Hi')" class="audio-btn bg-pink-100 text-pink-500 rounded-full p-3 mb-3 hover:bg-pink-200">
+                        <i class="fas fa-volume-up fa-lg"></i>
+                    </button>
+                    <p class="text-2xl font-bold text-gray-800 mb-2">Hi!</p>
+                    <p class="text-gray-500 text-sm mb-2 translatable" data-pt="Informal">Informal</p>
+                    <div class="bg-gray-100 px-4 py-2 rounded text-pink-600 font-medium blur-text" onclick="this.classList.toggle('revealed')">
+                        Oi!
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="card bg-white p-6 rounded-xl shadow border border-pink-100 flex flex-col items-center text-center">
+                    <button onclick="speak('Good morning')" class="audio-btn bg-pink-100 text-pink-500 rounded-full p-3 mb-3 hover:bg-pink-200">
+                        <i class="fas fa-volume-up fa-lg"></i>
+                    </button>
+                    <p class="text-2xl font-bold text-gray-800 mb-2">Good morning</p>
+                    <p class="text-gray-500 text-sm mb-2 translatable" data-pt="Usado pela manhã">Used in the morning</p>
+                    <div class="bg-gray-100 px-4 py-2 rounded text-pink-600 font-medium blur-text" onclick="this.classList.toggle('revealed')">
+                        Bom dia
+                    </div>
+                </div>
+
+                 <!-- Card 4 -->
+                 <div class="card bg-white p-6 rounded-xl shadow border border-pink-100 flex flex-col items-center text-center">
+                    <button onclick="speak('Nice to meet you')" class="audio-btn bg-pink-100 text-pink-500 rounded-full p-3 mb-3 hover:bg-pink-200">
+                        <i class="fas fa-volume-up fa-lg"></i>
+                    </button>
+                    <p class="text-2xl font-bold text-gray-800 mb-2">Nice to meet you</p>
+                    <p class="text-gray-500 text-sm mb-2 translatable" data-pt="Ao conhecer alguém">When meeting someone</p>
+                    <div class="bg-gray-100 px-4 py-2 rounded text-pink-600 font-medium blur-text" onclick="this.classList.toggle('revealed')">
+                        Prazer em te conhecer
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Video Section -->
+        <section id="video" class="bg-pink-50 rounded-xl p-6 border border-pink-200">
+            <h3 class="text-2xl font-bold text-pink-700 mb-4 translatable" data-pt="Vídeo da Aula">
+                <i class="fas fa-video"></i> Video Lesson
+            </h3>
+            <p class="mb-4 text-gray-600 translatable" data-pt="O vídeo solicitado tem restrições de reprodução. Clique no botão abaixo para assistir no YouTube.">
+                The requested video has playback restrictions. Click the button below to watch on YouTube.
+            </p>
+            
+            <!-- Fallback Video (Safe to embed) -->
+            <div class="aspect-w-16 aspect-h-9 w-full bg-black rounded-lg overflow-hidden shadow-lg mb-4">
+                <iframe class="w-full h-[350px] rounded-lg" src="https://www.youtube.com/embed/tVlcKp3bWH8" title="English Greetings Alternative" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+
+            <!-- Button to External Video -->
+            <div class="text-center">
+                <a href="https://www.youtube.com/watch?v=_ENiRpspMhw&list=PL8emVvNIujHioWpdEDkzZCATUO0wqeLL8" target="_blank" class="inline-flex items-center gap-2 bg-red-600 text-white font-bold py-3 px-6 rounded-full hover:bg-red-700 transition shadow-md translatable" data-pt="Assista ao vídeo para responder o quiz">
+                    <i class="fab fa-youtube fa-lg"></i> Watch the video to answer the quiz
+                </a>
+            </div>
+        </section>
+
+        <!-- Module 2: Introduction -->
+        <section class="bg-purple-50 rounded-xl p-8 border border-purple-100">
+            <h3 class="text-2xl font-bold text-purple-700 mb-4 translatable" data-pt="2. Quem é você? (Introdução)">
+                2. Who are you? (Introduction)
+            </h3>
+            <p class="mb-6 text-gray-700 translatable" data-pt="Miriam, clique para ouvir as formas de dizer seu nome.">
+                Miriam, click to hear ways to say your name.
+            </p>
+
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-lg flex items-center justify-between shadow-sm border border-purple-50">
+                    <div class="flex items-center gap-4">
+                        <button onclick="speak('I am Miriam')" class="bg-purple-100 text-purple-500 rounded-full p-3 hover:bg-purple-200 audio-btn">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <div>
+                            <p class="text-xl font-bold text-gray-800">I am Miriam.</p>
+                            <p class="text-sm text-gray-500 translatable" data-pt="Eu sou a Miriam.">Eu sou a Miriam.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg flex items-center justify-between shadow-sm border border-purple-50">
+                    <div class="flex items-center gap-4">
+                        <button onclick="speak('My name is Miriam')" class="bg-purple-100 text-purple-500 rounded-full p-3 hover:bg-purple-200 audio-btn">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <div>
+                            <p class="text-xl font-bold text-gray-800">My name is Miriam.</p>
+                            <p class="text-sm text-gray-500 translatable" data-pt="Meu nome é Miriam.">Meu nome é Miriam.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                 <div class="bg-white p-4 rounded-lg flex items-center justify-between shadow-sm border border-purple-50">
+                    <div class="flex items-center gap-4">
+                        <button onclick="speak('I am from Brazil')" class="bg-purple-100 text-purple-500 rounded-full p-3 hover:bg-purple-200 audio-btn">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <div>
+                            <p class="text-xl font-bold text-gray-800">I am from Brazil.</p>
+                            <p class="text-sm text-gray-500 translatable" data-pt="Eu sou do Brasil.">Eu sou do Brasil.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 3: Survival Kit -->
+        <section>
+            <h3 class="text-2xl font-bold text-gray-700 mb-6 border-b border-pink-200 pb-2 translatable" data-pt="3. Kit de Sobrevivência">
+                3. Survival Kit
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full bg-white shadow-md rounded-lg overflow-hidden">
+                    <thead class="bg-rose-50 text-rose-700 uppercase text-sm leading-normal">
+                        <tr>
+                            <th class="py-3 px-6 text-left translatable" data-pt="Ouvir">Listen</th>
+                            <th class="py-3 px-6 text-left translatable" data-pt="Inglês">English</th>
+                            <th class="py-3 px-6 text-left translatable" data-pt="Tradução">Translation</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-600 text-md">
+                        <tr class="border-b border-gray-100 hover:bg-rose-50">
+                            <td class="py-3 px-6 text-left">
+                                <button onclick="speak('Please')" class="text-rose-400 hover:text-rose-600"><i class="fas fa-volume-up"></i></button>
+                            </td>
+                            <td class="py-3 px-6 text-left font-bold text-lg">Please</td>
+                            <td class="py-3 px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Por favor</td>
+                        </tr>
+                        <tr class="border-b border-gray-100 hover:bg-rose-50">
+                            <td class="py-3 px-6 text-left">
+                                <button onclick="speak('Thank you')" class="text-rose-400 hover:text-rose-600"><i class="fas fa-volume-up"></i></button>
+                            </td>
+                            <td class="py-3 px-6 text-left font-bold text-lg">Thank you</td>
+                            <td class="py-3 px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Obrigado(a)</td>
+                        </tr>
+                        <tr class="border-b border-gray-100 hover:bg-rose-50">
+                            <td class="py-3 px-6 text-left">
+                                <button onclick="speak('Sorry')" class="text-rose-400 hover:text-rose-600"><i class="fas fa-volume-up"></i></button>
+                            </td>
+                            <td class="py-3 px-6 text-left font-bold text-lg">Sorry</td>
+                            <td class="py-3 px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Desculpe</td>
+                        </tr>
+                        <tr class="border-b border-gray-100 hover:bg-rose-50">
+                            <td class="py-3 px-6 text-left">
+                                <button onclick="speak('I do not understand')" class="text-rose-400 hover:text-rose-600"><i class="fas fa-volume-up"></i></button>
+                            </td>
+                            <td class="py-3 px-6 text-left font-bold text-lg">I don't understand</td>
+                            <td class="py-3 px-6 text-left blur-text" onclick="this.classList.toggle('revealed')">Eu não entendo</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Quiz Section -->
+        <section id="teste" class="bg-fuchsia-50 p-8 rounded-xl shadow-inner border border-fuchsia-100">
+            <h3 class="text-2xl font-bold text-fuchsia-800 mb-4 translatable" data-pt="Quiz da Miriam: Clube das Winx">
+                <i class="fas fa-puzzle-piece"></i> Miriam's Quiz: Winx Club
+            </h3>
+            <p class="mb-6 text-fuchsia-600 translatable" data-pt="Vamos testar sua memória sobre o episódio? Clique na resposta correta.">
+                Let's test your memory about the episode? Click on the correct answer.
+            </p>
+
+            <!-- Question 1 -->
+            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-lg mb-3 translatable" data-pt="1. Qual o nome da garota que mora em Gardenia?">
+                    1. What is the name of the girl who lives in Gardenia?
+                </p>
+                <div class="space-x-2">
+                    <button onclick="checkAnswer(this, true, 'Correct! Bloom is the main character.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Bloom</button>
+                    <button onclick="checkAnswer(this, false, 'Try again. Stella meets her later.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Stella</button>
+                    <button onclick="checkAnswer(this, false, 'Flora is another fairy.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Flora</button>
+                </div>
+                <p class="feedback mt-2 text-sm font-bold"></p>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-lg mb-3 translatable" data-pt="2. Quantos anos a Bloom tem?">
+                    2. How old is Bloom?
+                </p>
+                <div class="space-x-2">
+                    <button onclick="checkAnswer(this, false, 'Too young!')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">14</button>
+                    <button onclick="checkAnswer(this, true, 'Correct! She is sixteen.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">16</button>
+                    <button onclick="checkAnswer(this, false, 'Too old!')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">18</button>
+                </div>
+                <p class="feedback mt-2 text-sm font-bold"></p>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-lg mb-3 translatable" data-pt="3. Quem acorda a Bloom de manhã?">
+                    3. Who wakes Bloom up in the morning?
+                </p>
+                <div class="space-x-2">
+                    <button onclick="checkAnswer(this, true, 'Correct! Her mother wakes her up.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Her mom</button>
+                    <button onclick="checkAnswer(this, false, 'Not her dad.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Her dad</button>
+                    <button onclick="checkAnswer(this, false, 'Kiko is her pet.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Her rabbit</button>
+                </div>
+                <p class="feedback mt-2 text-sm font-bold"></p>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-lg mb-3 translatable" data-pt="4. O que o pai da Bloom dá de presente para ela?">
+                    4. What does Bloom's dad give her as a present?
+                </p>
+                <div class="space-x-2">
+                    <button onclick="checkAnswer(this, false, 'Not a car yet!')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A car</button>
+                    <button onclick="checkAnswer(this, true, 'Correct! A new bicycle.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A bicycle</button>
+                    <button onclick="checkAnswer(this, false, 'Not a phone.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A phone</button>
+                </div>
+                <p class="feedback mt-2 text-sm font-bold"></p>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-lg mb-3 translatable" data-pt="5. Qual o nome da fada que a Bloom ajuda no parque?">
+                    5. What is the name of the fairy that Bloom helps in the park?
+                </p>
+                <div class="space-x-2">
+                    <button onclick="checkAnswer(this, true, 'Correct! It is Stella.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Stella</button>
+                    <button onclick="checkAnswer(this, false, 'Not Musa.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Musa</button>
+                    <button onclick="checkAnswer(this, false, 'Not Tecna.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Tecna</button>
+                </div>
+                <p class="feedback mt-2 text-sm font-bold"></p>
+            </div>
+
+            <!-- Question 6 -->
+            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-lg mb-3 translatable" data-pt="6. De onde a Stella vem?">
+                    6. Where does Stella come from?
+                </p>
+                <div class="space-x-2">
+                    <button onclick="checkAnswer(this, false, 'Bloom is from Gardenia.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Gardenia</button>
+                    <button onclick="checkAnswer(this, true, 'Correct! She is from Solaria.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Solaria</button>
+                    <button onclick="checkAnswer(this, false, 'Magix is the dimension.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Magix</button>
+                </div>
+                <p class="feedback mt-2 text-sm font-bold"></p>
+            </div>
+
+            <!-- Question 7 -->
+            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-lg mb-3 translatable" data-pt="7. Sobre qual escola para fadas a Stella fala?">
+                    7. What school does Stella talk about for fairies?
+                </p>
+                <div class="space-x-2">
+                    <button onclick="checkAnswer(this, true, 'Correct! Alfea School for Fairies.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Alfea</button>
+                    <button onclick="checkAnswer(this, false, 'Red Fountain is for Specialists.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Red Fountain</button>
+                    <button onclick="checkAnswer(this, false, 'Cloud Tower is for Witches.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Cloud Tower</button>
+                </div>
+                <p class="feedback mt-2 text-sm font-bold"></p>
+            </div>
+
+            <!-- Question 8 -->
+            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-lg mb-3 translatable" data-pt="8. Que animal é o bicho de estimação da Bloom?">
+                    8. What animal is Bloom's pet?
+                </p>
+                <div class="space-x-2">
+                    <button onclick="checkAnswer(this, false, 'Not a dog.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A dog</button>
+                    <button onclick="checkAnswer(this, false, 'Not a cat.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A cat</button>
+                    <button onclick="checkAnswer(this, true, 'Correct! Kiko is a rabbit.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">A rabbit</button>
+                </div>
+                <p class="feedback mt-2 text-sm font-bold"></p>
+            </div>
+
+            <!-- Question 9 -->
+            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-lg mb-3 translatable" data-pt="9. Quem ataca a Stella no parque?">
+                    9. Who attacks Stella in the park?
+                </p>
+                <div class="space-x-2">
+                    <button onclick="checkAnswer(this, false, 'Teachers are at school.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Teachers</button>
+                    <button onclick="checkAnswer(this, true, 'Correct! Knut the Ogre and ghouls.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Monsters/Ogre</button>
+                    <button onclick="checkAnswer(this, false, 'Pixies are friendly.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Pixies</button>
+                </div>
+                <p class="feedback mt-2 text-sm font-bold"></p>
+            </div>
+
+            <!-- Question 10 -->
+            <div class="mb-6 bg-white p-5 rounded-lg shadow-sm">
+                <p class="font-bold text-lg mb-3 translatable" data-pt="10. No final do episódio, o que a Bloom decide fazer?">
+                    10. At the end of the episode, what does Bloom decide to do?
+                </p>
+                <div class="space-x-2">
+                    <button onclick="checkAnswer(this, false, 'She leaves Gardenia.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Stay in Gardenia</button>
+                    <button onclick="checkAnswer(this, true, 'Correct! She goes to the magic school.')" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition">Go to Alfea</button>
+                </div>
+                <p class="feedback mt-2 text-sm font-bold"></p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="bg-pink-900 text-white text-center p-8 mt-12">
+        <p class="translatable" data-pt="Ótimo trabalho, Miriam! Continue praticando.">Great job, Miriam! Keep practicing.</p>
+        <p class="text-xs text-pink-300 mt-2">Personal English Lesson v1.3</p>
+    </footer>
+
+    <!-- Floating Menu -->
+    <div class="fab-container">
+        <div class="fab-options" id="fabOptions">
+            <a href="#conteudo" class="fab-option" onclick="toggleMenu()">
+                <i class="fas fa-book-open"></i> Content
+            </a>
+            <a href="#video" class="fab-option" onclick="toggleMenu()">
+                <i class="fas fa-video"></i> Video
+            </a>
+             <a href="#flashcards" class="fab-option" onclick="toggleMenu()">
+                <i class="fas fa-clone"></i> Flashcards
+            </a>
+            <a href="#teste" class="fab-option" onclick="toggleMenu()">
+                <i class="fas fa-tasks"></i> Quiz
+            </a>
+             <a href="#" class="fab-option disabled">
+                <i class="fas fa-lock"></i> Coming Soon
+            </a>
+        </div>
+        <button class="fab-button" onclick="toggleMenu()">
+            <i class="fas fa-bars fa-lg" id="fabIcon"></i>
+        </button>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Menu functionality
+        function toggleMenu() {
+            const options = document.getElementById('fabOptions');
+            const icon = document.getElementById('fabIcon');
+            
+            if (options.classList.contains('open')) {
+                options.classList.remove('open');
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            } else {
+                options.classList.add('open');
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            }
+        }
+
+        // Translation functionality
+        document.querySelectorAll('.translatable').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevents click passing to parents
+                
+                // Check if translation is already visible
+                const existingTag = el.querySelector('.translation-tag');
+                
+                if (existingTag) {
+                    // Remove if exists (toggle off)
+                    existingTag.remove();
+                } else {
+                    // Create and add if doesn't exist (toggle on)
+                    const ptText = el.getAttribute('data-pt');
+                    if(ptText) {
+                        const tag = document.createElement('div');
+                        tag.className = 'translation-tag';
+                        tag.innerHTML = `<i class="fas fa-language"></i> ${ptText}`;
+                        el.appendChild(tag);
+                    }
+                }
+            });
+        });
+
+        // Speech functionality
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US'; 
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Sorry, your browser does not support audio.");
+            }
+        }
+
+        // Quiz functionality
+        function checkAnswer(btn, isCorrect, msg) {
+            const parent = btn.parentElement;
+            const feedback = parent.nextElementSibling;
+            
+            const buttons = parent.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.classList.remove('bg-green-500', 'bg-red-500', 'text-white', 'border-gray-300');
+                b.classList.add('opacity-50', 'cursor-not-allowed');
+                b.disabled = true;
+            });
+
+            btn.classList.remove('opacity-50', 'hover:bg-gray-100');
+            btn.classList.add('text-white');
+            
+            if (isCorrect) {
+                btn.classList.add('bg-green-500', 'border-green-600');
+                feedback.innerHTML = `<span class="text-green-600"><i class="fas fa-check-circle"></i> ${msg}</span>`;
+                speak('Correct!');
+            } else {
+                btn.classList.add('bg-red-500', 'border-red-600');
+                feedback.innerHTML = `<span class="text-red-600"><i class="fas fa-times-circle"></i> ${msg}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
