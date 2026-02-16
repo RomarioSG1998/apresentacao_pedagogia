@@ -40,6 +40,10 @@ Seminário interativo sobre variação linguística.
 Simulação 3D do meu sonho de viver numa ilha remota.  
 Link: https://romariosg1998.github.io/Alive/
 
+### 11. **MyTutor** 🤖
+Experiência personalizada de aprendizado com AI.  
+Link: https://gemini.google.com/share/b99e0451496a
+
 ## 🎯 Como Iniciar o Servidor
 
 ### 🔥 Modo Watch (Recomendado) - Auto-reload
