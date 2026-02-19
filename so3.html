@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasterClass: Sistemas Operacionais II - Semana 3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .word-active {
+            color: #1d4ed8;
+            background-color: #dbeafe;
+            border-radius: 4px;
+            padding: 0 2px;
+            transform: scale(1.1);
+            display: inline-block;
+            transition: all 0.1s ease;
+            font-weight: 700;
+        }
+        
+        #narration-overlay { backdrop-filter: blur(15px); }
+
+        .scroll-container::-webkit-scrollbar { width: 8px; }
+        .scroll-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(.33); }
+            80%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white py-12 px-6 shadow-lg">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <h1 id="main-title" class="text-4xl font-bold mb-2 text-balance">Sistemas Operacionais II</h1>
+                <p id="sub-title" class="text-indigo-100 text-lg italic">Semana 3: Segurança em Sistemas Distribuídos</p>
+                <div class="mt-4 flex items-center gap-3">
+                    <span class="bg-indigo-700 px-3 py-1 rounded-full text-xs font-semibold">Universidade Jala</span>
+                    <span class="bg-red-500 px-3 py-1 rounded-full text-xs font-semibold italic">Módulo de Cibersegurança</span>
+                </div>
+            </div>
+            
+            <button id="btn-audio" onclick="narrateFullLesson()" class="bg-white text-indigo-900 px-8 py-4 rounded-2xl font-bold shadow-2xl hover:bg-indigo-50 flex flex-col items-center gap-1 transition-all active:scale-95 group relative overflow-hidden">
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="bg-indigo-100 p-2 rounded-full group-hover:bg-indigo-200 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                    </div>
+                    <span id="btn-text" class="text-lg">Iniciar Semana 3</span>
+                </div>
+                <span class="text-[10px] uppercase opacity-60 relative z-10">Narração Integral Nativa</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Overlay do Teleprompter -->
+    <div id="narration-overlay" class="fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4 md:p-10 hidden">
+        <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] relative">
+            <div class="bg-slate-50 p-6 flex justify-between items-center border-b">
+                <div class="flex items-center gap-4">
+                    <div class="relative flex items-center justify-center h-4 w-4">
+                        <div class="pulse-ring absolute h-8 w-8 rounded-full bg-red-400"></div>
+                        <div class="relative h-3 w-3 rounded-full bg-red-600"></div>
+                    </div>
+                    <span class="font-bold text-slate-500 uppercase tracking-widest text-sm">Aula de Segurança Ativa...</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-bold text-slate-400">
+                    <select id="voice-select" class="border rounded px-2 py-1 bg-white outline-none hidden md:block">
+                        <option value="">A carregar vozes...</option>
+                    </select>
+                    <button onclick="stopNarration()" class="bg-slate-200 p-2 rounded-full hover:bg-red-500 hover:text-white transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="teleprompter-content" class="p-10 md:p-20 overflow-y-auto scroll-container text-2xl md:text-3xl leading-[1.6] text-slate-300 text-center font-semibold">
+                <!-- Conteúdo via JS -->
+            </div>
+
+            <div class="p-8 bg-slate-50 border-t flex flex-col items-center gap-4">
+                <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                    <div id="audio-progress" class="bg-indigo-600 h-full w-0 transition-all duration-100"></div>
+                </div>
+                <div class="flex justify-between w-full text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                    <span>Segurança em Sistemas - Jala University</span>
+                    <span id="word-counter">0 / 0 Palavras</span>
+                    <span>Modo MasterClass</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto py-10 px-6">
+        
+        <!-- Objetivo Section -->
+        <section id="objetivo" class="mb-12 bg-white p-8 rounded-2xl border-l-8 border-red-500 shadow-sm">
+            <h2 class="text-2xl font-bold mb-4 flex items-center text-red-700">🎯 Objetivo da Lição</h2>
+            <p class="text-xl leading-relaxed text-slate-600">
+                Compreender os princípios de segurança em sistemas distribuídos, analisando os pilares de Integridade, Confidencialidade e Autenticidade, além dos mecanismos técnicos como criptografia, hashes e firewalls.
+            </p>
+        </section>
+
+        <!-- Pilares da Segurança -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-indigo-900 mb-6 flex items-center">🛡️ Aspetos Fundamentais da Segurança</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 card">
+                    <h3 class="font-bold text-indigo-700 mb-2">Integridade</h3>
+                    <p class="text-xs text-slate-500">Garante que os dados não foram alterados durante o trajeto.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 card">
+                    <h3 class="font-bold text-indigo-700 mb-2">Confidencialidade</h3>
+                    <p class="text-xs text-slate-500">Assegura que apenas destinatários autorizados leiam a informação.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 card">
+                    <h3 class="font-bold text-indigo-700 mb-2">Autenticidade</h3>
+                    <p class="text-xs text-slate-500">Confirma que o emissor e recetor são quem dizem ser.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 card">
+                    <h3 class="font-bold text-indigo-700 mb-2">Credibilidade</h3>
+                    <p class="text-xs text-slate-500">Validada por entidades confiáveis como as Autoridades Certificadoras.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tipos de Ataques -->
+        <section class="mb-12 bg-slate-900 text-white p-8 rounded-3xl shadow-2xl">
+            <h2 class="text-2xl font-bold mb-8 text-red-400">⚠️ Tipos de Ataques</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Ataques Passivos</h3>
+                    <p class="text-sm text-slate-400 mb-4">Acedem à informação sem alterar o sistema ou os dados.</p>
+                    <ul class="text-xs space-y-2 text-yellow-100/70">
+                        <li>• Liberação de conteúdo (escuta/eavesdropping)</li>
+                        <li>• Análise de tráfego</li>
+                    </ul>
+                </div>
+                <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full"></span> Ataques Ativos</h3>
+                    <p class="text-sm text-slate-400 mb-4">Envolvem a modificação, destruição ou criação de mensagens falsas.</p>
+                    <ul class="text-xs space-y-2 text-red-100/70">
+                        <li>• Mascarada (personificação)</li>
+                        <li>• Reencenação (Replay)</li>
+                        <li>• Modificação de mensagens</li>
+                        <li>• Negação de Serviço (DoS e DDoS)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mecanismos Técnicos -->
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <!-- Hash & Checksum -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-xl font-bold text-indigo-900 mb-4">🔢 Hash e Checksum</h3>
+                <p class="text-sm text-slate-600 leading-relaxed mb-4">
+                    O <strong>Hash</strong> transforma dados de tamanho variável num resumo de tamanho fixo e encriptado. É unidirecional. 
+                </p>
+                <div class="bg-slate-50 p-4 rounded-xl font-mono text-[10px] text-indigo-600">
+                    SHA-256: 85e1ea6d7c28af9e7... (Padrão Atual)
+                </div>
+                <p class="mt-4 text-xs text-slate-500 italic">O <strong>Checksum</strong> verifica a integridade através da soma binária de palavras de 8 bits.</p>
+            </div>
+
+            <!-- Criptografia -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-xl font-bold text-indigo-900 mb-4">🔐 Criptografia (Encryption)</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="bg-indigo-100 p-2 rounded-lg font-bold text-indigo-700 text-[10px]">Simétrica</div>
+                        <p class="text-xs text-slate-500">Usa a mesma chave para cifrar e decifrar. Mais rápida.</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="bg-purple-100 p-2 rounded-lg font-bold text-purple-700 text-[10px]">Assimétrica</div>
+                        <p class="text-xs text-slate-500">Usa par de chaves: Pública e Privada. Mais segura para a rede.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protocolos e Firewalls -->
+        <section class="mb-12 bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+            <h2 class="text-2xl font-bold text-indigo-900 mb-6">🌐 Protocolos e Defesas</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="font-bold text-indigo-700 text-sm mb-3">Protocolos Seguros:</h4>
+                    <p class="text-sm text-slate-600 mb-4">A evolução para versões protegidas:</p>
+                    <div class="flex items-center gap-4">
+                        <div class="bg-slate-100 px-3 py-1 rounded border text-xs">HTTP → <span class="text-green-600 font-bold">HTTPS</span></div>
+                        <div class="bg-slate-100 px-3 py-1 rounded border text-xs">SSL → <span class="text-green-600 font-bold">TLS</span></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-bold text-indigo-700 text-sm mb-3">Firewalls:</h4>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Estabelecem regras de filtragem de pacotes baseadas em portas específicas. Podem ser independentes ou integrados no SOS.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-16 text-center text-slate-400 text-sm pb-10 italic border-t pt-8">
+            <p id="footer-quote">"A segurança é um processo, não um produto. Integridade e confiança são a base de qualquer rede." — Resumo Semana 03 Finalizado.</p>
+        </footer>
+    </main>
+
+    <script>
+        let synth = window.speechSynthesis;
+        let utterance = null;
+        let voices = [];
+        let wordsArray = [];
+
+        function loadVoices() {
+            voices = synth.getVoices();
+            const select = document.getElementById('voice-select');
+            if (!select) return;
+            select.innerHTML = '';
+            const ptVoices = voices.filter(v => v.lang.startsWith('pt'));
+            if (ptVoices.length === 0) { select.innerHTML = '<option value="">Voz Padrão</option>'; return; }
+            ptVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                if (voice.name.includes('Google') || voice.name.includes('Premium') || voice.name.includes('Natural')) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        function stopNarration() {
+            if (synth) synth.cancel();
+            document.getElementById('narration-overlay').classList.add('hidden');
+            resetBtn();
+        }
+
+        function resetBtn() {
+            const btn = document.getElementById('btn-audio');
+            if (!btn) return;
+            btn.disabled = false;
+            btn.innerHTML = `
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="bg-indigo-100 p-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg></div>
+                    <span class="text-lg">Iniciar Semana 3</span>
+                </div>
+                <span class="text-[10px] uppercase opacity-60 relative z-10">Narração Integral Nativa</span>
+            `;
+        }
+
+        function narrateFullLesson() {
+            synth.cancel();
+            const btn = document.getElementById('btn-audio');
+            const overlay = document.getElementById('narration-overlay');
+            const teleprompter = document.getElementById('teleprompter-content');
+            
+            const fullScript = `
+                Bem-vindo à MasterClass de Sistemas Operacionais Dois, Semana Três. Hoje o nosso foco é a Segurança em Sistemas Distribuídos.
+                O Objetivo da Lição é permitir que compreendas os princípios de segurança, incluindo aspetos fundamentais, mecanismos de proteção e protocolos.
+                Começamos pelos pilares da segurança informática. Integridade garante que os dados chegam ao destino sem sofrer alterações. Confidencialidade assegura que os dados não podem ser lidos por terceiros. Autenticidade confirma a identidade dos envolvidos. E Credibilidade é o aval de entidades confiáveis sobre a integridade da comunicação.
+                Analisamos os tipos de ataques. Os Ataques Passivos, como a liberação de conteúdo ou análise de tráfego, apenas observam sem alterar os recursos. Já os Ataques Ativos são perigosos: envolvem a personificação chamada mascarada, a reencenação de mensagens ou replay, a modificação de dados e a temida negação de serviço, ou Dê-Dô-Ésse.
+                Para nos defendermos, usamos mecanismos específicos. O algoritmo de Hache transforma grandes volumes de dados num resumo fixo criptografado. O Checksum verifica se a informação foi degradada através de somas binárias.
+                Na criptografia, temos dois tipos principais. A Simétrica usa a mesma chave para cifrar e decifrar. A Assimétrica utiliza um par de chaves pública e privada, permitindo assinaturas digitais que garantem autenticação e integridade.
+                Estudamos também os certificados digitais, emitidos por Autoridades Certificadoras, que garantem que o portador é quem diz ser, prevenindo ataques de Phishing e Homem no Meio.
+                Por fim, vimos a evolução para protocolos seguros como o H-T-T-P-S e o T-L-S, e a importância dos Firewalls no controlo de pacotes através de portas lógicas.
+                Bons estudos. A segurança é a base da confiança em qualquer sistema distribuído.
+            `.trim().replace(/\s+/g, ' ');
+
+            wordsArray = fullScript.split(' ');
+            teleprompter.innerHTML = wordsArray.map((w, i) => `<span id="word-${i}">${w}</span>`).join(' ');
+            overlay.classList.remove('hidden');
+            btn.disabled = true;
+
+            utterance = new SpeechSynthesisUtterance(fullScript);
+            if (voices.length === 0) voices = synth.getVoices();
+            const selectedVoiceName = document.getElementById('voice-select').value;
+            utterance.voice = voices.find(v => v.name === selectedVoiceName) || voices.find(v => v.lang.startsWith('pt')) || null;
+            utterance.rate = 0.92; // Ligeiramente mais lento para termos técnicos
+            utterance.lang = 'pt-PT';
+
+            utterance.onboundary = (event) => {
+                if (event.name === 'word') {
+                    const charIndex = event.charIndex;
+                    const textUpToChar = fullScript.substring(0, charIndex);
+                    const wordIndex = textUpToChar.trim() === "" ? 0 : textUpToChar.trim().split(/\s+/).length;
+                    document.getElementById('word-counter').innerText = `${Math.min(wordIndex + 1, wordsArray.length)} / ${wordsArray.length} Palavras`;
+                    const progress = ((wordIndex + 1) / wordsArray.length) * 100;
+                    document.getElementById('audio-progress').style.width = `${progress}%`;
+                    wordsArray.forEach((_, i) => {
+                        const el = document.getElementById(`word-${i}`);
+                        if (el) {
+                            if (i === wordIndex) {
+                                el.className = 'word-active';
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            } else {
+                                el.className = i < wordIndex ? 'text-slate-800' : 'text-slate-300';
+                            }
+                        }
+                    });
+                }
+            };
+
+            utterance.onend = () => stopNarration();
+            setTimeout(() => synth.speak(utterance), 50);
+        }
+    </script>
+</body>
+</html>
