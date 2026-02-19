@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasterClass: Sistemas Operacionais II - Semana 5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .word-active {
+            color: #1d4ed8;
+            background-color: #dbeafe;
+            border-radius: 4px;
+            padding: 0 2px;
+            transform: scale(1.1);
+            display: inline-block;
+            transition: all 0.1s ease;
+            font-weight: 700;
+        }
+        
+        #narration-overlay { backdrop-filter: blur(15px); }
+
+        .scroll-container::-webkit-scrollbar { width: 8px; }
+        .scroll-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(.33); }
+            80%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white py-12 px-6 shadow-lg border-b-4 border-blue-600">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <h1 id="main-title" class="text-4xl font-bold mb-2 text-balance">Sistemas Operacionais II</h1>
+                <p id="sub-title" class="text-blue-300 text-lg italic">Semana 5: Hardening e Configurações de SOS</p>
+                <div class="mt-4 flex items-center gap-3">
+                    <span class="bg-slate-800 px-3 py-1 rounded-full text-xs font-semibold border border-slate-700">Jala University</span>
+                    <span class="bg-blue-600 px-3 py-1 rounded-full text-xs font-semibold italic">Segurança Avançada</span>
+                </div>
+            </div>
+            
+            <button id="btn-audio" onclick="narrateFullLesson()" class="bg-white text-slate-900 px-8 py-4 rounded-2xl font-bold shadow-2xl hover:bg-blue-50 flex flex-col items-center gap-1 transition-all active:scale-95 group relative overflow-hidden">
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="bg-blue-100 p-2 rounded-full group-hover:bg-blue-200 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                    </div>
+                    <span id="btn-text" class="text-lg text-nowrap">Iniciar Semana 5</span>
+                </div>
+                <span class="text-[10px] uppercase opacity-60 relative z-10">Narração Integral Nativa</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Overlay do Teleprompter -->
+    <div id="narration-overlay" class="fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4 md:p-10 hidden">
+        <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] relative">
+            <div class="bg-slate-50 p-6 flex justify-between items-center border-b">
+                <div class="flex items-center gap-4">
+                    <div class="relative flex items-center justify-center h-4 w-4">
+                        <div class="pulse-ring absolute h-8 w-8 rounded-full bg-blue-400"></div>
+                        <div class="relative h-3 w-3 rounded-full bg-blue-600"></div>
+                    </div>
+                    <span class="font-bold text-slate-500 uppercase tracking-widest text-sm">Aula de Endurecimento de Sistemas...</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-bold text-slate-400">
+                    <select id="voice-select" class="border rounded px-2 py-1 bg-white outline-none hidden md:block">
+                        <option value="">A carregar vozes...</option>
+                    </select>
+                    <button onclick="stopNarration()" class="bg-slate-200 p-2 rounded-full hover:bg-red-500 hover:text-white transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="teleprompter-content" class="p-10 md:p-20 overflow-y-auto scroll-container text-2xl md:text-3xl leading-[1.6] text-slate-300 text-center font-semibold">
+                <!-- Conteúdo via JS -->
+            </div>
+
+            <div class="p-8 bg-slate-50 border-t flex flex-col items-center gap-4">
+                <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                    <div id="audio-progress" class="bg-blue-600 h-full w-0 transition-all duration-100"></div>
+                </div>
+                <div class="flex justify-between w-full text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                    <span>Configurações de SOS - Semana 05</span>
+                    <span id="word-counter">0 / 0 Palavras</span>
+                    <span>Modo MasterClass</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto py-10 px-6">
+        
+        <!-- Objetivo Section -->
+        <section id="objetivo" class="mb-12 bg-white p-8 rounded-2xl border-l-8 border-blue-600 shadow-sm">
+            <h2 class="text-2xl font-bold mb-4 flex items-center text-slate-900">🎯 Objetivo da Lição</h2>
+            <p class="text-xl leading-relaxed text-slate-600">
+                Capacitar o estudante a entender a necessidade de configurar sistemas Windows e Linux Server para fornecer segurança máxima, atualizações críticas e os recursos necessários, minimizando a superfície de vulnerabilidade.
+            </p>
+        </section>
+
+        <!-- Conceito de Hardening -->
+        <section class="mb-12">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-2xl font-bold text-blue-800 mb-6 flex items-center">🛡️ O que é Hardening (Endurecimento)?</h2>
+                <p class="text-slate-600 leading-relaxed mb-4">
+                    O Hardening é o processo de reforçar a segurança de um sistema através da redução da sua superfície de ataque. Quanto mais funções um sistema executa, maior é a probabilidade de existirem vulnerabilidades.
+                </p>
+                <div class="grid md:grid-cols-3 gap-4 mt-6">
+                    <div class="bg-slate-50 p-4 rounded-xl text-center">
+                        <span class="block text-blue-600 font-bold text-lg">Minimizar</span>
+                        <span class="text-xs text-slate-500">Riscos de Segurança</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl text-center">
+                        <span class="block text-blue-600 font-bold text-lg">Erradicar</span>
+                        <span class="text-xs text-slate-500">Vetores de Ataque</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl text-center">
+                        <span class="block text-blue-600 font-bold text-lg">Simplificar</span>
+                        <span class="text-xs text-slate-500">Superfície Vulnerável</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Windows vs Linux Hardening -->
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <!-- Windows Server -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 card">
+                <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="3" x2="12" y2="21"></line><line x1="3" y1="12" x2="21" y2="12"></line></svg>
+                    Hardening no Windows
+                </h3>
+                <ul class="space-y-3 text-sm text-slate-600">
+                    <li class="flex items-start gap-2">
+                        <span class="text-green-500">✔</span>
+                        <span>Uso da <strong>Interface Gráfica (GUI)</strong> para configurações de segurança.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-green-500">✔</span>
+                        <span>Gestão de <strong>Políticas de Grupo (GPO)</strong>.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-green-500">✔</span>
+                        <span>Configuração avançada do <strong>Firewall do Windows</strong>.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Linux Server -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 card">
+                <h3 class="text-xl font-bold text-orange-600 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6-6-6"></path><path d="M12 19h8"></path></svg>
+                    Hardening no Linux
+                </h3>
+                <ul class="space-y-3 text-sm text-slate-600">
+                    <li class="flex items-start gap-2">
+                        <span class="text-green-500">✔</span>
+                        <span>Execução de <strong>comandos de terminal</strong> específicos.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-green-500">✔</span>
+                        <span>Edição direta de <strong>ficheiros de configuração</strong> (/etc).</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-green-500">✔</span>
+                        <span>Desativação de serviços e portas não utilizadas.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Alta Disponibilidade -->
+        <section class="mb-12 bg-slate-900 text-white p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+            <h2 class="text-3xl font-bold mb-6 text-blue-400">🚀 Alta Disponibilidade e Escalabilidade</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
+                    <h4 class="font-bold text-blue-200 mb-3 uppercase text-xs tracking-widest">Redundância</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        Garantir que se um servidor falhar, outro assume o serviço imediatamente para evitar interrupções.
+                    </p>
+                </div>
+                <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700">
+                    <h4 class="font-bold text-blue-200 mb-3 uppercase text-xs tracking-widest">Balanceamento de Carga</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        Distribuir os pedidos dos utilizadores por vários servidores para evitar sobrecarga e melhorar o desempenho.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-16 text-center text-slate-400 text-sm pb-10 italic border-t pt-8">
+            <p id="footer-quote">"A segurança não é um estado, é um processo contínuo de endurecimento e vigilância." — Resumo Semana 05 Finalizado.</p>
+        </footer>
+    </main>
+
+    <script>
+        let synth = window.speechSynthesis;
+        let utterance = null;
+        let voices = [];
+        let wordsArray = [];
+
+        function loadVoices() {
+            voices = synth.getVoices();
+            const select = document.getElementById('voice-select');
+            if (!select) return;
+            select.innerHTML = '';
+            const ptVoices = voices.filter(v => v.lang.startsWith('pt'));
+            if (ptVoices.length === 0) { select.innerHTML = '<option value="">Voz Padrão</option>'; return; }
+            ptVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                if (voice.name.includes('Google') || voice.name.includes('Premium') || voice.name.includes('Natural')) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        function stopNarration() {
+            if (synth) synth.cancel();
+            document.getElementById('narration-overlay').classList.add('hidden');
+            resetBtn();
+        }
+
+        function resetBtn() {
+            const btn = document.getElementById('btn-audio');
+            if (!btn) return;
+            btn.disabled = false;
+            btn.innerHTML = `
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="bg-blue-100 p-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg></div>
+                    <span class="text-lg text-nowrap">Iniciar Semana 5</span>
+                </div>
+                <span class="text-[10px] uppercase opacity-60 relative z-10">Narração Integral Nativa</span>
+            `;
+        }
+
+        function narrateFullLesson() {
+            synth.cancel();
+            const btn = document.getElementById('btn-audio');
+            const overlay = document.getElementById('narration-overlay');
+            const teleprompter = document.getElementById('teleprompter-content');
+            
+            const fullScript = `
+                Bem-vindo à MasterClass de Sistemas Operacionais Dois, Semana Cinco. O nosso tema central hoje é a Configuração e o Endurecimento de Sistemas Operacionais Servidores, também conhecido como Hardening.
+                O nosso objetivo é compreender como preparar ambientes Windows e Linux para fornecer o máximo de segurança e disponibilidade.
+                Aprendemos que o Hardening é o processo de reforçar um sistema para minimizar riscos. Isso envolve erradicar vetores de ataque e simplificar a superfície vulnerável. Essencialmente, quanto menos portas desnecessárias abertas, mais seguro o sistema está.
+                No mundo Windows Server, as tarefas de endurecimento são frequentemente realizadas através da interface gráfica, utilizando Polí-ticas de Grupo, as G-P-O's, e o gerenciamento avançado de firewalls.
+                Já no universo Linux, o processo é mais direto na consola. Envolve a execução de comandos de terminal e a edição manual de ficheiros de configuração no diretório barra e-t-c. Aqui, a precisão na desativação de serviços desnecessários é fundamental.
+                Além da segurança, abordamos a Alta Disponibilidade. Estudamos a Redundância de serviços, para garantir que o sistema não pare em caso de falha de hardware, e o Balanceamento de Carga, que distribui o tráfego de utilizadores de forma eficiente entre os servidores.
+                Bons estudos. Lembre-se que a segurança é um processo contínuo e nunca um estado final.
+            `.trim().replace(/\s+/g, ' ');
+
+            wordsArray = fullScript.split(' ');
+            teleprompter.innerHTML = wordsArray.map((w, i) => `<span id="word-${i}">${w}</span>`).join(' ');
+            overlay.classList.remove('hidden');
+            btn.disabled = true;
+
+            utterance = new SpeechSynthesisUtterance(fullScript);
+            if (voices.length === 0) voices = synth.getVoices();
+            const selectedVoiceName = document.getElementById('voice-select').value;
+            utterance.voice = voices.find(v => v.name === selectedVoiceName) || voices.find(v => v.lang.startsWith('pt')) || null;
+            utterance.rate = 0.94;
+            utterance.lang = 'pt-PT';
+
+            utterance.onboundary = (event) => {
+                if (event.name === 'word') {
+                    const charIndex = event.charIndex;
+                    const textUpToChar = fullScript.substring(0, charIndex);
+                    const wordIndex = textUpToChar.trim() === "" ? 0 : textUpToChar.trim().split(/\s+/).length;
+                    document.getElementById('word-counter').innerText = `${Math.min(wordIndex + 1, wordsArray.length)} / ${wordsArray.length} Palavras`;
+                    const progress = ((wordIndex + 1) / wordsArray.length) * 100;
+                    document.getElementById('audio-progress').style.width = `${progress}%`;
+                    wordsArray.forEach((_, i) => {
+                        const el = document.getElementById(`word-${i}`);
+                        if (el) {
+                            if (i === wordIndex) {
+                                el.className = 'word-active';
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            } else {
+                                el.className = i < wordIndex ? 'text-slate-800' : 'text-slate-300';
+                            }
+                        }
+                    });
+                }
+            };
+
+            utterance.onend = () => stopNarration();
+            setTimeout(() => synth.speak(utterance), 50);
+        }
+    </script>
+</body>
+</html>
