@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasterClass: Sistemas Operacionais II - Semana 6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .word-active {
+            color: #1d4ed8;
+            background-color: #dbeafe;
+            border-radius: 4px;
+            padding: 0 2px;
+            transform: scale(1.1);
+            display: inline-block;
+            transition: all 0.1s ease;
+            font-weight: 700;
+        }
+        
+        #narration-overlay { backdrop-filter: blur(15px); }
+
+        .scroll-container::-webkit-scrollbar { width: 8px; }
+        .scroll-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(.33); }
+            80%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-blue-900 text-white py-12 px-6 shadow-lg border-b-4 border-blue-500">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <h1 id="main-title" class="text-4xl font-bold mb-2 text-balance">Sistemas Operacionais II</h1>
+                <p id="sub-title" class="text-blue-100 text-lg italic">Semana 6: Tipos de Servidores e Arquiteturas</p>
+                <div class="mt-4 flex items-center gap-3">
+                    <span class="bg-blue-800 px-3 py-1 rounded-full text-xs font-semibold border border-blue-700">Jala University</span>
+                    <span class="bg-cyan-500 px-3 py-1 rounded-full text-xs font-semibold italic">Infraestrutura de Serviços</span>
+                </div>
+            </div>
+            
+            <button id="btn-audio" onclick="narrateFullLesson()" class="bg-white text-blue-900 px-8 py-4 rounded-2xl font-bold shadow-2xl hover:bg-blue-50 flex flex-col items-center gap-1 transition-all active:scale-95 group relative overflow-hidden">
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="bg-blue-100 p-2 rounded-full group-hover:bg-blue-200 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                    </div>
+                    <span id="btn-text" class="text-lg text-nowrap">Iniciar Semana 6</span>
+                </div>
+                <span class="text-[10px] uppercase opacity-60 relative z-10">Narração Integral Nativa</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Overlay do Teleprompter -->
+    <div id="narration-overlay" class="fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4 md:p-10 hidden">
+        <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] relative">
+            <div class="bg-slate-50 p-6 flex justify-between items-center border-b">
+                <div class="flex items-center gap-4">
+                    <div class="relative flex items-center justify-center h-4 w-4">
+                        <div class="pulse-ring absolute h-8 w-8 rounded-full bg-blue-400"></div>
+                        <div class="relative h-3 w-3 rounded-full bg-blue-600"></div>
+                    </div>
+                    <span class="font-bold text-slate-500 uppercase tracking-widest text-sm">Aula de Tipos de Servidores...</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-bold text-slate-400">
+                    <select id="voice-select" class="border rounded px-2 py-1 bg-white outline-none hidden md:block">
+                        <option value="">A carregar vozes...</option>
+                    </select>
+                    <button onclick="stopNarration()" class="bg-slate-200 p-2 rounded-full hover:bg-red-500 hover:text-white transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="teleprompter-content" class="p-10 md:p-20 overflow-y-auto scroll-container text-2xl md:text-3xl leading-[1.6] text-slate-300 text-center font-semibold">
+                <!-- Conteúdo via JS -->
+            </div>
+
+            <div class="p-8 bg-slate-50 border-t flex flex-col items-center gap-4">
+                <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                    <div id="audio-progress" class="bg-blue-600 h-full w-0 transition-all duration-100"></div>
+                </div>
+                <div class="flex justify-between w-full text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                    <span>Servidores e Serviços - Semana 06</span>
+                    <span id="word-counter">0 / 0 Palavras</span>
+                    <span>Modo MasterClass</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto py-10 px-6">
+        
+        <!-- Objetivo Section -->
+        <section id="objetivo" class="mb-12 bg-white p-8 rounded-2xl border-l-8 border-blue-900 shadow-sm">
+            <h2 class="text-2xl font-bold mb-4 flex items-center text-slate-900">🎯 Objetivo da Lição</h2>
+            <p class="text-xl leading-relaxed text-slate-600">
+                Compreender a arquitetura e o funcionamento dos diferentes tipos de servidores mais utilizados atualmente, analisando as suas funções específicas e os protocolos de comunicação envolvidos.
+            </p>
+        </section>
+
+        <!-- Servidores Web -->
+        <section class="mb-12">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-2xl font-bold text-blue-900 mb-6 flex items-center">🌐 Servidores Web</h2>
+                <p class="text-slate-600 leading-relaxed mb-6">
+                    Armazenam e entregam conteúdo (HTML, imagens, vídeos) via protocolo HTTP/HTTPS.
+                </p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-blue-800 mb-2 uppercase text-xs">Exemplos Populares:</h4>
+                        <ul class="text-sm space-y-2">
+                            <li class="flex items-center gap-2"><span class="text-blue-500">●</span> <strong>Apache:</strong> Código aberto, robusto e flexível.</li>
+                            <li class="flex items-center gap-2"><span class="text-blue-500">●</span> <strong>IIS (Microsoft):</strong> Integrado no Windows Server.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                        <h4 class="font-bold text-blue-800 mb-2 uppercase text-xs">Conteúdo:</h4>
+                        <p class="text-xs text-slate-600">Pode ser <strong>Estático</strong> (ficheiros prontos) ou <strong>Dinâmico</strong> (gerado por scripts como PHP ou Python no momento do pedido).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bases de Dados e Correio -->
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <!-- Bancos de Dados -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 card">
+                <h3 class="text-xl font-bold text-indigo-900 mb-4 flex items-center gap-2">🗄️ Bases de Dados</h3>
+                <p class="text-sm text-slate-600 mb-4">Servidores dedicados a gerir o armazenamento e consulta de dados estruturados.</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold">MySQL</span>
+                    <span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold">PostgreSQL</span>
+                    <span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold">Oracle</span>
+                    <span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold">SQL Server</span>
+                </div>
+            </div>
+
+            <!-- Correio Eletrónico -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 card">
+                <h3 class="text-xl font-bold text-emerald-900 mb-4 flex items-center gap-2">📧 Correio Eletrónico</h3>
+                <div class="space-y-2 text-xs">
+                    <p><strong>SMTP:</strong> Protocolo para <em>envio</em> de mensagens.</p>
+                    <p><strong>POP3:</strong> Descarrega mensagens (geralmente apaga do servidor).</p>
+                    <p><strong>IMAP:</strong> Sincroniza mensagens (mantém no servidor).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- DNS e FTP -->
+        <section class="mb-12 bg-slate-900 text-white p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+            <h2 class="text-3xl font-bold mb-6 text-cyan-400">⚡ Serviços de Infraestrutura</h2>
+            <div class="grid md:grid-cols-2 gap-10">
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-3 flex items-center gap-2">🏷️ Servidor DNS</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                        Traduz nomes lógicos em endereços IP. Sem ele, teríamos de decorar os números IP de todos os sites.
+                    </p>
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <span class="text-[10px] uppercase font-bold text-cyan-500">Root Servers:</span>
+                        <p class="text-xs italic mt-1 text-slate-300">Existem 13 servidores raiz no mundo que gerem a hierarquia global da Internet.</p>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-3 flex items-center gap-2">📁 Servidor FTP</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                        File Transfer Protocol. Utilizado para transferência de ficheiros grandes entre computadores.
+                    </p>
+                    <div class="flex gap-3">
+                        <div class="px-3 py-1 bg-red-900/30 border border-red-500 rounded text-[10px] text-red-200">FTP (Inseguro)</div>
+                        <div class="px-3 py-1 bg-green-900/30 border border-green-500 rounded text-[10px] text-green-200">SFTP (Seguro)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Arquitetura de Camadas -->
+        <section class="mb-12 bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+            <h2 class="text-2xl font-bold text-slate-900 mb-6">🏗️ Arquiteturas de Serviço</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="border-l-4 border-blue-400 pl-4">
+                    <h4 class="font-bold text-sm">2 Camadas (2-Tier)</h4>
+                    <p class="text-xs text-slate-500 mt-1">Cliente comunica diretamente com o servidor de banco de dados.</p>
+                </div>
+                <div class="border-l-4 border-cyan-400 pl-4">
+                    <h4 class="font-bold text-sm">3 Camadas (3-Tier)</h4>
+                    <p class="text-xs text-slate-500 mt-1">Inclui um servidor de aplicação/middleware entre o cliente e os dados. Mais seguro e escalável.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-16 text-center text-slate-400 text-sm pb-10 italic border-t pt-8">
+            <p id="footer-quote">"A escolha do servidor certo depende do serviço, da carga e da segurança necessária." — Resumo Semana 06 Finalizado.</p>
+        </footer>
+    </main>
+
+    <script>
+        let synth = window.speechSynthesis;
+        let utterance = null;
+        let voices = [];
+        let wordsArray = [];
+
+        function loadVoices() {
+            voices = synth.getVoices();
+            const select = document.getElementById('voice-select');
+            if (!select) return;
+            select.innerHTML = '';
+            const ptVoices = voices.filter(v => v.lang.startsWith('pt'));
+            if (ptVoices.length === 0) { select.innerHTML = '<option value="">Voz Padrão</option>'; return; }
+            ptVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                if (voice.name.includes('Google') || voice.name.includes('Premium') || voice.name.includes('Natural')) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        function stopNarration() {
+            if (synth) synth.cancel();
+            document.getElementById('narration-overlay').classList.add('hidden');
+            resetBtn();
+        }
+
+        function resetBtn() {
+            const btn = document.getElementById('btn-audio');
+            if (!btn) return;
+            btn.disabled = false;
+            btn.innerHTML = `
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="bg-blue-100 p-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg></div>
+                    <span class="text-lg text-nowrap">Iniciar Semana 6</span>
+                </div>
+                <span class="text-[10px] uppercase opacity-60 relative z-10">Narração Integral Nativa</span>
+            `;
+        }
+
+        function narrateFullLesson() {
+            synth.cancel();
+            const btn = document.getElementById('btn-audio');
+            const overlay = document.getElementById('narration-overlay');
+            const teleprompter = document.getElementById('teleprompter-content');
+            
+            const fullScript = `
+                Bem-vindo à MasterClass de Sistemas Operacionais Dois, Semana Seis. Hoje exploramos os diferentes Tipos de Servidores e as suas arquiteturas fundamentais.
+                O nosso objetivo principal é compreender como funcionam os serviços que sustentam a Internet moderna.
+                Iniciamos pelos Servidores Web. Eles são responsáveis por armazenar e entregar conteúdos via protocolo H-T-T-P. Vimos que o Apache é a solução de código aberto mais robusta, enquanto o I-I-S é a opção nativa da Microsoft. O conteúdo pode ser estático ou dinâmico, este último gerado no momento do pedido.
+                Sobre os Servidores de Bases de Dados, aprendemos que são máquinas dedicadas a gerir grandes volumes de informação estruturada, como o MySQL, PostgreSQL e SQL Server.
+                No campo do Correio Eletrónico, analisamos três protocolos essenciais. O S-M-T-P para o envio de mensagens, o P-O-P três para descarregar mensagens para o computador local e o I-M-A-P para manter tudo sincronizado no servidor.
+                Abordamos também o Servidor D-N-S, que atua como a lista telefónica da rede, traduzindo nomes em endereços I-P. Relembramos que existem treze servidores raiz que sustentam toda a hierarquia global.
+                Vimos o Servidor F-T-P, focado na transferência de ficheiros, destacando que a versão S-F-T-P deve ser preferida por questões de segurança.
+                Finalmente, comparamos as arquiteturas. A de duas camadas liga o cliente diretamente aos dados, enquanto a de três camadas introduz um middleware de aplicação, oferecendo maior segurança e escalabilidade para sistemas complexos.
+                Bons estudos. Conhecer estas ferramentas é essencial para administrar qualquer rede empresarial.
+            `.trim().replace(/\s+/g, ' ');
+
+            wordsArray = fullScript.split(' ');
+            teleprompter.innerHTML = wordsArray.map((w, i) => `<span id="word-${i}">${w}</span>`).join(' ');
+            overlay.classList.remove('hidden');
+            btn.disabled = true;
+
+            utterance = new SpeechSynthesisUtterance(fullScript);
+            if (voices.length === 0) voices = synth.getVoices();
+            const selectedVoiceName = document.getElementById('voice-select').value;
+            utterance.voice = voices.find(v => v.name === selectedVoiceName) || voices.find(v => v.lang.startsWith('pt')) || null;
+            utterance.rate = 0.94;
+            utterance.lang = 'pt-PT';
+
+            utterance.onboundary = (event) => {
+                if (event.name === 'word') {
+                    const charIndex = event.charIndex;
+                    const textUpToChar = fullScript.substring(0, charIndex);
+                    const wordIndex = textUpToChar.trim() === "" ? 0 : textUpToChar.trim().split(/\s+/).length;
+                    document.getElementById('word-counter').innerText = `${Math.min(wordIndex + 1, wordsArray.length)} / ${wordsArray.length} Palavras`;
+                    const progress = ((wordIndex + 1) / wordsArray.length) * 100;
+                    document.getElementById('audio-progress').style.width = `${progress}%`;
+                    wordsArray.forEach((_, i) => {
+                        const el = document.getElementById(`word-${i}`);
+                        if (el) {
+                            if (i === wordIndex) {
+                                el.className = 'word-active';
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            } else {
+                                el.className = i < wordIndex ? 'text-slate-800' : 'text-slate-300';
+                            }
+                        }
+                    });
+                }
+            };
+
+            utterance.onend = () => stopNarration();
+            setTimeout(() => synth.speak(utterance), 50);
+        }
+    </script>
+</body>
+</html>
