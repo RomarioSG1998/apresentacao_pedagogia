@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasterClass: Sistemas Operacionais II - Semana 4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .word-active {
+            color: #1d4ed8;
+            background-color: #dbeafe;
+            border-radius: 4px;
+            padding: 0 2px;
+            transform: scale(1.1);
+            display: inline-block;
+            transition: all 0.1s ease;
+            font-weight: 700;
+        }
+        
+        #narration-overlay { backdrop-filter: blur(15px); }
+
+        .scroll-container::-webkit-scrollbar { width: 8px; }
+        .scroll-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(.33); }
+            80%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white py-12 px-6 shadow-lg">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <h1 id="main-title" class="text-4xl font-bold mb-2 text-balance">Sistemas Operacionais II</h1>
+                <p id="sub-title" class="text-indigo-100 text-lg italic">Semana 4: Autenticação e Autorização</p>
+                <div class="mt-4 flex items-center gap-3">
+                    <span class="bg-indigo-700 px-3 py-1 rounded-full text-xs font-semibold">Universidade Jala</span>
+                    <span class="bg-emerald-500 px-3 py-1 rounded-full text-xs font-semibold italic">Diretórios e Identidade</span>
+                </div>
+            </div>
+            
+            <button id="btn-audio" onclick="narrateFullLesson()" class="bg-white text-indigo-900 px-8 py-4 rounded-2xl font-bold shadow-2xl hover:bg-indigo-50 flex flex-col items-center gap-1 transition-all active:scale-95 group relative overflow-hidden">
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="bg-indigo-100 p-2 rounded-full group-hover:bg-indigo-200 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                    </div>
+                    <span id="btn-text" class="text-lg">Iniciar Semana 4</span>
+                </div>
+                <span class="text-[10px] uppercase opacity-60 relative z-10">Narração Integral Nativa</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Overlay do Teleprompter -->
+    <div id="narration-overlay" class="fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4 md:p-10 hidden">
+        <div class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh] relative">
+            <div class="bg-slate-50 p-6 flex justify-between items-center border-b">
+                <div class="flex items-center gap-4">
+                    <div class="relative flex items-center justify-center h-4 w-4">
+                        <div class="pulse-ring absolute h-8 w-8 rounded-full bg-blue-400"></div>
+                        <div class="relative h-3 w-3 rounded-full bg-blue-600"></div>
+                    </div>
+                    <span class="font-bold text-slate-500 uppercase tracking-widest text-sm">Aula de Identidade Digital...</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-bold text-slate-400">
+                    <select id="voice-select" class="border rounded px-2 py-1 bg-white outline-none hidden md:block">
+                        <option value="">A carregar vozes...</option>
+                    </select>
+                    <button onclick="stopNarration()" class="bg-slate-200 p-2 rounded-full hover:bg-red-500 hover:text-white transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="teleprompter-content" class="p-10 md:p-20 overflow-y-auto scroll-container text-2xl md:text-3xl leading-[1.6] text-slate-300 text-center font-semibold">
+                <!-- Conteúdo via JS -->
+            </div>
+
+            <div class="p-8 bg-slate-50 border-t flex flex-col items-center gap-4">
+                <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                    <div id="audio-progress" class="bg-indigo-600 h-full w-0 transition-all duration-100"></div>
+                </div>
+                <div class="flex justify-between w-full text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                    <span>Identidade e Acesso - Jala University</span>
+                    <span id="word-counter">0 / 0 Palavras</span>
+                    <span>Modo MasterClass</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto py-10 px-6">
+        
+        <!-- Objetivo Section -->
+        <section id="objetivo" class="mb-12 bg-white p-8 rounded-2xl border-l-8 border-emerald-500 shadow-sm">
+            <h2 class="text-2xl font-bold mb-4 flex items-center text-emerald-700">🎯 Objetivo da Lição</h2>
+            <p class="text-xl leading-relaxed text-slate-600">
+                Conceitualizar os princípios e serviços de autenticação e autorização em ambientes distribuídos, explorando a criação de domínios, entidades e políticas de acesso utilizando o Active Directory e protocolos como LDAP, OAuth2 e SAML.
+            </p>
+        </section>
+
+        <!-- Autenticação vs Autorização -->
+        <section class="mb-12 bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+            <h2 class="text-2xl font-bold text-indigo-900 mb-6">🛡️ Autenticação vs Autorização</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="p-6 bg-indigo-50 rounded-xl border border-indigo-100">
+                    <h3 class="font-bold text-indigo-700 mb-2">Autenticação</h3>
+                    <p class="text-sm text-slate-600 italic">"Quem és tu?"</p>
+                    <p class="text-xs text-slate-500 mt-2">O processo de verificar a identidade de um utilizador (ex: login e palavra-passe).</p>
+                </div>
+                <div class="p-6 bg-emerald-50 rounded-xl border border-emerald-100">
+                    <h3 class="font-bold text-emerald-700 mb-2">Autorização</h3>
+                    <p class="text-sm text-slate-600 italic">"O que podes fazer?"</p>
+                    <p class="text-xs text-slate-500 mt-2">O processo de verificar as permissões e o que o utilizador autenticado tem direito a aceder.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Active Directory -->
+        <section class="mb-12">
+            <div class="bg-indigo-900 text-white p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-10">
+                    <svg width="150" height="150" viewBox="0 0 24 24" fill="white"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </div>
+                <h2 class="text-3xl font-bold mb-6 text-indigo-300">🏢 Active Directory (AD)</h2>
+                <p class="text-lg text-indigo-100 leading-relaxed mb-6">
+                    É o serviço de diretório da Microsoft que centraliza o armazenamento de recursos como utilizadores, computadores e impressoras.
+                </p>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="bg-indigo-800/50 p-4 rounded-xl border border-indigo-700">
+                        <span class="block font-bold text-indigo-200 mb-1">Domínio</span>
+                        <span class="text-xs">Estrutura lógica básica de controlo.</span>
+                    </div>
+                    <div class="bg-indigo-800/50 p-4 rounded-xl border border-indigo-700">
+                        <span class="block font-bold text-indigo-200 mb-1">Árvore</span>
+                        <span class="text-xs">Hierarquia de um ou mais domínios.</span>
+                    </div>
+                    <div class="bg-indigo-800/50 p-4 rounded-xl border border-indigo-700">
+                        <span class="block font-bold text-indigo-200 mb-1">Floresta</span>
+                        <span class="text-xs">Grupo de uma ou mais árvores.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Protocolos de Identidade -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-indigo-900 mb-6 flex items-center">🌐 Protocolos e Padrões</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- LDAP e SSSD -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 card">
+                    <h3 class="font-bold text-indigo-700 mb-3 flex items-center gap-2">📂 LDAP e SSSD</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        O <strong>LDAP</strong> é a base do AD e funciona em ambientes Unix/Linux para autenticação leve. O <strong>SSSD</strong> é o processo que gere o acesso a recursos remotos e cache de credenciais.
+                    </p>
+                </div>
+                <!-- OAuth2 e OIDC -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 card">
+                    <h3 class="font-bold text-indigo-700 mb-3 flex items-center gap-2">🔑 OAuth2 e OIDC</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        O <strong>OAuth2</strong> permite autorização delegada (aceder a recursos sem partilhar senhas). O <strong>OpenID Connect</strong> adiciona a camada de identidade (Single Sign-On).
+                    </p>
+                    <div class="mt-3 p-3 bg-blue-50 rounded-lg text-[10px] italic text-blue-700">
+                        Analogia: O OAuth2 é a caixa multibanco; o OIDC é o cartão que te identifica.
+                    </div>
+                </div>
+                <!-- SAML -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 card md:col-span-2">
+                    <h3 class="font-bold text-indigo-700 mb-3 flex items-center gap-2">📄 SAML</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Padrão baseado em XML para trocar dados de autenticação e autorização entre um Provedor de Identidade (IdP) e um Provedor de Serviços (SP). Fundamental para operações em Cloud.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gestão de Contas -->
+        <section class="mb-12 bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+            <h2 class="text-2xl font-bold text-indigo-900 mb-6">👤 Gestão e Segurança de Contas</h2>
+            <div class="flex flex-wrap gap-3">
+                <span class="bg-slate-100 px-4 py-2 rounded-lg text-xs font-bold border border-slate-200">👥 Grupos de Utilizadores</span>
+                <span class="bg-slate-100 px-4 py-2 rounded-lg text-xs font-bold border border-slate-200">📁 Unidades Organizacionais (OU)</span>
+                <span class="bg-slate-100 px-4 py-2 rounded-lg text-xs font-bold border border-slate-200">🛡️ SID (Security Identifier)</span>
+                <span class="bg-slate-100 px-4 py-2 rounded-lg text-xs font-bold border border-slate-200">🔄 Renomeação de Contas</span>
+            </div>
+            <p class="mt-6 text-sm text-slate-500 italic">
+                Boas práticas recomendam nunca partilhar contas entre utilizadores e usar OUs para delegar tarefas administrativas de forma eficiente.
+            </p>
+        </section>
+
+        <footer class="mt-16 text-center text-slate-400 text-sm pb-10 italic border-t pt-8">
+            <p id="footer-quote">"A identidade é o novo perímetro de segurança nos sistemas distribuídos modernos." — Resumo Semana 04 Finalizado.</p>
+        </footer>
+    </main>
+
+    <script>
+        let synth = window.speechSynthesis;
+        let utterance = null;
+        let voices = [];
+        let wordsArray = [];
+
+        function loadVoices() {
+            voices = synth.getVoices();
+            const select = document.getElementById('voice-select');
+            if (!select) return;
+            select.innerHTML = '';
+            const ptVoices = voices.filter(v => v.lang.startsWith('pt'));
+            if (ptVoices.length === 0) { select.innerHTML = '<option value="">Voz Padrão</option>'; return; }
+            ptVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                if (voice.name.includes('Google') || voice.name.includes('Premium') || voice.name.includes('Natural')) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        function stopNarration() {
+            if (synth) synth.cancel();
+            document.getElementById('narration-overlay').classList.add('hidden');
+            resetBtn();
+        }
+
+        function resetBtn() {
+            const btn = document.getElementById('btn-audio');
+            if (!btn) return;
+            btn.disabled = false;
+            btn.innerHTML = `
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="bg-indigo-100 p-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg></div>
+                    <span class="text-lg">Iniciar Semana 4</span>
+                </div>
+                <span class="text-[10px] uppercase opacity-60 relative z-10">Narração Integral Nativa</span>
+            `;
+        }
+
+        function narrateFullLesson() {
+            synth.cancel();
+            const btn = document.getElementById('btn-audio');
+            const overlay = document.getElementById('narration-overlay');
+            const teleprompter = document.getElementById('teleprompter-content');
+            
+            const fullScript = `
+                Bem-vindo à MasterClass de Sistemas Operacionais Dois, Semana Quatro. Hoje o nosso tema é: Autenticação e Autorização.
+                O nosso objetivo é compreender como gerir identidades e acessos em ambientes complexos.
+                É crucial distinguir dois conceitos. Autenticação responde à pergunta: Quem és tu? É a verificação da identidade. Autorização responde à pergunta: O que podes fazer? É a definição das tuas permissões no sistema.
+                Estudamos o Active Directory da Microsoft, o serviço de diretório que centraliza tudo. Ele organiza os recursos em objetos com atributos, armazenados na base de dados N-T-D-S ponto DIT. A sua estrutura lógica divide-se em Domínios, Árvores e Florestas. Vimos também as Unidades Organizacionais, que permitem delegar administração de forma eficiente.
+                Sobre os protocolos, o L-D-A-P é a base leve de comunicação para diretórios, muito usado em ambientes Unix e Linux. O S-S-S-D é o processo que permite o acesso a estes recursos remotos e gere o cache de credenciais.
+                Para a nuvem, usamos padrões modernos. O OAuth dois permite autorização delegada: imagina um jogo a aceder aos teus contactos sem saber a tua senha. O OpenID Connect é a camada de identidade que permite o login único, ou Single Sign-On. A analogia perfeita é: o OAuth dois é como a caixa multibanco que dá acesso ao recurso, e o OIDC é o cartão de débito que prova quem tu és.
+                Finalmente, o SAML é o padrão baseado em XML que troca dados de confiança entre provedores de identidade e de serviços, essencial para o funcionamento de organizações na nuvem.
+                Bons estudos. A gestão de identidade é o pilar fundamental da segurança moderna.
+            `.trim().replace(/\s+/g, ' ');
+
+            wordsArray = fullScript.split(' ');
+            teleprompter.innerHTML = wordsArray.map((w, i) => `<span id="word-${i}">${w}</span>`).join(' ');
+            overlay.classList.remove('hidden');
+            btn.disabled = true;
+
+            utterance = new SpeechSynthesisUtterance(fullScript);
+            if (voices.length === 0) voices = synth.getVoices();
+            const selectedVoiceName = document.getElementById('voice-select').value;
+            utterance.voice = voices.find(v => v.name === selectedVoiceName) || voices.find(v => v.lang.startsWith('pt')) || null;
+            utterance.rate = 0.94;
+            utterance.lang = 'pt-PT';
+
+            utterance.onboundary = (event) => {
+                if (event.name === 'word') {
+                    const charIndex = event.charIndex;
+                    const textUpToChar = fullScript.substring(0, charIndex);
+                    const wordIndex = textUpToChar.trim() === "" ? 0 : textUpToChar.trim().split(/\s+/).length;
+                    document.getElementById('word-counter').innerText = `${Math.min(wordIndex + 1, wordsArray.length)} / ${wordsArray.length} Palavras`;
+                    const progress = ((wordIndex + 1) / wordsArray.length) * 100;
+                    document.getElementById('audio-progress').style.width = `${progress}%`;
+                    wordsArray.forEach((_, i) => {
+                        const el = document.getElementById(`word-${i}`);
+                        if (el) {
+                            if (i === wordIndex) {
+                                el.className = 'word-active';
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            } else {
+                                el.className = i < wordIndex ? 'text-slate-800' : 'text-slate-300';
+                            }
+                        }
+                    });
+                }
+            };
+
+            utterance.onend = () => stopNarration();
+            setTimeout(() => synth.speak(utterance), 50);
+        }
+    </script>
+</body>
+</html>
