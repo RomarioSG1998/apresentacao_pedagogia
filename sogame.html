@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber-Admin: O Desafio dos Sistemas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        .pixel-font { font-family: 'Press+Start+2P', cursive; }
+        
+        .card-anim { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-anim:hover { transform: scale(1.02); }
+
+        .progress-bar { transition: width 0.5s ease-in-out; }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .critical { animation: pulse-red 2s infinite; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Game Container -->
+    <div id="game-app" class="w-full max-w-4xl bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-700 min-h-[600px] flex flex-col">
+        
+        <!-- Header / HUD -->
+        <div class="bg-slate-900 p-6 flex justify-between items-center border-b border-slate-700">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                </div>
+                <div>
+                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Status do Servidor</h2>
+                    <p id="hud-level" class="text-blue-400 font-bold">Semana 1: Inicializando...</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Uptime do Sistema</h2>
+                <p id="hud-score" class="text-green-400 font-bold">Score: 0%</p>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-700 h-2">
+            <div id="game-progress" class="bg-blue-500 h-full progress-bar" style="width: 0%"></div>
+        </div>
+
+        <!-- Main Screen -->
+        <div id="screen-content" class="flex-grow p-8 flex flex-col items-center justify-center text-center">
+            <!-- Dinamicamente preenchido -->
+            <div id="intro-screen">
+                <h1 class="text-4xl font-black mb-6 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">CYBER-ADMIN</h1>
+                <p class="text-slate-400 max-w-md mb-8">O cluster da universidade está sob pressão. Como novo administrador, precisas de configurar, proteger e gerir os serviços através de 6 níveis críticos.</p>
+                <button onclick="startGame()" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-2xl font-bold text-xl transition-all active:scale-95 shadow-xl shadow-blue-900/20">
+                    Começar Turno
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer / Feedback -->
+        <div id="game-footer" class="p-6 bg-slate-900/50 border-t border-slate-700 hidden">
+            <div class="flex justify-between items-center">
+                <span class="text-xs text-slate-500 italic">Dica: Ouve atentamente a narração para dicas técnicas.</span>
+                <div class="flex gap-2">
+                    <button onclick="toggleAudio()" id="btn-mute" class="p-2 text-slate-400 hover:text-white transition-colors">
+                        <svg id="icon-audio" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game Engine Data
+        const gameData = [
+            {
+                week: 1,
+                title: "O Paradoxo da Transparência",
+                scenario: "Um utilizador pergunta por que não consegue ver em qual servidor físico os seus dados estão guardados. Como explicas isto?",
+                options: [
+                    { text: "É uma falha de rede que oculta os nós.", correct: false, feedback: "Errado. Isso é uma característica, não uma falha." },
+                    { text: "Sistemas distribuídos devem aparecer como um único computador.", correct: true, feedback: "Correto! A transparência oculta a complexidade do utilizador final." },
+                    { text: "O administrador esqueceu-se de configurar o hostname.", correct: false, feedback: "Longe disso. A transparência é intencional." }
+                ]
+            },
+            {
+                week: 2,
+                title: "Crise de Endereçamento",
+                scenario: "Estás a configurar um novo servidor e o estoque de endereços IPv4 da empresa acabou. Qual é a solução definitiva a longo prazo?",
+                options: [
+                    { text: "Utilizar apenas o protocolo NAT.", correct: false, feedback: "O NAT ajuda, mas não é a solução definitiva." },
+                    { text: "Migrar a infraestrutura para IPv6.", correct: true, feedback: "Exato! Com 128 bits, o IPv6 resolve o esgotamento de endereços." },
+                    { text: "Reiniciar o servidor DHCP.", correct: false, feedback: "Isso apenas redistribui os mesmos endereços limitados." }
+                ]
+            },
+            {
+                week: 3,
+                title: "Ataque em Curso",
+                scenario: "Detetaste um intruso que está a ler mensagens na rede sem as alterar. Que tipo de ataque é este e qual o pilar da segurança afetado?",
+                options: [
+                    { text: "Ataque Ativo; afeta a Integridade.", correct: false, feedback: "Incorreto. Se ele apenas lê, o ataque é passivo." },
+                    { text: "Ataque Passivo; afeta a Confidencialidade.", correct: true, feedback: "Certo! Escutar mensagens sem autorização viola a confidencialidade." },
+                    { text: "DDoS; afeta a Disponibilidade.", correct: false, feedback: "Não. DDoS bloqueia o acesso, não lê mensagens." }
+                ]
+            },
+            {
+                week: 4,
+                title: "A Chave do Reino",
+                scenario: "Precisas de implementar um sistema onde o utilizador aceda ao e-mail sem que a aplicação saiba a sua password real. O que usas?",
+                options: [
+                    { text: "Uma base de dados LDAP local.", correct: false, feedback: "O LDAP gere identidades, mas não delega autorização desta forma." },
+                    { text: "Protocolo OAuth 2.0.", correct: true, feedback: "Brilhante! O OAuth2 permite autorização delegada com tokens seguros." },
+                    { text: "Renomear a conta de Administrador.", correct: false, feedback: "Isso é uma prática de hardening, não resolve delegação." }
+                ]
+            },
+            {
+                week: 5,
+                title: "Muralha de Ferro",
+                scenario: "O teu superior pede para 'endurecer' o novo servidor Linux recém-instalado. Qual é a tua primeira ação?",
+                options: [
+                    { text: "Instalar o máximo de aplicações possíveis.", correct: false, feedback: "Pelo contrário! Isso aumenta a superfície de ataque." },
+                    { text: "Aplicar Hardening, desativando serviços e portas desnecessárias.", correct: true, feedback: "Correto! Menos serviços ativos significam menos vetores de ataque." },
+                    { text: "Mudar a cor da interface gráfica.", correct: false, feedback: "Estética não é segurança. Foco no Hardening!" }
+                ]
+            },
+            {
+                week: 6,
+                title: "O Mensageiro",
+                scenario: "O servidor de e-mail da empresa parou de enviar mensagens externas. Qual protocolo deves verificar primeiro?",
+                options: [
+                    { text: "POP3 (Post Office Protocol).", correct: false, feedback: "O POP3 é usado para receber/descarregar, não para enviar." },
+                    { text: "SMTP (Simple Mail Transfer Protocol).", correct: true, feedback: "Certo! O SMTP é o responsável pelo envio de mensagens na rede." },
+                    { text: "Servidor FTP.", correct: false, feedback: "O FTP é para ficheiros, não para correio eletrónico." }
+                ]
+            }
+        ];
+
+        let currentLevel = 0;
+        let score = 0;
+        let audioEnabled = true;
+        const synth = window.speechSynthesis;
+
+        function speak(text) {
+            if (!audioEnabled) return;
+            synth.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'pt-PT';
+            utter.rate = 1.0;
+            
+            // Tenta encontrar uma voz de qualidade
+            const voices = synth.getVoices();
+            const bestVoice = voices.find(v => v.name.includes('Google') || v.name.includes('Premium')) || voices.find(v => v.lang.startsWith('pt'));
+            if (bestVoice) utter.voice = bestVoice;
+
+            synth.speak(utter);
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('icon-audio');
+            if (audioEnabled) {
+                icon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>';
+            } else {
+                icon.innerHTML = '<line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9l-5 5H2v-4h2l5-5v10z"></path>';
+                synth.cancel();
+            }
+        }
+
+        function startGame() {
+            currentLevel = 0;
+            score = 0;
+            document.getElementById('game-footer').classList.remove('hidden');
+            renderLevel();
+            speak("Turno iniciado. Bem-vindo, Administrador. O sistema aguarda as tuas decisões.");
+        }
+
+        function renderLevel() {
+            if (currentLevel >= gameData.length) {
+                showEndScreen();
+                return;
+            }
+
+            const data = gameData[currentLevel];
+            const progress = (currentLevel / gameData.length) * 100;
+            
+            document.getElementById('game-progress').style.width = `${progress}%`;
+            document.getElementById('hud-level').innerText = `Nível ${data.week}: ${data.title}`;
+            document.getElementById('hud-score').innerText = `Uptime: ${Math.round((score/gameData.length)*100)}%`;
+
+            const screen = document.getElementById('screen-content');
+            screen.innerHTML = `
+                <div class="w-full max-w-2xl animate-in fade-in duration-500">
+                    <div class="mb-8 p-6 bg-slate-900/50 rounded-2xl border border-slate-700 text-left">
+                        <span class="bg-blue-900 text-blue-200 text-[10px] font-bold px-2 py-1 rounded uppercase mb-2 inline-block">Incidente Detetado</span>
+                        <h3 class="text-xl font-bold mb-4">${data.scenario}</h3>
+                    </div>
+                    <div class="grid gap-4">
+                        ${data.options.map((opt, i) => `
+                            <button onclick="checkAnswer(${i})" class="card-anim w-full bg-slate-700 hover:bg-slate-600 p-5 rounded-xl text-left border border-slate-600 flex items-center gap-4 group">
+                                <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center font-bold text-slate-500 group-hover:text-blue-400 transition-colors">${i+1}</div>
+                                <span class="font-medium">${opt.text}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            speak(`Nível ${data.week}. ${data.scenario}`);
+        }
+
+        function checkAnswer(index) {
+            const level = gameData[currentLevel];
+            const option = level.options[index];
+            const screen = document.getElementById('screen-content');
+
+            if (option.correct) {
+                score++;
+                speak(option.feedback + " Ótimo trabalho técnico.");
+                screen.innerHTML = `
+                    <div class="text-center animate-bounce">
+                        <div class="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-green-900/40">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <h2 class="text-3xl font-black text-green-400 mb-2">SISTEMA ESTÁVEL!</h2>
+                        <p class="text-slate-400 mb-8">${option.feedback}</p>
+                        <button onclick="nextLevel()" class="bg-slate-700 hover:bg-slate-600 px-8 py-3 rounded-xl font-bold transition-all">Próximo Ticket</button>
+                    </div>
+                `;
+            } else {
+                speak(option.feedback + " O sistema está a perder estabilidade.");
+                screen.innerHTML = `
+                    <div class="text-center critical p-8 rounded-3xl bg-red-900/20">
+                        <div class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </div>
+                        <h2 class="text-3xl font-black text-red-500 mb-2">ERRO CRÍTICO!</h2>
+                        <p class="text-slate-300 mb-8">${option.feedback}</p>
+                        <button onclick="renderLevel()" class="bg-red-600 hover:bg-red-500 px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-red-900/40">Tentar Recuperação</button>
+                    </div>
+                `;
+            }
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            renderLevel();
+        }
+
+        function showEndScreen() {
+            const finalPercent = Math.round((score / gameData.length) * 100);
+            const rank = finalPercent === 100 ? "ADMINISTRADOR SUPREMO" : finalPercent >= 70 ? "SÉNIOR DE SISTEMAS" : "ESTAGIÁRIO DE REDES";
+            
+            document.getElementById('game-progress').style.width = "100%";
+            document.getElementById('hud-score').innerText = `Final Uptime: ${finalPercent}%`;
+
+            const screen = document.getElementById('screen-content');
+            screen.innerHTML = `
+                <div class="max-w-md animate-in zoom-in duration-700">
+                    <h2 class="text-xs font-black text-blue-500 uppercase tracking-[0.3em] mb-2">Relatório de Turno Finalizado</h2>
+                    <h1 class="text-5xl font-black mb-4">${finalPercent}%</h1>
+                    <div class="bg-slate-900/80 p-6 rounded-2xl border border-blue-500/30 mb-8">
+                        <p class="text-slate-400 text-sm uppercase font-bold mb-1">Título Atribuído</p>
+                        <p class="text-2xl font-black text-white">${rank}</p>
+                    </div>
+                    <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-2xl font-bold transition-all active:scale-95">
+                        Novo Turno
+                    </button>
+                </div>
+            `;
+            
+            speak(`Turno finalizado. A tua pontuação final é de ${finalPercent} por cento. Classificação: ${rank}. Bom trabalho, Administrador.`);
+        }
+
+        // Preload voices
+        speechSynthesis.onvoiceschanged = () => synth.getVoices();
+    </script>
+</body>
+</html>
