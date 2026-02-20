@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabFlash: Interview Ready</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        [v-cloak] { display: none; }
+        .prose p { margin-bottom: 1rem; }
+        
+        /* Estilo dos Tooltips */
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            width: 240px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 10px;
+            position: absolute;
+            z-index: 50;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -120px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+            line-height: 1rem;
+            pointer-events: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1e293b transparent transparent transparent;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans text-left text-sm md:text-base">
+    <div id="app" v-cloak>
+        <!-- Cabeçalho -->
+        <header class="bg-white border-b sticky top-0 z-10 shadow-sm">
+            <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-2 cursor-pointer" @click="selectedLab = null; searchTerm = ''">
+                    <div class="p-2 bg-indigo-600 rounded-lg">
+                        <i data-lucide="zap" class="text-white w-5 h-5"></i>
+                    </div>
+                    <h1 class="text-xl font-bold tracking-tight text-left text-slate-800">LabFlash: Interview Ready</h1>
+                </div>
+                
+                <div class="relative flex-1 max-w-md">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+                    <input 
+                        type="text"
+                        placeholder="Pesquisar (ex: MD5, Capstone, Docker, SSH)..."
+                        class="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                        v-model="searchTerm"
+                    />
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-5xl mx-auto p-4 md:p-8">
+            <!-- Lista de Laboratórios -->
+            <div v-if="!selectedLab">
+                <div v-if="filteredLabs.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div 
+                        v-for="(lab, index) in filteredLabs" 
+                        :key="index"
+                        @click="selectLab(lab)"
+                        :class="['bg-white p-6 rounded-2xl border hover:shadow-xl transition-all cursor-pointer group flex flex-col h-full text-left', lab.isCapstone ? 'border-indigo-500 ring-1 ring-indigo-100' : 'border-slate-200 hover:border-indigo-500']"
+                    >
+                        <div class="flex justify-between items-start mb-4">
+                            <span :class="['text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded', lab.isCapstone ? 'text-white bg-indigo-600' : 'text-indigo-600 bg-indigo-50']">
+                                {{ lab.isCapstone ? 'Projeto Final' : 'Semana ' + lab.week }}
+                            </span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-transform group-hover:translate-x-1"></i>
+                        </div>
+                        <h2 class="text-xl font-bold mb-2 group-hover:text-indigo-600 transition-colors">
+                            {{ lab.title }}
+                        </h2>
+                        <p class="text-slate-500 text-sm line-clamp-3 mb-4 flex-grow">
+                            {{ lab.summary }}
+                        </p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span v-for="tag in lab.keywords.slice(0, 3)" :key="tag.name" class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
+                                {{ tag.name }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else class="py-20 text-center">
+                    <div class="bg-slate-200 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="book" class="text-slate-400"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-slate-600">Nenhum laboratório encontrado</h3>
+                    <p class="text-slate-400">Tenta uma palavra-chave diferente.</p>
+                </div>
+            </div>
+
+            <!-- Detalhes do Laboratório Selecionado -->
+            <div v-else class="animate-in fade-in slide-in-from-bottom-4 duration-300 text-left">
+                <button 
+                    @click="selectedLab = null"
+                    class="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-6 font-medium transition-colors"
+                >
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar para a lista
+                </button>
+
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+                    <div :class="['p-8 text-white', selectedLab.isCapstone ? 'bg-gradient-to-r from-indigo-700 to-indigo-600' : 'bg-indigo-600']">
+                        <div class="flex items-center gap-3 mb-2 opacity-80 text-sm font-medium">
+                            <i :data-lucide="selectedLab.isCapstone ? 'award' : 'calendar'" class="w-4 h-4"></i> 
+                            {{ selectedLab.isCapstone ? 'Mid Capstone Project' : 'Semana ' + selectedLab.week }}
+                        </div>
+                        <h2 class="text-3xl font-bold mb-4">{{ selectedLab.title }}</h2>
+                        <div class="flex flex-wrap gap-3">
+                            <div v-for="tag in selectedLab.keywords" :key="tag.name" class="tooltip-container">
+                                <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-semibold border border-white/20 cursor-help hover:bg-white/30 transition-colors">
+                                    #{{ tag.name }}
+                                </span>
+                                <span class="tooltip-text">{{ tag.definition }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 md:p-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        <!-- Conteúdo Técnico -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-6 text-indigo-600 border-b pb-2">
+                                <i data-lucide="terminal" class="w-5 h-5"></i>
+                                <h3 class="font-bold text-lg uppercase tracking-tight">Conteúdo Técnico</h3>
+                            </div>
+                            <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-line">
+                                {{ selectedLab.technicalContent }}
+                            </div>
+
+                            <!-- Simulação de Entrevista -->
+                            <div class="mt-8 p-6 bg-indigo-50 rounded-2xl border border-indigo-100">
+                                <h4 class="font-bold text-indigo-900 mb-4 flex items-center gap-2 text-sm uppercase">
+                                    <i data-lucide="message-square" class="w-4 h-4"></i> Simulação de Entrevista
+                                </h4>
+                                <ul class="space-y-4">
+                                    <li v-for="(q, idx) in selectedLab.interviewQuestions" :key="idx" class="text-sm">
+                                        <p class="font-semibold text-indigo-800 mb-1">Q: {{ q.question }}</p>
+                                        <p class="text-indigo-600/80 italic">Sugestão: {{ q.answer }}</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Realização -->
+                        <div class="space-y-6">
+                            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                <div class="flex items-center gap-2 mb-4 text-emerald-600">
+                                    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                                    <h3 class="font-bold text-lg uppercase tracking-tight">Insight da Realização</h3>
+                                </div>
+                                <div class="space-y-4">
+                                    <div v-for="(aspect, idx) in selectedLab.practicalAspects" :key="idx" class="flex gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                                        <div class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shrink-0 text-xs font-bold">
+                                            {{ idx + 1 }}
+                                        </div>
+                                        <p class="text-slate-700 text-sm leading-snug">{{ aspect }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                                <div class="flex items-center gap-2 mb-4 text-amber-600">
+                                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                                    <h3 class="font-bold text-sm uppercase tracking-tight">O "Pulo do Gato"</h3>
+                                </div>
+                                <p class="text-amber-800 text-sm italic">{{ selectedLab.proTip }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="py-10 border-t text-center text-slate-400 text-xs uppercase tracking-widest">
+            Foque nos conceitos • Domine a prática • Brilhe na entrevista
+        </footer>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, nextTick } = Vue;
+
+        createApp({
+            setup() {
+                const labs = ref([
+                    {
+                        week: 1,
+                        title: "Setup de SO Servidor & Virtualização",
+                        summary: "Instalação comparativa de Ubuntu Server 24.04 e Windows Server 2022. Foco em dimensionamento de recursos e acesso remoto via SSH.",
+                        keywords: [
+                            { name: "VirtualBox", definition: "Hypervisor que permite criar máquinas virtuais isoladas." },
+                            { name: "Ubuntu Server", definition: "Sistema Linux para servidores, operado via linha de comando (CLI)." },
+                            { name: "SSH", definition: "Protocolo para acesso remoto seguro e encriptado." },
+                            { name: "Kernel", definition: "Núcleo do sistema que gere a comunicação hardware-software." }
+                        ],
+                        technicalContent: `Provisionamento de VMs:
+• Ubuntu: 3GB RAM / 65GB Disco.
+• Windows: 3GB RAM / 72GB Disco.
+• Comandos: 'free -mh' e 'systeminfo'.`,
+                        practicalAspects: [
+                            "Planeamento de recursos para evitar swapping.",
+                            "Uso de hostnames padronizados para inventário.",
+                            "Ativação do OpenSSH como porta de entrada remota."
+                        ],
+                        proTip: "Fale sobre a importância de planejar recursos antes da criação para garantir que o servidor opere acima dos requisitos mínimos.",
+                        interviewQuestions: [
+                            { question: "O que o comando 'uname -a' revela?", answer: "Kernel, arquitetura, hostname e versão do SO." }
+                        ]
+                    },
+                    {
+                        week: 2,
+                        title: "Redes & Resolução de Conflitos",
+                        summary: "Resolução de erros de VMX Root Mode (KVM) e configuração de múltiplas interfaces de rede (NAT + Bridge) com Netplan.",
+                        keywords: [
+                            { name: "KVM", definition: "Kernel-based Virtual Machine: Módulo de virtualização do Kernel Linux." },
+                            { name: "Netplan", definition: "Utilitário de configuração de rede do Ubuntu via YAML." },
+                            { name: "Bridge", definition: "Modo de rede onde a VM recebe um IP real da rede local." }
+                        ],
+                        technicalContent: `Resolução de Erros:
+• Erro NS_ERROR_FAILURE resolvido removendo módulos conflitantes: 'sudo modprobe -r kvm_intel'.
+• Netplan: Configuração de enp0s3 (NAT para net) e enp0s8 (Bridge para acesso direto).`,
+                        practicalAspects: [
+                            "Depuração de erros de indentação em ficheiros YAML.",
+                            "Ajuste de permissões de ficheiros de rede (chmod 600).",
+                            "Uso de múltiplos adaptadores para redundância."
+                        ],
+                        proTip: "Explique que a placa em Bridge é essencial para que o servidor seja um nó independente na rede local.",
+                        interviewQuestions: [
+                            { question: "Como remove um módulo do kernel?", answer: "Através do comando 'modprobe -r'." }
+                        ]
+                    },
+                    {
+                        week: 3,
+                        title: "Segurança, Integridade e Hardening",
+                        summary: "Verificação de integridade com MD5, criptografia assimétrica com RSA, auditoria de rede com NMAP e hardening de SSH.",
+                        keywords: [
+                            { name: "Hashing", definition: "Geração de uma assinatura única para garantir que um ficheiro não foi alterado (Integridade)." },
+                            { name: "MD5", definition: "Algoritmo de hash para verificar a integridade de dados." },
+                            { name: "Criptografia Assimétrica", definition: "Uso de um par de chaves (Pública e Privada) para autenticação segura sem senha." },
+                            { name: "NMAP", definition: "Network Mapper: Ferramenta de auditoria usada para descobrir portas abertas e vulnerabilidades." },
+                            { name: "Hardening", definition: "Processo de reforçar a segurança do sistema reduzindo a superfície de ataque." },
+                            { name: "UFW", definition: "Uncomplicated Firewall: Interface simplificada para gerir regras de filtragem de tráfego." }
+                        ],
+                        technicalContent: `Integridade e Comparação:
+• Uso do 'md5sum' para detetar adulterações em ficheiros comparando com o hash original.
+• 'vimdiff' para visualização lado a lado das modificações em ficheiros adulterados.
+
+Criptografia e Acesso:
+• Geração de chaves RSA de 4096 bits via 'ssh-keygen'.
+• 'ssh-copy-id' para login sem senha (criptografia assimétrica).
+
+Auditoria e Defesa:
+• Scanning com 'nmap' para identificar portas e exploits conhecidos.
+• Configuração do firewall UFW: 'allow 22/tcp', 'allow 80/tcp' e 'ufw enable'.
+• Hardening: Alteração da porta SSH padrão de 22 para 2244 no 'sshd_config'.`,
+                        practicalAspects: [
+                            "Identificação de ficheiros corrompidos: Detetei alterações nos arquivos 1, 2 e 3 via mismatch de hash.",
+                            "Automação de Segurança: A configuração de chaves RSA elimina a necessidade de passwords no terminal.",
+                            "Proteção contra Scanners: Mudar a porta SSH para 2244 reduz o 'ruído' de bots automatizados.",
+                            "Auditoria de CAs: Identificação de autoridades confiáveis (Amazon, Certum) no navegador."
+                        ],
+                        proTip: "Se questionado sobre o NMAP, destaque que o fez para 'visualizar a rede sob a ótica de um atacante' antes de fechar o firewall.",
+                        interviewQuestions: [
+                            { question: "Diferença entre hashing e criptografia?", answer: "Hash é unidirecional (integridade). Criptografia é bidirecional (confidencialidade)." },
+                            { question: "Por que mudar a porta 22 do SSH?", answer: "É uma técnica de 'Security through Obscurity' que mitiga a maioria dos ataques automatizados." }
+                        ]
+                    },
+                    {
+                        isCapstone: true,
+                        week: "Mid",
+                        title: "Hardening, IAM & Automação (Mid Capstone)",
+                        summary: "Projeto integrador focado em Infraestrutura como Código (IaC), hardening de rede e SSH, gestão granular de identidade e controlo de acesso complexo.",
+                        keywords: [
+                            { name: "Hardening", definition: "Processo de reforçar a segurança do sistema para reduzir a superfície de ataque." },
+                            { name: "Shell Scripting", definition: "Automação de tarefas de infraestrutura através de scripts Bash para garantir reprodutibilidade (IaC)." },
+                            { name: "Sudoers", definition: "Ficheiro de configuração que define privilégios administrativos para utilizadores e grupos." },
+                            { name: "Socket Activation", definition: "Recurso do systemd que ativa o serviço SSH apenas quando há uma ligação numa porta específica." },
+                            { name: "Princípio do Menor Privilégio", definition: "Conceder a utilizadores apenas o acesso estritamente necessário para as suas funções." },
+                            { name: "ACLs", definition: "Listas de Controlo de Acesso: permitem definir permissões granulares para múltiplos utilizadores e grupos num ficheiro." }
+                        ],
+                        technicalContent: `A atividade centralizou-se na configuração automatizada (IaC) de um servidor seguro:
+
+Hardening de Rede e SSH:
+• Alteração da porta SSH padrão para 2244 no 'sshd_config'.
+• Firewall UFW: Configuração restritiva (Deny All Incoming). Apenas portas 2244 e 8888 permitidas.
+• Resolução de Conflito: Desativação do 'ssh.socket' do systemd que impunha a porta 22 por defeito no Ubuntu 24.04.
+
+Gestão de Identidade (IAM):
+• Implementação de hierarquia: Grupos 'it' (permissão de apt) e 'qa' (permissão de useradd).
+• Configuração granular em '/etc/sudoers.d/capstone' usando a diretiva NOPASSWD para binários específicos.
+
+Permissões de Ficheiros:
+• Estrutura '/tmp/Matematicas-Gomes' com ownerships cruzados (userlab81/82, grouplab81/82).
+• Controlo via octal: leccionA (600 - root only), leccionB (777 - full), leccionC (460 - group write).`,
+                        practicalAspects: [
+                            "Troubleshooting de Systemd: Identifiquei que o ficheiro de configuração SSH era ignorado pelo 'ssh.socket' do Ubuntu 24.04.",
+                            "Infraestrutura como Código (IaC): O uso de Shell Scripting garantiu que todo o setup fosse auditável e reprodutível.",
+                            "Modularidade no Sudoers: Em vez de editar o ficheiro '/etc/sudoers', utilizei o diretório '.d'.",
+                            "Visualização Hierárquica: Utilização da ferramenta 'tree' para validar as permissões."
+                        ],
+                        proTip: "Se o avaliador perguntar sobre o conflito do SSH no Ubuntu 24.04, explique que o systemd usa 'socket activation'. Isso demonstra um conhecimento profundo do sistema.",
+                        interviewQuestions: [
+                            { question: "O que é o Princípio do Menor Privilégio?", answer: "É conceder apenas o acesso necessário para as funções, minimizando riscos de segurança." },
+                            { question: "Por que usaste scripts Bash para realizar as tarefas?", answer: "Para garantir consistência e reprodutibilidade (IaC), evitando erros manuais em múltiplos servidores." }
+                        ]
+                    },
+                    {
+                        week: 4,
+                        title: "Active Directory & Gestão Centralizada",
+                        summary: "Implementação de domínio Windows (galdino.local), criação de OUs e autenticação centralizada de clientes.",
+                        keywords: [
+                            { name: "AD DS", definition: "Serviço de diretório para gestão centralizada de utilizadores e PCs." },
+                            { name: "OU", definition: "Unidade Organizacional: Contentor para organizar objetos e aplicar GPOs." },
+                            { name: "DNS", definition: "Serviço vital para o AD localizar Controladores de Domínio." }
+                        ],
+                        technicalContent: `Estrutura AD:
+• Promoção a Domain Controller (DC).
+• Criação da OU 'DEV' e utilizador de domínio 'rgaldino'.
+• Ingresso de cliente Windows 10 no domínio galdino.local.`,
+                        practicalAspects: [
+                            "DNS como backbone: Erros de ingresso são quase sempre problemas de DNS.",
+                            "Diferenciação de logins locais vs logins de domínio.",
+                            "Estruturação lógica para aplicação de políticas futuras."
+                        ],
+                        proTip: "Se o domínio não for encontrado, o primeiro passo é verificar se o DNS do cliente aponta para o IP do Servidor.",
+                        interviewQuestions: [
+                            { question: "O que é uma Unidade Organizacional?", answer: "Contentor lógico para organizar objetos e delegar permissões." }
+                        ]
+                    },
+                    {
+                        week: 5,
+                        title: "Firewalls, Acesso Móvel e Automação SSH",
+                        summary: "Configuração avançada de Firewalls (UFW/Windows), gestão remota via telemóvel (Termius) e automação SSH via ~/.ssh/config.",
+                        keywords: [
+                            { name: "ufw", definition: "Uncomplicated Firewall: Interface simplificada para gerir iptables no Linux." },
+                            { name: "Porta 2244", definition: "Porta personalizada para mitigar ataques de bots." },
+                            { name: "Termius", definition: "Aplicação móvel para acesso terminal via SSH." }
+                        ],
+                        technicalContent: `Reforço de Perímetro e Acesso:
+• Firewall Ubuntu: 'sudo ufw allow 2244/tcp'.
+• Automação: Criação do ficheiro '~/.ssh/config' para conexões rápidas via alias.
+• Mobilidade: Acesso ao terminal via smartphone usando Termius na porta 2244.`,
+                        practicalAspects: [
+                            "Segurança em camadas: firewall + porta não-padrão + chaves RSA.",
+                            "Eliminação de passwords no terminal para evitar brute-force.",
+                            "Centralização de parâmetros de conexão SSH num único ficheiro."
+                        ],
+                        proTip: "Destaque que o uso do ficheiro de configuração SSH aumenta drasticamente a produtividade.",
+                        interviewQuestions: [
+                            { question: "Vantagem do ficheiro ~/.ssh/config?", answer: "Automatiza parâmetros como IP, porta e chaves, evitando erros de digitação." }
+                        ]
+                    },
+                    {
+                        week: 7,
+                        title: "Conteinerização com Docker",
+                        summary: "Instalação do Docker Engine, gestão de imagens, execução de contêineres nginx com mapeamento de portas e isolamento de redes customizadas.",
+                        keywords: [
+                            { name: "Docker Engine", definition: "O runtime que permite criar e correr contêineres no sistema operativo." },
+                            { name: "Imagem", definition: "Ficheiro imutável (read-only) que contém o código e dependências." },
+                            { name: "Contêiner", definition: "Uma instância executável e isolada de uma imagem." },
+                            { name: "Mapeamento de Portas", definition: "Redirecionamento de uma porta do host para uma porta dentro do contêiner." }
+                        ],
+                        technicalContent: `Ciclo de Vida de Containers:
+• Validação de instalação: 'docker info' confirmando o daemon ativo.
+• Gestão de Imagens: 'docker pull nginx' e renomeação via 'docker tag university/nginx'.
+• Execução: 'docker run -d --name ROMARIO-GALDINO -p 8088:80 university/nginx'.`,
+                        practicalAspects: [
+                            "Mapeamento de Portas: Crucial para expor o serviço isolado do contêiner.",
+                            "Organização de Imagens: O uso de tags personalizadas facilita a identificação.",
+                            "Isolamento de Rede: Criação de redes bridge customizadas."
+                        ],
+                        proTip: "Se questionado sobre a diferença entre Imagem e Contêiner, diga: 'A imagem é o molde, o contêiner é o bolo'.",
+                        interviewQuestions: [
+                            { question: "Docker vs Virtualização?", answer: "Virtualização simula hardware; Docker partilha o kernel do host, sendo mais leve." }
+                        ]
+                    }
+                ]);
+
+                const searchTerm = ref('');
+                const selectedLab = ref(null);
+
+                const filteredLabs = computed(() => {
+                    const term = searchTerm.value.toLowerCase();
+                    if (!term) return labs.value;
+                    return labs.value.filter(lab => 
+                        lab.title.toLowerCase().includes(term) || 
+                        lab.keywords.some(k => k.name.toLowerCase().includes(term)) ||
+                        lab.summary.toLowerCase().includes(term)
+                    );
+                });
+
+                const selectLab = (lab) => {
+                    selectedLab.value = lab;
+                    nextTick(() => {
+                        lucide.createIcons();
+                    });
+                };
+
+                nextTick(() => {
+                    lucide.createIcons();
+                });
+
+                return {
+                    labs,
+                    searchTerm,
+                    selectedLab,
+                    filteredLabs,
+                    selectLab
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
