@@ -53,31 +53,135 @@
             border-style: solid;
             border-color: #1e293b transparent transparent transparent;
         }
+
+        /* Pulse Animation for Panic Button */
+        @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .panic-btn {
+            animation: pulse-red 2s infinite;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans text-left text-sm md:text-base">
     <div id="app" v-cloak>
         <!-- Cabeçalho -->
-        <header class="bg-white border-b sticky top-0 z-10 shadow-sm">
+        <header class="bg-white border-b sticky top-0 z-50 shadow-sm">
             <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex items-center gap-2 cursor-pointer" @click="selectedLab = null; searchTerm = ''">
+                <div class="flex items-center gap-2 cursor-pointer" @click="resetState">
                     <div class="p-2 bg-indigo-600 rounded-lg">
                         <i data-lucide="zap" class="text-white w-5 h-5"></i>
                     </div>
-                    <h1 class="text-xl font-bold tracking-tight text-left text-slate-800">LabFlash: Interview Ready</h1>
+                    <h1 class="text-xl font-bold tracking-tight text-left text-slate-800">LabFlash</h1>
                 </div>
                 
                 <div class="relative flex-1 max-w-md">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
                     <input 
                         type="text"
-                        placeholder="Pesquisar (ex: MD5, Capstone, Docker, SSH)..."
+                        placeholder="Pesquisar (ex: MD5, Capstone, SSH)..."
                         class="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
                         v-model="searchTerm"
                     />
                 </div>
+
+                <!-- Botão de Pânico -->
+                <button 
+                    @click="showPanicMode = !showPanicMode"
+                    class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-full font-bold text-xs uppercase tracking-wider hover:bg-red-600 transition-colors panic-btn"
+                >
+                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                    Modo de Pressão
+                </button>
             </div>
         </header>
+
+        <!-- Overlay de Modo de Pressão -->
+        <div v-if="showPanicMode" class="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-sm p-4 md:p-10 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex justify-between items-center mb-8 text-white">
+                    <h2 class="text-2xl font-black uppercase tracking-tighter flex items-center gap-3 text-red-400">
+                        <i data-lucide="flame" class="w-8 h-8"></i> Guia de Sobrevivência (Pressão Total)
+                    </h2>
+                    <button @click="showPanicMode = false" class="p-2 hover:bg-white/10 rounded-full">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Framework de Resposta -->
+                    <div class="bg-white/5 border border-white/10 p-6 rounded-3xl">
+                        <h3 class="text-indigo-400 font-bold mb-4 flex items-center gap-2">
+                            <i data-lucide="message-circle" class="w-5 h-5"></i> Scripts Mentais (Não sei a resposta)
+                        </h3>
+                        <ul class="space-y-4 text-slate-300 text-sm">
+                            <li class="bg-white/5 p-3 rounded-xl border-l-4 border-indigo-500">
+                                <p class="font-bold text-indigo-300">Padrão de Resposta:</p>
+                                <p>"Embora eu não tenha o comando exato em mente agora, minha lógica seria baseada em [Princípio]. No Linux, eu começaria verificando [Logs/Status]..."</p>
+                            </li>
+                            <li class="bg-white/5 p-3 rounded-xl border-l-4 border-emerald-500">
+                                <p class="font-bold text-emerald-300">Demonstrando Proatividade:</p>
+                                <p>"Em um cenário real, minha primeira ferramenta de diagnóstico seria o [Ferramenta]. Se o erro persistisse, eu consultaria as [Man Pages/Logs do Kernel] para isolar a causa."</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Checklist de Troubleshooting -->
+                    <div class="bg-white/5 border border-white/10 p-6 rounded-3xl">
+                        <h3 class="text-red-400 font-bold mb-4 flex items-center gap-2">
+                            <i data-lucide="activity" class="w-5 h-5"></i> Diagnóstico Universal (O que falar)
+                        </h3>
+                        <div class="space-y-3 text-slate-300 text-xs">
+                            <div class="flex gap-2">
+                                <span class="bg-red-500/20 text-red-400 px-2 rounded font-mono">1</span>
+                                <span><strong>Camada de Rede:</strong> Verificar IPs (ip addr), conectividade (ping) e se a porta está ouvindo (netstat -tunlp).</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="bg-red-500/20 text-red-400 px-2 rounded font-mono">2</span>
+                                <span><strong>Estado do Serviço:</strong> Verificar se está ativo (systemctl status) e se há erros no arranque (journalctl -u).</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="bg-red-500/20 text-red-400 px-2 rounded font-mono">3</span>
+                                <span><strong>Permissões:</strong> Verificar ownership (ls -l) e se o firewall está bloqueando (ufw status).</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comandos Salva-Vidas -->
+                    <div class="md:col-span-2 bg-gradient-to-br from-indigo-900/40 to-slate-900 border border-white/10 p-6 rounded-3xl">
+                        <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+                            <i data-lucide="terminal" class="w-5 h-5"></i> Comandos "Curinga" para citar
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-black/30 p-3 rounded-xl">
+                                <code class="text-emerald-400 text-xs font-mono block mb-1">tail -f /var/log/syslog</code>
+                                <span class="text-[10px] text-slate-400">Ver logs em tempo real</span>
+                            </div>
+                            <div class="bg-black/30 p-3 rounded-xl">
+                                <code class="text-emerald-400 text-xs font-mono block mb-1">journalctl -xe</code>
+                                <span class="text-[10px] text-slate-400">Erros detalhados do systemd</span>
+                            </div>
+                            <div class="bg-black/30 p-3 rounded-xl">
+                                <code class="text-emerald-400 text-xs font-mono block mb-1">chmod/chown</code>
+                                <span class="text-[10px] text-slate-400">Resolver 'Permission Denied'</span>
+                            </div>
+                            <div class="bg-black/30 p-3 rounded-xl">
+                                <code class="text-emerald-400 text-xs font-mono block mb-1">docker logs [ID]</code>
+                                <span class="text-[10px] text-slate-400">Por que o container falhou?</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <button @click="showPanicMode = false" class="text-slate-400 hover:text-white underline text-sm">
+                        Voltar para os laboratórios
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <main class="max-w-5xl mx-auto p-4 md:p-8">
             <!-- Lista de Laboratórios -->
@@ -98,7 +202,7 @@
                         <h2 class="text-xl font-bold mb-2 group-hover:text-indigo-600 transition-colors">
                             {{ lab.title }}
                         </h2>
-                        <p class="text-slate-500 text-sm line-clamp-3 mb-4 flex-grow">
+                        <p class="text-slate-500 text-sm line-clamp-3 mb-4 flex-grow text-left">
                             {{ lab.summary }}
                         </p>
                         <div class="flex flex-wrap gap-2 mt-auto">
@@ -151,7 +255,7 @@
                                 <i data-lucide="terminal" class="w-5 h-5"></i>
                                 <h3 class="font-bold text-lg uppercase tracking-tight">Conteúdo Técnico</h3>
                             </div>
-                            <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-line">
+                            <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-line text-left">
                                 {{ selectedLab.technicalContent }}
                             </div>
 
@@ -162,8 +266,8 @@
                                 </h4>
                                 <ul class="space-y-4">
                                     <li v-for="(q, idx) in selectedLab.interviewQuestions" :key="idx" class="text-sm">
-                                        <p class="font-semibold text-indigo-800 mb-1">Q: {{ q.question }}</p>
-                                        <p class="text-indigo-600/80 italic">Sugestão: {{ q.answer }}</p>
+                                        <p class="font-semibold text-indigo-800 mb-1 text-left">Q: {{ q.question }}</p>
+                                        <p class="text-indigo-600/80 italic text-left">Sugestão: {{ q.answer }}</p>
                                     </li>
                                 </ul>
                             </div>
@@ -174,14 +278,14 @@
                             <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                                 <div class="flex items-center gap-2 mb-4 text-emerald-600">
                                     <i data-lucide="clipboard-list" class="w-5 h-5"></i>
-                                    <h3 class="font-bold text-lg uppercase tracking-tight">Insight da Realização</h3>
+                                    <h3 class="font-bold text-lg uppercase tracking-tight text-left">Insight da Realização</h3>
                                 </div>
                                 <div class="space-y-4">
                                     <div v-for="(aspect, idx) in selectedLab.practicalAspects" :key="idx" class="flex gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                                         <div class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center shrink-0 text-xs font-bold">
                                             {{ idx + 1 }}
                                         </div>
-                                        <p class="text-slate-700 text-sm leading-snug">{{ aspect }}</p>
+                                        <p class="text-slate-700 text-sm leading-snug text-left">{{ aspect }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -189,9 +293,9 @@
                             <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100">
                                 <div class="flex items-center gap-2 mb-4 text-amber-600">
                                     <i data-lucide="alert-circle" class="w-5 h-5"></i>
-                                    <h3 class="font-bold text-sm uppercase tracking-tight">O "Pulo do Gato"</h3>
+                                    <h3 class="font-bold text-sm uppercase tracking-tight text-left">O "Pulo do Gato"</h3>
                                 </div>
-                                <p class="text-amber-800 text-sm italic">{{ selectedLab.proTip }}</p>
+                                <p class="text-amber-800 text-sm italic text-left">{{ selectedLab.proTip }}</p>
                             </div>
                         </div>
                     </div>
@@ -209,6 +313,10 @@
 
         createApp({
             setup() {
+                const showPanicMode = ref(false);
+                const searchTerm = ref('');
+                const selectedLab = ref(null);
+
                 const labs = ref([
                     {
                         week: 1,
@@ -403,9 +511,6 @@ Permissões de Ficheiros:
                     }
                 ]);
 
-                const searchTerm = ref('');
-                const selectedLab = ref(null);
-
                 const filteredLabs = computed(() => {
                     const term = searchTerm.value.toLowerCase();
                     if (!term) return labs.value;
@@ -418,9 +523,16 @@ Permissões de Ficheiros:
 
                 const selectLab = (lab) => {
                     selectedLab.value = lab;
+                    showPanicMode.value = false;
                     nextTick(() => {
                         lucide.createIcons();
                     });
+                };
+
+                const resetState = () => {
+                    selectedLab.value = null;
+                    searchTerm.value = '';
+                    showPanicMode.value = false;
                 };
 
                 nextTick(() => {
@@ -432,7 +544,9 @@ Permissões de Ficheiros:
                     searchTerm,
                     selectedLab,
                     filteredLabs,
-                    selectLab
+                    selectLab,
+                    showPanicMode,
+                    resetState
                 };
             }
         }).mount('#app');
