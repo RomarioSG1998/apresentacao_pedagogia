@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Master de Procedimentos - VMs & Segurança</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Fira+Code:wght@500&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .quick-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .quick-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Header com Busca Ultra-Rápida -->
+    <header class="bg-slate-900 text-white p-4 shadow-xl z-10">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <span class="text-blue-500 font-black text-2xl">VM</span>
+                <h1 class="text-lg font-bold tracking-tighter uppercase">Flash Response Master (S1-S7)</h1>
+            </div>
+            <div class="relative w-full md:w-1/2">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="PESQUISAR ATIVIDADE OU COMANDO... (ex: DOCKER, AD, SSH, IP)" 
+                    class="w-full bg-slate-800 border-2 border-slate-700 rounded-lg py-3 px-12 focus:border-blue-500 focus:ring-0 text-lg font-bold placeholder-slate-500 transition-all uppercase"
+                    autofocus
+                >
+                <svg class="absolute left-4 top-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="hidden lg:block w-80 bg-white border-r border-slate-200 overflow-y-auto scrollbar-hide">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
+                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Procedimentos</span>
+                <button onclick="showHome()" class="text-xs font-bold text-blue-600 hover:underline italic">Ver Tudo</button>
+            </div>
+            <nav id="task-list" class="divide-y divide-slate-50">
+                <!-- Links injetados -->
+            </nav>
+        </aside>
+
+        <!-- Área de Exibição Principal -->
+        <section class="flex-1 overflow-y-auto relative bg-slate-50" id="main-content">
+            
+            <!-- Tela de Grid (Acesso Inicial) -->
+            <div id="home-grid" class="p-6 md:p-10 max-w-7xl mx-auto">
+                <div class="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
+                    <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight">Painel Consolidado (100% das Atividades)</h2>
+                    <span class="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full" id="item-count"></span>
+                </div>
+                
+                <div id="grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cards injetados aqui -->
+                </div>
+            </div>
+
+            <!-- Detalhes do Procedimento -->
+            <div id="procedure-display" class="hidden max-w-4xl mx-auto p-6 md:p-10 pb-32">
+                <button onclick="showHome()" class="flex items-center gap-2 text-blue-600 font-bold mb-8 hover:translate-x-[-4px] transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    VOLTAR PARA ATALHOS
+                </button>
+
+                <div class="mb-10">
+                    <span id="proc-category" class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-black uppercase mb-3"></span>
+                    <h2 id="proc-title" class="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-4"></h2>
+                    <p id="proc-desc" class="text-slate-500 text-lg border-l-4 border-slate-200 pl-4"></p>
+                </div>
+
+                <div id="steps-container" class="space-y-10">
+                    <!-- Passos injetados -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notificação de Cópia -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full shadow-2xl opacity-0 translate-y-10 pointer-events-none transition-all duration-300 font-bold text-sm z-50">
+        COMANDO COPIADO!
+    </div>
+
+    <script>
+        const activities = [
+            // --- SEMANA 1: PLANEJAMENTO E SETUP ---
+            {
+                id: "s1-requisitos",
+                title: "Requisitos & Verificação HW",
+                keywords: "RAM DISCO PROCESSADOR REQUISITOS MINIMOS CALCULO FREE UNAME",
+                category: "S1: Setup",
+                color: "bg-amber-500",
+                description: "Cálculos para VMs e comandos de auditoria de hardware.",
+                steps: [
+                    { title: "Cálculo Ubuntu Server", text: "Meta: 2GB RAM | 45GB Disco.", command: "Config: 2GB RAM / 45GB VDI", explanation: "Base de 1GB/5GB somado ao extra de +1GB/+40GB pedido na atividade." },
+                    { title: "Cálculo Windows Server", text: "Meta: 3GB RAM | 72GB Disco.", command: "Config: 3GB RAM / 72GB VDI", explanation: "Base Desktop Exp (2GB/32GB) somado ao extra de +1GB/+40GB." },
+                    { title: "Verificar RAM (Linux)", command: "free -mh", text: "Verifica memória legível.", explanation: "Mostra o total, usado e disponível em formato humano (Gigas/Megas)." },
+                    { title: "Verificar Sistema (Linux)", command: "uname -a", text: "Verifica versão do kernel e arquitetura.", explanation: "Confirma se o SO e o processador são x86_64 e a versão instalada." }
+                ]
+            },
+            {
+                id: "s1-install",
+                title: "Nomenclatura & Roles",
+                keywords: "VIRTUALBOX NOME JPEREZ OPENSSH DESKTOP",
+                category: "S1: Instalação",
+                color: "bg-orange-600",
+                description: "Padrões de nomes e seleção de funcionalidades.",
+                steps: [
+                    { title: "Nomenclatura", command: "jperez-linux / jperez-win", text: "Inicial + Sobrenome.", explanation: "Padrão obrigatório para identificação das VMs no VirtualBox." },
+                    { title: "Windows Server", command: "Desktop Experience", text: "Escolha na instalação.", explanation: "Versão com interface gráfica necessária para o laboratório." },
+                    { title: "Ubuntu SSH", command: "[X] Install OpenSSH Server", text: "Ativar no assistente.", explanation: "Instala o daemon SSH automaticamente durante o setup inicial." }
+                ]
+            },
+
+            // --- SEMANA 2: REDE ---
+            {
+                id: "s2-netplan",
+                title: "Netplan & Interface Ponte",
+                keywords: "NETPLAN BRIDGE ENP0S8 YAML IP CONFIG",
+                category: "S2: Rede",
+                color: "bg-indigo-600",
+                description: "Configurar segunda interface e redirecionamento NAT.",
+                steps: [
+                    { title: "Configuração NAT (VBox)", command: "Port Forwarding: Host 2222 -> Guest 22", text: "Configurar no Adaptador 1.", explanation: "Permite acessar a VM via SSH através do endereço localhost:2222." },
+                    { title: "Interface Ponte (Netplan)", command: "sudo nano /etc/netplan/00-installer-config.yaml", text: "Adicionar enp0s8.", explanation: "Abre o arquivo de configuração de rede do Ubuntu." },
+                    { title: "YAML enp0s8", command: "enp0s8:\n  dhcp4: true", text: "Sintaxe correta.", explanation: "Habilita DHCP automático na segunda interface de rede (Bridge)." },
+                    { title: "Aplicar", command: "sudo netplan apply", text: "Validar rede.", explanation: "Aplica as mudanças do YAML sem necessidade de reboot." }
+                ]
+            },
+            {
+                id: "s2-diagnostico",
+                title: "Diagnóstico (Traceroute/NC)",
+                keywords: "TRACEROUTE NC NETCAT PING SALTOS AMAZON",
+                category: "S2: Diagnóstico",
+                color: "bg-emerald-600",
+                description: "Testes de conectividade e análise de portas.",
+                steps: [
+                    { title: "Traceroute", command: "traceroute www.amazon.com.au", text: "Verificar saltos (hops).", explanation: "Lista cada nó de rede por onde o pacote passa até chegar na Amazon Austrália." },
+                    { title: "Netcat local", command: "nc -zv localhost 22", text: "Scan de porta SSH.", explanation: "Checa se o serviço local está aceitando conexões na porta 22." }
+                ]
+            },
+
+            // --- SEMANA 3: SEGURANÇA ---
+            {
+                id: "s3-cripto",
+                title: "MD5 & Auditoria NMAP",
+                keywords: "MD5 HASH PETER VIMDIFF NMAP VULN",
+                category: "S3: Segurança",
+                color: "bg-red-600",
+                description: "Integridade de arquivos e análise de vulnerabilidades.",
+                steps: [
+                    { title: "Hash da String", command: "echo -n \"Senha\" | md5sum", text: "Gerar hash MD5.", explanation: "O -n remove a quebra de linha oculta para que o hash seja exato." },
+                    { title: "Hash Peter", command: "md5sum arquivo1.txt", text: "Compare com o valor abaixo.", explanation: "Valor esperado: 8dcad5378b7124981743b5309f01b352" },
+                    { title: "Vimdiff", command: "vimdiff arquivo1.txt arquivo_original.txt", text: "Ver diferenças visuais.", explanation: "Compara dois arquivos lado a lado destacando linhas alteradas." },
+                    { title: "NMAP Vuln", command: "nmap -p- -sV --script vuln [IP_VM]", text: "Scan profundo.", explanation: "Procura versões de serviços e scripts de falhas conhecidas em todas as portas." }
+                ]
+            },
+
+            // --- SEMANA 4: ACTIVE DIRECTORY ---
+            {
+                id: "s4-ad",
+                title: "Active Directory (AD DS)",
+                keywords: "AD FOREST FLORESTA OU DEV DOMINIO LOGIN",
+                category: "S4: AD",
+                color: "bg-indigo-800",
+                description: "Domínio [Sobrenome].local e Unidades Organizacionais.",
+                steps: [
+                    { title: "Nova Floresta", command: "[Sobrenome].local", text: "Configurar no AD DS.", explanation: "Nome do domínio raiz para a estrutura do Active Directory." },
+                    { title: "OU DEV & User", text: "Criar via ADUC.", command: "Organizational Unit: DEV", explanation: "Criação da estrutura organizacional e usuário com nome real." },
+                    { title: "Join Domain (Win10)", text: "Configurar DNS primeiro.", command: "IPv4 DNS: [IP_DO_SERVER]", explanation: "O cliente Windows 10 deve usar o IP do Server como servidor DNS para achar o domínio." },
+                    { title: "Login Domínio", command: "nome@sobrenome.local", text: "Autenticar no AD.", explanation: "Valida que o login está sendo processado pelo controlador de domínio." }
+                ]
+            },
+
+            // --- SEMANA 5: SSH AVANÇADO ---
+            {
+                id: "s5-ssh",
+                title: "SSH Avançado (Config)",
+                keywords: "MKDIR KEYPAIRLINUX SSH-KEYGEN CONFIG HOST1",
+                category: "S5: SSH",
+                color: "bg-fuchsia-700",
+                description: "Automatização de conexão e chaves organizadas.",
+                steps: [
+                    { title: "Criar Pasta", command: "mkdir $HOME/keypairlinux", text: "Organização de chaves.", explanation: "Diretório sugerido pela atividade para guardar chaves SSH." },
+                    { title: "SSH Config", command: "nano ~/.ssh/config", text: "Atalho 'host1'.", explanation: "Abre o arquivo de configuração de atalhos do cliente SSH." },
+                    { title: "Bloco Config", command: "Host host1\n  HostName [IP]\n  User [user]\n  Port 2244\n  IdentityFile ~/keypairlinux/chave", text: "Conteúdo do atalho.", explanation: "Mapeia todos os dados da conexão para o nome 'host1'." }
+                ]
+            },
+
+            // --- SEMANA 6: LAMP & SFTP ---
+            {
+                id: "s6-lamp-sftp",
+                title: "LAMP & Servidor SFTP",
+                keywords: "APACHE MYSQL PORTA 8898 FILEZILLA SFTP",
+                category: "S6: Serviços",
+                color: "bg-lime-600",
+                description: "Web server porta 8898 e transferência segura de arquivos.",
+                steps: [
+                    { title: "Porta Apache", command: "Listen 8898", text: "Mudar em ports.conf.", explanation: "Altera a porta padrão (80) para a porta customizada (8898)." },
+                    { title: "SFTP User", command: "sudo addgroup sftp_users && sudo adduser [user]", text: "Preparar ambiente SFTP.", explanation: "Cria grupo e usuário com restrições para transferência de arquivos." },
+                    { title: "Tarefa SFTP", text: "Upload [YourLastInitial].txt.", command: "FileZilla (Port 2244)", explanation: "Transferência via Windows Client para a VM Ubuntu." },
+                    { title: "Mobile Task", text: "Upload [InicialSobrenome]-phone.jpg.", command: "Termius App", explanation: "Upload de imagem do celular para o servidor SFTP." }
+                ]
+            },
+
+            // --- SEMANA 7: DOCKER ---
+            {
+                id: "s7-docker",
+                title: "Docker & Contentores",
+                keywords: "DOCKER PULL TAG RUN NETWORK INSPECT CLEANUP",
+                category: "S7: Docker",
+                color: "bg-cyan-500",
+                description: "Instalação, Redes e Gestão de Imagens.",
+                steps: [
+                    { title: "Docker Info", command: "docker info", text: "Capturar versões.", explanation: "Mostra versão do Engine, Compose e status dos recursos." },
+                    { title: "Pull & Tag", command: "docker pull nginx && docker tag nginx university/nginx", text: "Gestão de imagens.", explanation: "Baixa a imagem oficial e renomeia para o padrão da universidade." },
+                    { title: "Run Nginx 8088", command: "docker run -d --name [NOME]-[SOBRENOME] -p 8088:80 university/nginx", text: "Contentor na porta 8088.", explanation: "-d em segundo plano, -p mapeia a porta host:container." },
+                    { title: "Rede Custom", command: "docker network create [sobrenome]-network", text: "Criar rede isolada.", explanation: "Permite que containers se comuniquem em uma rede lógica própria." },
+                    { title: "Inspect", command: "docker inspect apache-srv", text: "Ver detalhes da rede.", explanation: "Mostra as configurações de baixo nível (IP, Redes, Volumes) do container." },
+                    { title: "Cleanup Total", command: "docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker network prune", text: "Limpeza de ambiente.", explanation: "Para e remove todos os containers e apaga redes não utilizadas." }
+                ]
+            }
+        ];
+
+        // UI Logic
+        const gridContainer = document.getElementById('grid-container');
+        const taskList = document.getElementById('task-list');
+        const searchInput = document.getElementById('search-input');
+        const homeGrid = document.getElementById('home-grid');
+        const procedureDisplay = document.getElementById('procedure-display');
+        const stepsContainer = document.getElementById('steps-container');
+        const toast = document.getElementById('toast');
+        const itemCount = document.getElementById('item-count');
+
+        function renderAll(filter = "") {
+            gridContainer.innerHTML = "";
+            taskList.innerHTML = "";
+            
+            const filtered = activities.filter(a => 
+                a.title.toLowerCase().includes(filter.toLowerCase()) || 
+                a.keywords.toLowerCase().includes(filter.toLowerCase()) ||
+                a.category.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            itemCount.innerText = `${filtered.length} Tópicos`;
+
+            filtered.forEach(act => {
+                const navBtn = document.createElement('button');
+                navBtn.className = "w-full text-left p-4 text-sm font-semibold hover:bg-slate-100 transition-colors flex items-center gap-3 border-l-4 border-transparent hover:border-blue-500";
+                navBtn.innerHTML = `<div class="w-3 h-3 rounded-full ${act.color} flex-shrink-0"></div> <span class="truncate text-slate-700">${act.title}</span>`;
+                navBtn.onclick = () => showProcedure(act.id);
+                taskList.appendChild(navBtn);
+
+                const card = document.createElement('div');
+                card.className = "quick-card bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col h-full";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 px-2 py-1 bg-slate-100 rounded">${act.category}</span>
+                        <div class="w-4 h-4 rounded-full ${act.color} shadow-sm"></div>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-1 leading-tight">${act.title}</h3>
+                    <p class="text-xs text-slate-500 mb-4 flex-1">${act.description}</p>
+                    <div class="flex flex-wrap gap-1 mt-auto">
+                        ${act.keywords.split(' ').slice(0, 3).map(k => `<span class="text-[9px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded uppercase">${k}</span>`).join('')}
+                    </div>
+                `;
+                card.onclick = () => showProcedure(act.id);
+                gridContainer.appendChild(card);
+            });
+        }
+
+        function getHexColor(twClass) {
+            const colors = {
+                'bg-amber-500': '#f59e0b', 'bg-orange-600': '#ea580c', 'bg-indigo-600': '#4f46e5',
+                'bg-emerald-600': '#059669', 'bg-red-600': '#dc2626', 'bg-slate-800': '#1e293b',
+                'bg-indigo-800': '#3730a3', 'bg-fuchsia-700': '#a21caf', 'bg-lime-600': '#65a30d',
+                'bg-cyan-500': '#06b6d4', 'bg-blue-600': '#2563eb', 'bg-sky-500': '#0ea5e9',
+                'bg-blue-700': '#1d4ed8', 'bg-blue-800': '#1e40af', 'bg-cyan-600': '#0891b2',
+                'bg-teal-500': '#14b8a6', 'bg-violet-700': '#6d28d9', 'bg-rose-500': '#f43f5e',
+                'bg-gray-700': '#374151', 'bg-stone-500': '#78716c', 'bg-pink-600': '#db2777'
+            };
+            return colors[twClass] || '#64748b';
+        }
+
+        function showHome() {
+            homeGrid.classList.remove('hidden');
+            procedureDisplay.classList.add('hidden');
+            searchInput.value = "";
+            renderAll();
+            searchInput.focus();
+        }
+
+        function showProcedure(id) {
+            const act = activities.find(a => a.id === id);
+            if (!act) return;
+            homeGrid.classList.add('hidden');
+            procedureDisplay.classList.remove('hidden');
+            
+            document.getElementById('proc-title').innerText = act.title;
+            document.getElementById('proc-category').innerText = act.category;
+            document.getElementById('proc-desc').innerText = act.description;
+            
+            stepsContainer.innerHTML = "";
+            act.steps.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = "bg-white border-l-8 border-slate-900 rounded-r-2xl p-8 shadow-sm relative overflow-hidden";
+                stepDiv.style.borderLeftColor = getHexColor(act.color);
+                
+                let cmdSection = "";
+                if (step.command) {
+                    cmdSection = `
+                        <div class="mt-6 relative group">
+                            <pre class="bg-slate-900 text-blue-400 p-6 rounded-xl text-lg code-font overflow-x-auto border border-slate-800 shadow-inner">${step.command}</pre>
+                            <button onclick="copyCommand('${step.command.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')" class="absolute top-4 right-4 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-black text-xs transition-all uppercase shadow-lg active:scale-95">COPIAR</button>
+                        </div>
+                    `;
+                }
+
+                stepDiv.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="bg-slate-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-black text-xs">${index + 1}</span>
+                            <h3 class="text-2xl font-black text-slate-900 tracking-tight">${step.title}</h3>
+                        </div>
+                        <p class="text-slate-600 text-lg font-medium leading-relaxed">${step.text}</p>
+                        ${cmdSection}
+                        <div class="mt-4 p-4 bg-slate-50 rounded-xl border-t border-slate-100">
+                            <p class="text-sm text-slate-500">
+                                <span class="font-black text-blue-600 uppercase text-[10px] block mb-1">O que este comando faz:</span>
+                                ${step.explanation}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                stepsContainer.appendChild(stepDiv);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.copyCommand = function(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el); el.select();
+            document.execCommand('copy'); document.body.removeChild(el);
+            
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => { 
+                toast.classList.add('opacity-0', 'translate-y-10'); 
+                toast.classList.remove('opacity-100', 'translate-y-0'); 
+            }, 2000);
+        };
+
+        searchInput.oninput = (e) => {
+            renderAll(e.target.value);
+            if(e.target.value !== "" && homeGrid.classList.contains('hidden')) showHome();
+        };
+
+        document.addEventListener('keydown', (e) => { if (e.key === "Escape") showHome(); });
+        renderAll();
+    </script>
+</body>
+</html>
