@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dicionário Técnico: Docker, Healthcheck & Caddy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+        }
+        .expanded .expandable-content {
+            max-height: 1000px;
+            padding-top: 1rem;
+        }
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .has-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        .command-code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-900 pb-20">
+
+    <div class="max-w-6xl mx-auto py-12 px-4">
+        <header class="text-center mb-12 border-b pb-8">
+            <h1 class="text-4xl font-extrabold text-indigo-900 mb-4">Dicionário Técnico Integrado</h1>
+            <p class="text-lg text-gray-600 italic max-w-3xl mx-auto">
+                Consolidado de conhecimentos: Falhas de Healthcheck (IPv6) e Colisão de Rotas (Caddy).
+            </p>
+            <div class="mt-6 flex justify-center gap-4 flex-wrap">
+                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full border border-blue-300 flex items-center">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> Mouse: Resumo Rápido
+                </span>
+                <span class="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full border border-green-300 flex items-center">
+                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> Clique: Detalhes e Exemplos
+                </span>
+            </div>
+        </header>
+
+        <!-- Seção de Comandos -->
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center border-b-2 border-indigo-500 pb-2">
+                <svg class="w-6 h-6 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Comandos (CLI & Docker)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- docker compose ps -->
+                <div class="card bg-white p-6 rounded-xl shadow-sm border border-gray-200 cursor-pointer has-tooltip relative" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-start">
+                        <code class="text-indigo-600 font-bold text-base command-code">docker compose ps</code>
+                        <span class="tooltip-text absolute -top-10 left-0 bg-gray-800 text-white text-xs p-2 rounded shadow-lg z-20 w-48 text-center">Status de saúde dos containers</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mt-2">Lista o estado (healthy, starting, unhealthy) dos serviços da stack.</p>
+                    <div class="expandable-content border-t border-gray-100 mt-4">
+                        <p class="text-gray-700 text-sm">Mostra se os containers passaram nos testes de saúde. Se estiver em <em>starting</em>, o Docker aguarda o <em>start_period</em> antes de marcar como falha.</p>
+                    </div>
+                </div>
+
+                <!-- docker inspect -->
+                <div class="card bg-white p-6 rounded-xl shadow-sm border border-gray-200 cursor-pointer has-tooltip relative" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-start">
+                        <code class="text-indigo-600 font-bold text-base command-code">docker inspect</code>
+                        <span class="tooltip-text absolute -top-10 left-0 bg-gray-800 text-white text-xs p-2 rounded shadow-lg z-20 w-48 text-center">Detalhes internos do estado</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mt-2">Verifica os logs das últimas tentativas de healthcheck.</p>
+                    <div class="expandable-content border-t border-gray-100 mt-4">
+                        <code class="block bg-gray-900 text-green-400 p-2 rounded text-[10px] mb-2 overflow-x-auto">docker inspect --format='{{json .State.Health}}' &lt;id&gt; | jq</code>
+                        <p class="text-gray-700 text-xs">Revela mensagens de erro como "Connection Refused", permitindo identificar se o teste tentou o IP errado (IPv6 vs IPv4).</p>
+                    </div>
+                </div>
+
+                <!-- curl -I -->
+                <div class="card bg-white p-6 rounded-xl shadow-sm border border-gray-200 cursor-pointer has-tooltip relative" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-start">
+                        <code class="text-indigo-600 font-bold text-base command-code">curl -I</code>
+                        <span class="tooltip-text absolute -top-10 left-0 bg-gray-800 text-white text-xs p-2 rounded shadow-lg z-20 w-48 text-center">Cabeçalhos HTTP apenas</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mt-2">Testa a resposta de uma URL sem baixar o conteúdo.</p>
+                    <div class="expandable-content border-t border-gray-100 mt-4">
+                        <p class="text-gray-700 text-sm">Essencial para diagnosticar colisões de rota no Caddy. Se <code>curl -I /api/info</code> retornar 404, a rota está sendo enviada para o serviço errado.</p>
+                    </div>
+                </div>
+
+                <!-- docker compose logs -f -->
+                <div class="card bg-white p-6 rounded-xl shadow-sm border border-gray-200 cursor-pointer has-tooltip relative" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-start">
+                        <code class="text-indigo-600 font-bold text-base command-code">docker compose logs -f</code>
+                        <span class="tooltip-text absolute -top-10 left-0 bg-gray-800 text-white text-xs p-2 rounded shadow-lg z-20 w-48 text-center">Logs em tempo real</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mt-2">Monitora a saída de um serviço (ex: caddy ou nodeapp).</p>
+                    <div class="expandable-content border-t border-gray-100 mt-4">
+                        <p class="text-gray-700 text-sm">Permite ver para qual <em>upstream</em> o proxy está enviando cada requisição e capturar erros de runtime.</p>
+                    </div>
+                </div>
+
+                <!-- wget -qO- -->
+                <div class="card bg-white p-6 rounded-xl shadow-sm border border-gray-200 cursor-pointer has-tooltip relative" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-start">
+                        <code class="text-indigo-600 font-bold text-base command-code">wget -qO-</code>
+                        <span class="tooltip-text absolute -top-10 left-0 bg-gray-800 text-white text-xs p-2 rounded shadow-lg z-20 w-48 text-center">Teste de resposta silencioso</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mt-2">Utilitário comum para testes de healthcheck dentro do container.</p>
+                    <div class="expandable-content border-t border-gray-100 mt-4">
+                        <p class="text-gray-700 text-sm">O flag <code>-q</code> silencia logs e <code>-O-</code> joga o resultado no console. Usado para checar se a porta local responde 200 OK.</p>
+                    </div>
+                </div>
+
+                <!-- CMD-SHELL -->
+                <div class="card bg-white p-6 rounded-xl shadow-sm border border-gray-200 cursor-pointer has-tooltip relative" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-start">
+                        <code class="text-indigo-600 font-bold text-base command-code">CMD-SHELL</code>
+                        <span class="tooltip-text absolute -top-10 left-0 bg-gray-800 text-white text-xs p-2 rounded shadow-lg z-20 w-48 text-center">Execução via Shell</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mt-2">Instrução do Docker Compose para rodar comandos complexos.</p>
+                    <div class="expandable-content border-t border-gray-100 mt-4">
+                        <p class="text-gray-700 text-sm">Permite usar operadores de shell (<code>&&</code>, <code>||</code>, <code>></code>) em testes de healthcheck.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Seção de Termos -->
+        <section>
+            <h2 class="text-2xl font-bold text-gray-800 mb-8 flex items-center border-b-2 border-emerald-500 pb-2">
+                <svg class="w-6 h-6 mr-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                Glossário Técnico (Conceitos)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Healthcheck -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Healthcheck</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Verificação de saúde</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">Comando periódico que monitora se a aplicação dentro do container está operacional e pronta.</div>
+                </div>
+
+                <!-- IPv6 (::1) -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Localhost / ::1</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Conflito de IP</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">O endereço IPv6 para localhost. Muitos containers resolvem "localhost" para ::1, mas o serviço só ouve no IPv4 (127.0.0.1).</div>
+                </div>
+
+                <!-- Loopback -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">127.0.0.1</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Endereço de Loopback</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">O IP interno da máquina. Usá-lo explicitamente remove a ambiguidade causada pela resolução do nome "localhost".</div>
+                </div>
+
+                <!-- Proxy Reverso -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Proxy Reverso</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Gerenciador de tráfego</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">Servidor (Caddy) que recebe requisições externas e as distribui para containers internos com base em regras.</div>
+                </div>
+
+                <!-- Colisão de Rota -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Colisão de Rota</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Conflito de prefixo</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">Ocorre quando dois serviços usam o mesmo início de URL (ex: /api). O proxy precisa saber qual é a rota exata.</div>
+                </div>
+
+                <!-- Matcher -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Matcher (@)</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Seletor de Condição</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">Recurso do Caddy para criar regras de seleção específicas, como "apenas o caminho exato /api".</div>
+                </div>
+
+                <!-- Upstream -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Upstream</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Destino da requisição</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">O servidor final para onde o tráfego é enviado (ex: nodeapp:4000 ou rocketchat:3000).</div>
+                </div>
+
+                <!-- Strip Prefix -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Strip Prefix</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Remoção de prefixo</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">Ação de remover uma parte da URL (ex: tirar o /api) antes de passar a requisição para o servidor interno.</div>
+                </div>
+
+                <!-- Status Code 404 -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">404 Contextual</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Erro de rota errada</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">No estudo de caso, significava que rotas do Rocket.Chat estavam sendo enviadas ao Nodeapp por erro de configuração.</div>
+                </div>
+
+                <!-- Caddyfile -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Caddyfile</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Configuração do Proxy</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">Arquivo principal onde se define domínios, roteamentos e proxies reversos no servidor Caddy.</div>
+                </div>
+
+                <!-- Determinística -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Determinística</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Comportamento estável</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">Garantir que a infraestrutura sempre se comporte da mesma forma, sem variações causadas por resolução de nomes automática.</div>
+                </div>
+
+                <!-- Stack -->
+                <div class="card bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 cursor-pointer has-tooltip" onclick="toggleExpand(this)">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800">Stack</span>
+                        <span class="tooltip-text absolute bg-gray-800 text-white text-xs p-2 rounded -mt-16 shadow-lg z-20">Conjunto de containers</span>
+                    </div>
+                    <div class="expandable-content text-sm text-gray-600">O ecossistema completo de containers que rodam juntos em um projeto (App + DB + Proxy).</div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function toggleExpand(element) {
+            element.classList.toggle('expanded');
+            if(element.classList.contains('expanded')) {
+                element.classList.add('ring-2', 'ring-indigo-200');
+            } else {
+                element.classList.remove('ring-2', 'ring-indigo-200');
+            }
+        }
+    </script>
+</body>
+</html>
