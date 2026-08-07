@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TO ou FOR? — Missões</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4EEE0;
+    --paper-dark:#EAE1CB;
+    --ink:#20242B;
+    --to-blue:#2B5F87;
+    --to-blue-dark:#1D4867;
+    --to-blue-soft:#DCE9F1;
+    --for-amber:#C6772F;
+    --for-amber-dark:#A15E22;
+    --for-amber-soft:#F5E3C9;
+    --green-accent:#5C7A5A;
+    --line:#C9BFA4;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image: radial-gradient(circle at 1px 1px, rgba(32,36,43,0.06) 1px, transparent 0);
+    background-size:22px 22px;
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    padding:30px 16px 60px;
+  }
+  .sheet{max-width:960px;margin:0 auto;}
+
+  /* ===== TOP BAR ===== */
+  .print-btn{
+    display:block;margin:0 auto 26px;
+    font-family:'Space Grotesk',sans-serif;font-weight:600;
+    background:var(--ink);color:var(--paper);border:none;
+    padding:10px 22px;border-radius:30px;cursor:pointer;font-size:0.9rem;
+  }
+  .print-btn:hover{background:var(--to-blue-dark);}
+
+  /* ===== HERO / CHARACTER INTRO ===== */
+  .hero{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  h1.title{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:2.6rem;
+    text-align:center;
+    margin:6px 0 2px;
+    letter-spacing:-0.01em;
+  }
+  h1.title .to-word{color:var(--to-blue);}
+  h1.title .for-word{color:var(--for-amber);}
+  .kicker{
+    text-align:center;font-family:'JetBrains Mono',monospace;
+    text-transform:uppercase;letter-spacing:0.16em;font-size:0.72rem;
+    color:var(--green-accent);margin-bottom:26px;
+  }
+
+  .intro-cast{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin-bottom:42px;
+  }
+  @media(max-width:640px){.intro-cast{grid-template-columns:1fr;}}
+  .cast-card{
+    border-radius:18px;
+    padding:16px 18px 10px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    border:2px solid;
+  }
+  .cast-card.to{background:var(--to-blue-soft); border-color:var(--to-blue);}
+  .cast-card.for{background:var(--for-amber-soft); border-color:var(--for-amber);}
+  .cast-card svg{flex-shrink:0; animation: bob 2.6s ease-in-out infinite;}
+  .cast-card.for svg{animation: bob 2.6s ease-in-out infinite 0.3s;}
+  @keyframes bob{
+    0%,100%{transform:translateY(0) rotate(-1deg);}
+    50%{transform:translateY(-6px) rotate(1deg);}
+  }
+  .speech{
+    background:#fff;
+    border-radius:14px;
+    padding:10px 14px;
+    position:relative;
+    font-size:0.88rem;
+    line-height:1.35;
+  }
+  .speech strong{display:block; font-family:'Fraunces',serif; font-size:1rem; margin-bottom:2px;}
+  .cast-card.to .speech strong{color:var(--to-blue-dark);}
+  .cast-card.for .speech strong{color:var(--for-amber-dark);}
+  .speech::before{
+    content:"";
+    position:absolute;
+    left:-8px; top:20px;
+    border-width:8px 10px 8px 0;
+    border-style:solid;
+    border-color:transparent #fff transparent transparent;
+  }
+
+  /* ===== MISSION HEADER ===== */
+  .mission-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:44px 0 18px;
+  }
+  .mission-head svg{flex-shrink:0;}
+  .mission-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:#8a836e;
+    display:block;
+  }
+  .mission-head h2{
+    font-family:'Fraunces',serif;
+    font-size:1.4rem;
+    margin:2px 0 0;
+  }
+  .mission-head .rule{
+    flex:1;
+    height:2px;
+    background:repeating-linear-gradient(90deg,var(--line) 0 6px, transparent 6px 12px);
+  }
+
+  /* ===== MISSION 1: fill blank cards ===== */
+  .card-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media(max-width:640px){.card-grid{grid-template-columns:1fr;}}
+  .q-card{
+    background:#fff;
+    border-radius:14px;
+    padding:14px 16px;
+    box-shadow:3px 4px 0 var(--line);
+    font-size:0.96rem;
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    transition:transform 0.15s ease;
+  }
+  .q-card:hover{transform:translateY(-3px);}
+  .q-card:nth-child(odd){transform:rotate(-0.6deg);}
+  .q-card:nth-child(even){transform:rotate(0.6deg);}
+  .q-card:nth-child(odd):hover{transform:rotate(-0.6deg) translateY(-3px);}
+  .q-card:nth-child(even):hover{transform:rotate(0.6deg) translateY(-3px);}
+  .q-num{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:0.82rem;
+    background:var(--ink);
+    color:var(--paper);
+    width:26px;height:26px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .blank{
+    display:inline-block;
+    min-width:64px;
+    border-bottom:2px solid var(--ink);
+    height:1.05em;
+    margin:0 2px;
+  }
+
+  /* ===== MISSION 2: multiple choice pills ===== */
+  .mc-list{display:flex; flex-direction:column; gap:14px;}
+  .mc-item{
+    background:#fff;
+    border-radius:14px;
+    padding:14px 18px;
+    box-shadow:3px 4px 0 var(--line);
+  }
+  .mc-item .sentence{font-size:0.97rem; margin-bottom:10px;}
+  .mc-options{display:flex; gap:10px; flex-wrap:wrap;}
+  .pill{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.84rem;
+    border:2px solid var(--ink);
+    border-radius:22px;
+    padding:6px 16px;
+    background:var(--paper);
+    cursor:default;
+  }
+
+  /* ===== MISSION 3: sorting baskets ===== */
+  .word-bank{
+    display:flex;flex-wrap:wrap;gap:8px;
+    margin-bottom:20px;padding:14px;
+    background:var(--paper-dark);border-radius:12px;
+  }
+  .word-bank span{
+    font-family:'JetBrains Mono',monospace;font-size:0.8rem;
+    background:#fff;border:1px solid var(--line);
+    padding:5px 12px;border-radius:20px;
+  }
+  .baskets{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+  }
+  @media(max-width:640px){.baskets{grid-template-columns:1fr;}}
+  .basket{
+    border-radius:16px;
+    padding:14px 16px 18px;
+    text-align:center;
+  }
+  .basket.to{background:var(--to-blue-soft); border:2px solid var(--to-blue);}
+  .basket.for{background:var(--for-amber-soft); border:2px solid var(--for-amber);}
+  .basket h4{
+    font-family:'Fraunces',serif;
+    margin:6px 0 12px;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .basket .lines div{
+    border-bottom:1px dotted #9c957f;
+    height:28px;
+    margin-bottom:6px;
+  }
+
+  /* ===== MISSION 4: true/false circles ===== */
+  .tf-list{display:flex; flex-direction:column; gap:10px;}
+  .tf-item{
+    background:#fff;
+    border-radius:12px;
+    padding:12px 16px;
+    box-shadow:3px 4px 0 var(--line);
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;
+    font-size:0.94rem;
+  }
+  .tf-choices{display:flex; gap:8px; flex-shrink:0;}
+  .tf-circle{
+    width:30px;height:30px;border-radius:50%;
+    border:2px solid var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:700;
+  }
+
+  /* ===== ANSWER KEY ===== */
+  details.answers{
+    background:var(--ink);color:var(--paper);
+    border-radius:16px;padding:6px 22px;margin-top:40px;
+  }
+  details.answers summary{
+    cursor:pointer;font-family:'Fraunces',serif;font-size:1.1rem;
+    padding:14px 0;list-style:none;display:flex;align-items:center;gap:8px;
+  }
+  details.answers summary::-webkit-details-marker{display:none;}
+  details.answers summary::before{content:"🔑";}
+  .answers-grid{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 20px;
+    padding-bottom:18px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;
+  }
+  @media(max-width:640px){.answers-grid{grid-template-columns:1fr;}}
+  .answers-grid div span.n{color:#8fb7d6;margin-right:6px;}
+
+  footer.foot{
+    text-align:center;margin-top:44px;
+    font-family:'JetBrains Mono',monospace;font-size:0.72rem;
+    color:#8a836e;letter-spacing:0.06em;
+  }
+
+  @media print{
+    body{background:#fff;padding:0;}
+    .print-btn{display:none;}
+    .cast-card svg{animation:none;}
+    details.answers{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">🖨️ Imprimir / Salvar em PDF</button>
+
+<div class="sheet">
+
+  <p class="kicker">English Grammar · Missões</p>
+  <h1 class="title"><span class="to-word">TO</span> ou <span class="for-word">FOR</span>?</h1>
+
+  <!-- CHARACTER INTRO -->
+  <div class="intro-cast">
+    <div class="cast-card to">
+      <svg width="86" height="104" viewBox="0 0 120 150">
+        <ellipse cx="60" cy="140" rx="34" ry="6" fill="#00000014"/>
+        <rect x="40" y="96" width="14" height="34" rx="6" fill="#1D4867"/>
+        <rect x="66" y="96" width="14" height="34" rx="6" fill="#1D4867"/>
+        <circle cx="47" cy="134" r="8" fill="#20242B"/>
+        <circle cx="73" cy="134" r="8" fill="#20242B"/>
+        <path d="M18 90 C10 70, 20 55, 35 60" stroke="#2B5F87" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <path d="M102 90 C110 70, 100 55, 85 60" stroke="#2B5F87" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <polygon points="30,45 46,50 30,60" fill="#5C7A5A"/>
+        <line x1="30" y1="30" x2="30" y2="60" stroke="#6B4A34" stroke-width="3"/>
+        <circle cx="60" cy="70" r="42" fill="#2B5F87"/>
+        <circle cx="60" cy="70" r="30" fill="#FFFDF7"/>
+        <line x1="60" y1="44" x2="60" y2="52" stroke="#2B5F87" stroke-width="2"/>
+        <line x1="60" y1="88" x2="60" y2="96" stroke="#2B5F87" stroke-width="2"/>
+        <line x1="34" y1="70" x2="42" y2="70" stroke="#2B5F87" stroke-width="2"/>
+        <line x1="78" y1="70" x2="86" y2="70" stroke="#2B5F87" stroke-width="2"/>
+        <polygon points="60,52 66,70 60,88 54,70" fill="#C6772F"/>
+        <circle cx="60" cy="70" r="4" fill="#20242B"/>
+        <circle cx="49" cy="62" r="5" fill="#20242B"/>
+        <circle cx="71" cy="62" r="5" fill="#20242B"/>
+        <path d="M52 80 Q60 86 68 80" stroke="#20242B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M32 40 Q60 20 88 40 Q88 30 60 24 Q32 30 32 40 Z" fill="#3E7A4F"/>
+      </svg>
+      <div class="speech">
+        <strong>Zeca, o Bússola</strong>
+        Eu aponto o caminho! Resolva minhas missões de <b>TO</b> aqui embaixo. 🧭
+      </div>
+    </div>
+
+    <div class="cast-card for">
+      <svg width="86" height="104" viewBox="0 0 120 150">
+        <ellipse cx="60" cy="140" rx="34" ry="6" fill="#00000014"/>
+        <rect x="40" y="110" width="12" height="26" rx="6" fill="#A15E22"/>
+        <rect x="68" y="110" width="12" height="26" rx="6" fill="#A15E22"/>
+        <circle cx="46" cy="138" r="7" fill="#20242B"/>
+        <circle cx="74" cy="138" r="7" fill="#20242B"/>
+        <path d="M22 100 C14 90, 18 78, 30 78" stroke="#C6772F" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <path d="M98 100 C106 90, 102 78, 90 78" stroke="#C6772F" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <rect x="26" y="52" width="68" height="60" rx="12" fill="#C6772F"/>
+        <rect x="26" y="76" width="68" height="12" fill="#A15E22"/>
+        <rect x="54" y="52" width="12" height="60" fill="#A15E22"/>
+        <path d="M40 52 C40 34, 54 34, 60 46 C66 34, 80 34, 80 52 Z" fill="#E8935B" stroke="#A15E22" stroke-width="3"/>
+        <circle cx="46" cy="94" r="5" fill="#20242B"/>
+        <circle cx="74" cy="94" r="5" fill="#20242B"/>
+        <path d="M48 102 Q60 110 72 102" stroke="#20242B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="speech">
+        <strong>Mimi, a Caixa de Presente</strong>
+        Eu adoro fazer os outros felizes! Resolva minhas missões de <b>FOR</b> aqui embaixo. 🎁
+      </div>
+    </div>
+  </div>
+
+  <!-- MISSION 1 -->
+  <div class="mission-head">
+    <svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#2B5F87"/><circle cx="20" cy="20" r="12" fill="#FFFDF7"/><polygon points="20,10 24,20 20,30 16,20" fill="#C6772F"/></svg>
+    <div>
+      <span class="mission-tag">Missão 1 · com Zeca</span>
+      <h2>Complete com TO ou FOR</h2>
+    </div>
+    <div class="rule"></div>
+  </div>
+
+  <div class="card-grid">
+    <div class="q-card"><span class="q-num">1</span><span>She drove <span class="blank"></span> the airport this morning.</span></div>
+    <div class="q-card"><span class="q-num">2</span><span>This present is <span class="blank"></span> my sister.</span></div>
+    <div class="q-card"><span class="q-num">3</span><span>We need eggs <span class="blank"></span> the recipe.</span></div>
+    <div class="q-card"><span class="q-num">4</span><span>He studies every night <span class="blank"></span> improve his English.</span></div>
+    <div class="q-card"><span class="q-num">5</span><span>I waited <span class="blank"></span> two hours at the clinic.</span></div>
+    <div class="q-card"><span class="q-num">6</span><span>Can you give this note <span class="blank"></span> the teacher?</span></div>
+    <div class="q-card"><span class="q-num">7</span><span>They traveled <span class="blank"></span> Lisbon last summer.</span></div>
+    <div class="q-card"><span class="q-num">8</span><span>She bought flowers <span class="blank"></span> her grandmother.</span></div>
+    <div class="q-card"><span class="q-num">9</span><span>I need a pen <span class="blank"></span> write this down.</span></div>
+    <div class="q-card"><span class="q-num">10</span><span>This tool is <span class="blank"></span> cutting metal.</span></div>
+  </div>
+
+  <!-- MISSION 2 -->
+  <div class="mission-head">
+    <svg width="40" height="40" viewBox="0 0 40 40"><rect x="4" y="12" width="32" height="24" rx="5" fill="#C6772F"/><rect x="4" y="21" width="32" height="6" fill="#A15E22"/><rect x="17" y="12" width="6" height="24" fill="#A15E22"/></svg>
+    <div>
+      <span class="mission-tag">Missão 2 · com Mimi</span>
+      <h2>Escolha a opção correta</h2>
+    </div>
+    <div class="rule"></div>
+  </div>
+
+  <div class="mc-list">
+    <div class="mc-item">
+      <div class="sentence">1. I called the office ___ about the schedule.</div>
+      <div class="mc-options"><span class="pill">to ask</span><span class="pill">for ask</span></div>
+    </div>
+    <div class="mc-item">
+      <div class="sentence">2. She left early ___.</div>
+      <div class="mc-options"><span class="pill">to a meeting</span><span class="pill">for a meeting</span></div>
+    </div>
+    <div class="mc-item">
+      <div class="sentence">3. We stopped by the bakery ___.</div>
+      <div class="mc-options"><span class="pill">to bread</span><span class="pill">for bread</span></div>
+    </div>
+    <div class="mc-item">
+      <div class="sentence">4. He exercises daily ___ healthy.</div>
+      <div class="mc-options"><span class="pill">to stay</span><span class="pill">for stay</span></div>
+    </div>
+    <div class="mc-item">
+      <div class="sentence">5. This app is useful ___ tasks.</div>
+      <div class="mc-options"><span class="pill">to organize</span><span class="pill">for organize</span></div>
+    </div>
+  </div>
+
+  <!-- MISSION 3 -->
+  <div class="mission-head">
+    <svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#5C7A5A"/><path d="M12 24 L20 12 L28 24 Z" fill="#F4EEE0"/></svg>
+    <div>
+      <span class="mission-tag">Missão 3 · Caça ao Tesouro</span>
+      <h2>Separe as frases nas cestas certas</h2>
+    </div>
+    <div class="rule"></div>
+  </div>
+
+  <div class="word-bank">
+    <span>1. "I bought this scarf for you."</span>
+    <span>2. "Turn left to reach the museum."</span>
+    <span>3. "She saved money for a new laptop."</span>
+    <span>4. "He ran to the bus stop."</span>
+    <span>5. "This is the key for the office."</span>
+    <span>6. "I'm going to bed."</span>
+  </div>
+
+  <div class="baskets">
+    <div class="basket to">
+      <h4>🧭 Cesta do TO</h4>
+      <div class="lines"><div></div><div></div><div></div></div>
+    </div>
+    <div class="basket for">
+      <h4>🎁 Cesta do FOR</h4>
+      <div class="lines"><div></div><div></div><div></div></div>
+    </div>
+  </div>
+
+  <!-- MISSION 4 -->
+  <div class="mission-head">
+    <svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#20242B"/><text x="20" y="26" font-family="JetBrains Mono, monospace" font-size="16" fill="#F4EEE0" text-anchor="middle">?</text></svg>
+    <div>
+      <span class="mission-tag">Missão bônus</span>
+      <h2>Verdadeiro ou Falso</h2>
+    </div>
+    <div class="rule"></div>
+  </div>
+
+  <div class="tf-list">
+    <div class="tf-item"><span>1. "To" pode indicar movimento em direção a um lugar.</span><div class="tf-choices"><div class="tf-circle">V</div><div class="tf-circle">F</div></div></div>
+    <div class="tf-item"><span>2. "For" é sempre seguido de um verbo no infinitivo.</span><div class="tf-choices"><div class="tf-circle">V</div><div class="tf-circle">F</div></div></div>
+    <div class="tf-item"><span>3. Em "I bought it for $10", "for" indica troca/preço.</span><div class="tf-choices"><div class="tf-circle">V</div><div class="tf-circle">F</div></div></div>
+    <div class="tf-item"><span>4. "I slept for eight hours" usa "for" para duração.</span><div class="tf-choices"><div class="tf-circle">V</div><div class="tf-circle">F</div></div></div>
+    <div class="tf-item"><span>5. "I want to help" usa "to" antes de um substantivo.</span><div class="tf-choices"><div class="tf-circle">V</div><div class="tf-circle">F</div></div></div>
+  </div>
+
+  <details class="answers">
+    <summary>Ver Gabarito</summary>
+    <div class="answers-grid">
+      <div><span class="n">M1.1</span>to</div>
+      <div><span class="n">M1.2</span>for</div>
+      <div><span class="n">M1.3</span>for</div>
+      <div><span class="n">M1.4</span>to</div>
+      <div><span class="n">M1.5</span>for</div>
+      <div><span class="n">M1.6</span>to</div>
+      <div><span class="n">M1.7</span>to</div>
+      <div><span class="n">M1.8</span>for</div>
+      <div><span class="n">M1.9</span>to</div>
+      <div><span class="n">M1.10</span>for</div>
+      <div><span class="n">M2.1</span>to ask</div>
+      <div><span class="n">M2.2</span>for a meeting</div>
+      <div><span class="n">M2.3</span>for bread</div>
+      <div><span class="n">M2.4</span>to stay</div>
+      <div><span class="n">M2.5</span>to organize</div>
+      <div><span class="n">M3 · TO</span>2, 4, 6</div>
+      <div><span class="n">M3 · FOR</span>1, 3, 5</div>
+      <div><span class="n">M4.1</span>V</div>
+      <div><span class="n">M4.2</span>F</div>
+      <div><span class="n">M4.3</span>V</div>
+      <div><span class="n">M4.4</span>V</div>
+      <div><span class="n">M4.5</span>F</div>
+    </div>
+  </details>
+
+  <footer class="foot">MADE WITH CLAUDE · MISSÕES TO / FOR</footer>
+
+</div>
+</body>
+</html>
