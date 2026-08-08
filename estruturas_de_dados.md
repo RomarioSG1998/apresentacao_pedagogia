@@ -55,10 +55,10 @@ graph TD
     B -- Não --> D{Acesso por Chave?}
     
     D -- Sim --> E{Necessita Ordenação?}
-    E -- Sim --> E1["Java: TreeMap<K,V> <br> C#: SortedDictionary<TKey,TValue>"]
-    E -- Não --> E2["Java: HashMap<K,V> <br> C#: Dictionary<TKey,TValue>"]
+    E -- Sim --> E1["Java: TreeMap&lt;K,V&gt; <br> C#: SortedDictionary&lt;TKey,TValue&gt;"]
+    E -- Não --> E2["Java: HashMap&lt;K,V&gt; <br> C#: Dictionary&lt;TKey,TValue&gt;"]
     
-    D -- Não --> F{Acesso Aleatório Rápido O(1)?}
-    F -- Sim --> F1["Java: ArrayList<T> <br> C#: List<T>"]
-    F -- Não --> F2["Java: LinkedList<T> <br> C#: LinkedList<T>"]
+    D -- Não --> F{"Acesso Aleatório Rápido O(1)?"}
+    F -- Sim --> F1["Java: ArrayList&lt;T&gt; <br> C#: List&lt;T&gt;"]
+    F -- Não --> F2["Java: LinkedList&lt;T&gt; <br> C#: LinkedList&lt;T&gt;"]
 ```
