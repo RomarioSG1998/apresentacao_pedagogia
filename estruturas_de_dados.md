@@ -13,27 +13,27 @@ mindmap
   root((Estruturas de Dados e POO))
     Java
       Arrays
-        Unidimensionais: int[]
-        Denteados: int[][]
+        ["Unidimensionais: int[]"]
+        ["Denteados: int[][]"]
       Listas
-        ArrayList: Redimensionável em Heap
-        LinkedList: Duplamente encadeada
+        ["ArrayList: Redimensionável em Heap"]
+        ["LinkedList: Duplamente encadeada"]
       Dicionarios
-        HashMap: Chave-Valor
-        TreeMap: Ordenado por Árvore
+        ["HashMap: Chave-Valor"]
+        ["TreeMap: Ordenado por Árvore"]
       Tipos Primitivos vs Wrappers
         Autoboxing em Generics
     CSharp
       Arrays
-        Unidimensionais: int[]
-        Denteados: int[][]
-        Multidimensionais: int[,]
+        ["Unidimensionais: int[]"]
+        ["Denteados: int[][]"]
+        ["Multidimensionais: int[,]"]
       Listas
-        List_T: Desempenho nativo com Structs
-        LinkedList_T: Duplamente encadeada
+        ["List<T>: Desempenho nativo com Structs"]
+        ["LinkedList<T>: Duplamente encadeada"]
       Dicionarios
-        Dictionary_TKey_TValue: Tabela Hash de alta performance
-        SortedDictionary: Ordenado por Árvore Red-Black
+        ["Dictionary<TKey,TValue>: Tabela Hash de alta performance"]
+        ["SortedDictionary: Ordenado por Árvore Red-Black"]
       Generics Nativo
         Sem Boxing/Unboxing para Structs
 ```
